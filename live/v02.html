@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>HARVEST Terminal</title>
+<style>
+:root{
+  --bg:#000; --panel:#07090a; --line:#1f2a2a; --line2:#121818;
+  --amber:#ffae00; --amber-d:#7a5300; --green:#1fe07a; --red:#ff4545; --cyan:#3fd0ff; --white:#e8e6df; --dim:#7d8584; --dim2:#4a5150;
+  --mono:"JetBrains Mono","IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--white);font-family:var(--mono);font-size:12px}
+body{height:100vh;overflow:hidden;display:grid;grid-template-rows:30px 22px 1fr 24px;grid-template-columns:minmax(0,1fr)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+.bar{display:flex;align-items:center;gap:10px;padding:0 8px;background:#0c0c0c;border-bottom:1px solid var(--line)}
+.brand{background:var(--amber);color:#000;font-weight:800;padding:2px 8px;letter-spacing:.08em}
+.cmd{flex:1;max-width:520px;display:flex;align-items:center;gap:6px;background:#000;border:1px solid var(--amber-d);padding:2px 8px;color:var(--amber)}
+.cmd input{flex:1;background:transparent;border:0;outline:0;color:var(--amber);font:inherit;text-transform:uppercase}
+.cmd .go{background:var(--amber);color:#000;padding:0 6px;font-weight:800}
+.bar .r{margin-left:auto;display:flex;gap:16px;color:var(--dim);white-space:nowrap}
+.bar .r b{color:var(--white);font-weight:600}
+.led{display:inline-block;width:7px;height:7px;background:var(--green);margin-right:5px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.fkeys{display:flex;gap:2px;padding:2px 4px;background:#000;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.fkeys button{background:#1a1a1a;color:var(--amber);padding:1px 10px;white-space:nowrap;font-size:11px}
+.fkeys button b{color:#fff;margin-right:6px}
+.fkeys button:hover,.fkeys button.on{background:var(--amber);color:#000}
+.fkeys button:hover b,.fkeys button.on b{color:#000}
+main{display:grid;grid-template-columns:1.5fr 1.02fr .9fr;grid-template-rows:1.18fr 1fr;gap:3px;padding:3px;min-height:0;background:#000}
+.p{background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0;position:relative}
+.ph{display:flex;align-items:center;gap:8px;height:20px;padding:0 6px;background:#101616;border-bottom:1px solid var(--line);color:var(--cyan);font-size:11px;letter-spacing:.06em;white-space:nowrap;overflow:hidden}
+.ph .n{background:var(--cyan);color:#000;padding:0 4px;font-weight:800}
+.ph .s{margin-left:auto;color:var(--dim)}
+.pb{flex:1;min-height:0;overflow:hidden;position:relative}
+#pMap{grid-column:1;grid-row:1}
+#pMon{grid-column:2;grid-row:1}
+#pTape{grid-column:3;grid-row:1/3}
+#pMat{grid-column:1;grid-row:2}
+#pReg{grid-column:2;grid-row:2}
+/* map */
+.ports{display:flex;gap:2px;padding:3px 4px;border-bottom:1px solid var(--line2);flex-wrap:nowrap;overflow:hidden}
+.port{flex:1;min-width:0;text-align:center;padding:2px 0;font-size:10.5px;color:var(--amber);border:1px solid var(--line);cursor:pointer;white-space:nowrap;overflow:hidden;transition:background .15s}
+.port:hover{border-color:var(--amber)}
+.port.hit{background:var(--amber);color:#000}
+.port.ext{color:var(--cyan)}.port.hum{color:var(--white)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.maplegend{position:absolute;right:6px;bottom:4px;color:var(--dim);font-size:10px;text-align:right;pointer-events:none;line-height:1.5}
+.maplegend i{display:inline-block;width:8px;height:8px;vertical-align:-1px;margin:0 3px 0 8px}
+.hud{position:absolute;left:6px;bottom:4px;font-size:10.5px;color:var(--dim);pointer-events:none;line-height:1.5}
+.hud b{color:var(--amber);font-weight:600}
+/* tables */
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:var(--panel);color:var(--dim);font-weight:500;text-align:right;padding:2px 6px;border-bottom:1px solid var(--line);font-size:10.5px;white-space:nowrap}
+th:first-child,td:first-child,th.l,td.l{text-align:left}
+td{padding:1.5px 6px;text-align:right;white-space:nowrap;border-bottom:1px solid #0d1212}
+tr.row{cursor:pointer}
+tr.row:hover td{background:#132020}
+.tk{color:var(--amber)}
+.nm{color:var(--white);max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.g{color:var(--green)}.rd{color:var(--red)}.cy{color:var(--cyan)}.dm{color:var(--dim)}.am{color:var(--amber)}
+.flash-g td{animation:fg 1s ease-out}
+.flash-r td{animation:fr 1s ease-out}
+@keyframes fg{0%{background:#0f6a3a;color:#fff}100%{background:transparent}}
+@keyframes fr{0%{background:#7a1717;color:#fff}100%{background:transparent}}
+.spk{color:var(--amber);letter-spacing:-1px}
+.scroll{overflow-y:auto;height:100%;scrollbar-width:thin;scrollbar-color:#2a3434 transparent}
+/* tape */
+.tape{list-style:none;margin:0;padding:0}
+.tape li{display:grid;grid-template-columns:58px 40px 34px 1fr 30px 56px 36px;gap:4px;padding:2px 6px;border-bottom:1px solid #0d1212;cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tape li:hover{background:#132020}
+.tape li.new{animation:tnew 1.2s ease-out}
+@keyframes tnew{0%{background:#2b2100}100%{background:transparent}}
+.tape li span{overflow:hidden;text-overflow:ellipsis}
+.tape .big{font-weight:800}
+.tapehead{display:grid;grid-template-columns:58px 40px 34px 1fr 30px 56px 36px;gap:4px;padding:2px 6px;color:var(--dim);font-size:10.5px;border-bottom:1px solid var(--line)}
+.tapehead span:nth-child(n+5),.tape li span:nth-child(n+5){text-align:right}
+.tapestats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);font-size:10.5px}
+.tapestats div{padding:4px 6px;border-right:1px solid var(--line2)}
+.tapestats b{display:block;font-size:14px;color:var(--white);font-weight:600}
+/* matrix */
+.mat{display:grid;gap:1px;padding:4px 6px;font-size:10.5px}
+.mat .lab{color:var(--amber);cursor:pointer;white-space:nowrap;overflow:hidden;padding-right:4px;display:flex;gap:6px}
+.mat .lab:hover{color:#fff}
+.mat .lab .pn{margin-left:auto}
+.mat .ch{color:var(--dim);text-align:center;font-size:9.5px;cursor:pointer;overflow:hidden}
+.mat .ch:hover{color:var(--amber)}
+.cell{height:100%;min-height:14px;cursor:pointer;position:relative;outline:1px solid transparent}
+.cell:hover{outline-color:#fff;z-index:2}
+.cell.hit{animation:cellhit .9s ease-out}
+@keyframes cellhit{0%{outline:2px solid #fff;filter:brightness(2.2)}100%{outline-color:transparent;filter:none}}
+/* region board */
+.rg td{padding:2px 6px}
+.blocks{letter-spacing:-1px}
+.fund{display:flex;gap:12px;align-items:baseline;padding:5px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fund b{font-size:18px;color:var(--green);font-weight:700}
+/* bottom ticker */
+.ticker{overflow:hidden;white-space:nowrap;background:var(--amber);color:#000;display:flex;align-items:center;font-weight:600}
+.ticker .lbl{background:#000;color:var(--amber);padding:0 8px;height:100%;display:flex;align-items:center;flex:none;font-weight:800}
+.ticker .run{display:inline-block;padding-left:100%;animation:run 70s linear infinite}
+@keyframes run{to{transform:translateX(-100%)}}
+.ticker .run span{margin-right:42px}
+/* tooltip + window */
+.tip{position:fixed;z-index:30;pointer-events:none;background:#000;border:1px solid var(--amber);color:var(--white);padding:4px 7px;font-size:11px;display:none;max-width:260px;line-height:1.45}
+.tip .t{color:var(--amber)}
+.win{position:fixed;z-index:40;left:50%;top:50%;width:min(720px,calc(100vw - 16px));max-height:calc(100vh - 40px);transform:translate(-50%,-50%) scale(.98);opacity:0;pointer-events:none;background:#030505;border:1px solid var(--amber);box-shadow:0 0 0 1px #000,0 20px 60px rgba(0,0,0,.8),0 0 40px rgba(255,174,0,.12);display:flex;flex-direction:column;transition:opacity .12s,transform .12s}
+.win.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.win .wt{display:flex;align-items:center;gap:10px;background:var(--amber);color:#000;padding:3px 8px;font-weight:800}
+.win .wt .x{margin-left:auto;font-weight:800;padding:0 4px}
+.win .wt .x:hover{background:#000;color:var(--amber)}
+.win .wb{padding:10px 12px;overflow-y:auto;line-height:1.55}
+.win h6{margin:10px 0 4px;color:var(--cyan);font-size:11px;font-weight:500;letter-spacing:.06em;border-bottom:1px solid var(--line);padding-bottom:2px}
+.kvs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 14px}
+.kvs div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #1d2626}
+.kvs div span:first-child{color:var(--dim)}
+.win p{margin:4px 0;color:#cfcac0}
+.win .lk{color:var(--amber);cursor:pointer}
+.win .lk:hover{text-decoration:underline}
+.chart{width:100%;height:120px;display:block;border:1px solid var(--line2)}
+.ver{position:fixed;left:6px;bottom:28px;z-index:50;font-size:10.5px;color:#000;background:var(--cyan);padding:1px 6px}
+/* responsive */
+@media (max-width:1100px){
+  body{height:auto;overflow:auto;grid-template-rows:30px 22px auto 24px}
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:none}
+  #pMap,#pMon,#pTape,#pMat,#pReg{grid-column:1;grid-row:auto}
+  #pMap{height:420px}#pMon{height:360px}#pTape{height:380px}#pMat{height:300px}#pReg{height:340px}
+  .ticker{position:sticky;bottom:0}
+}
+@media (max-width:760px){
+  .bar .r .hide-s{display:none}
+  .cmd{max-width:none}
+  .kvs{grid-template-columns:repeat(2,1fr)}
+  .tape li,.tapehead{grid-template-columns:52px 36px 30px 1fr 28px 50px}
+  .tape li span:nth-child(7),.tapehead span:nth-child(7){display:none}
+  .mat{font-size:9.5px}
+  #pMap{height:400px}
+  .brand{padding:2px 5px;letter-spacing:.02em}
+  .bar{gap:6px}
+  .ports{flex-wrap:wrap}
+  .port{flex:1 0 18%}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="brand" id="brand"></span>
+  <label class="cmd"><span>&gt;</span><input id="cmd" placeholder="TYPE M02, HAWK, ANDALUSIA..." autocomplete="off"><span class="go">GO</span></label>
+  <div class="r"><span class="hide-s"><span class="led"></span>LIVE SOLANA DEVNET</span><span class="hide-s">SLOT <b id="slot"></b></span><span><b id="clock"></b> UTC</span></div>
+</div>
+<nav class="fkeys" id="fkeys">
+  <button class="on"><b>F1</b>LIVE</button><button><b>F2</b>MKTS</button><button><b>F3</b>AGNT</button><button><b>F4</b>FUND</button><button><b>F5</b>BKTST</button><button><b>F6</b>SEAL</button><button><b>F8</b>NEWS</button><button><b>F9</b>HELP</button>
+</nav>
+<main>
+  <section class="p" id="pMap">
+    <div class="ph"><span class="n">1</span>GEO · RISK GRID · ORDER ROUTING<span class="s" id="mapS"></span></div>
+    <div class="ports" id="ports"></div>
+    <div class="pb"><canvas id="cv"></canvas>
+      <div class="hud" id="hud"></div>
+      <div class="maplegend">RISK<i style="background:#ffd36b"></i>LOW<i style="background:#ff7a1a"></i>MED<i style="background:#ff2b2b"></i>HIGH<br>PKT<i style="background:var(--green)"></i>YES<i style="background:var(--red)"></i>NO</div>
+    </div>
+  </section>
+  <section class="p" id="pMon">
+    <div class="ph"><span class="n">2</span>MKT MONITOR · YES PX (¢)<span class="s">20 OPEN</span></div>
+    <div class="pb"><div class="scroll"><table><thead><tr><th>TKR</th><th class="l">MARKET</th><th>LAST</th><th>CHG</th><th class="l">40W</th><th>VOL</th><th>AGT</th></tr></thead><tbody id="mon"></tbody></table></div></div>
+  </section>
+  <section class="p" id="pTape">
+    <div class="ph"><span class="n">3</span>TIME &amp; SALES · ALL ACTORS<span class="s" id="tapeS"></span></div>
+    <div class="tapestats"><div>BETS/MIN<b id="bpm">0</b></div><div>NOTIONAL<b id="notional">$0</b></div><div>YES/NO<b id="yn">0/0</b></div></div>
+    <div class="tapehead"><span>TIME</span><span>WHO</span><span>MKT</span><span>DESC</span><span>SIDE</span><span>SIZE</span><span>PX</span></div>
+    <div class="pb"><div class="scroll"><ul class="tape" id="tape"></ul></div></div>
+  </section>
+  <section class="p" id="pMat">
+    <div class="ph"><span class="n">4</span>AGENT × MARKET · POSITION MATRIX<span class="s">GREEN YES · RED NO · BRIGHT = SIZE</span></div>
+    <div class="pb"><div class="mat" id="mat"></div></div>
+  </section>
+  <section class="p" id="pReg">
+    <div class="ph"><span class="n">5</span>REGION RISK BOARD · RESILIENCE FUND<span class="s">CLICK FOR DES</span></div>
+    <div class="fund"><span class="dm">FUND BAL</span><b id="fund"></b><span class="dm">CUT <span class="am" id="cut"></span> OF VOL</span></div>
+    <div class="pb"><div class="scroll"><table class="rg"><thead><tr><th>REGION</th><th class="l">RISK</th><th>ALLOC</th><th>FLOW</th></tr></thead><tbody id="reg"></tbody></table></div></div>
+  </section>
+</main>
+<div class="ticker"><span class="lbl">HRVST NEWS</span><div style="overflow:hidden;flex:1"><div class="run" id="news"></div></div></div>
+<div class="tip" id="tip"></div>
+<div class="win" id="win"><div class="wt"><span id="wtitle"></span><button class="x" id="wx">[X] CLOSE</button></div><div class="wb" id="wb"></div></div>
+<div class="ver">live v02 · Bloomberg terminal</div>
+
+<script src="../shared/mock-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$('#brand').textContent = BRAND.name + ' <GO>';
+document.title = BRAND.name + ' · Terminal';
+
+const TKR = { climate_pessimist: 'CLIM', em_skeptic: 'SKEP', geo_hawk: 'HAWK', adapt_optimist: 'ADPT', macro_dollar: 'MACR', land_grab: 'LAND', agronomist: 'AGRO', crowd_follower: 'CRWD' };
+const ports = M.agents.map(a => ({ key: a.id, t: TKR[a.id], cls: '' })).concat([{ key: '__ext', t: 'EXT', cls: 'ext' }, { key: '__hum', t: 'HUM', cls: 'hum' }]);
+const actorKey = b => b.actorType === 'agent' ? b.actorId : b.actorType === 'human' ? '__hum' : '__ext';
+const actorTkr = b => b.actorType === 'agent' ? TKR[b.actorId] : b.actorType === 'human' ? 'HUM' : 'EXT';
+const open = M.markets.filter(m => m.status === 'open');
+const short = m => m.title.replace(/\?$/, '').replace('Olive oil', 'OLV').replace('Wheat', 'WHT').replace('Maize', 'CORN').replace('Arabica coffee', 'KC').replace('Cocoa', 'CC').replace('Sugar', 'SB').replace('Sunflower oil', 'SFO').replace('Thai 5% rice', 'RICE').replace('Spanish EVOO', 'EVOO').replace('Euronext maize', 'EMA').toUpperCase();
+const pad = (s, n) => String(s).padStart(n, '0');
+const hms = ts => { const d = new Date(ts); return pad(d.getUTCHours(), 2) + ':' + pad(d.getUTCMinutes(), 2) + ':' + pad(d.getUTCSeconds(), 2); };
+const BLK = '▁▂▃▄▅▆▇█';
+const sparkTxt = v => { const lo = Math.min(...v), hi = Math.max(...v); return v.map(x => BLK[Math.round((x - lo) / ((hi - lo) || 1) * 7)]).join(''); };
+const riskCol = r => r >= .75 ? '#ff2b2b' : r >= .6 ? '#ff7a1a' : '#ffd36b';
+
+/* ---------- clock ---------- */
+let slot = 318442190;
+function tick() { $('#clock').textContent = hms(Date.now()); slot += 3; $('#slot').textContent = slot.toLocaleString('en-US'); }
+tick(); setInterval(tick, 1000);
+
+/* ---------- ports ---------- */
+$('#ports').innerHTML = ports.map(p => `<div class="port ${p.cls}" data-k="${p.key}">${p.t} <span class="dm" data-c="${p.key}">0</span></div>`).join('');
+document.querySelectorAll('.port').forEach(el => el.onclick = () => el.dataset.k.startsWith('__') ? openCrowd(el.dataset.k) : openAgent(el.dataset.k));
+const portCount = {};
+
+/* ---------- monitor ---------- */
+const live = {}; open.forEach(m => live[m.id] = { hist: m.probHistory.slice(-23).concat([m.yes]), open: m.probHistory[m.probHistory.length - 2] });
+function monRow(m) {
+  const chg = (m.yes - live[m.id].open) * 100;
+  return `<td class="tk">${m.id.toUpperCase()}</td><td class="l nm" title="${esc(m.title)}">${esc(short(m))}</td><td>${(m.yes * 100).toFixed(1)}</td><td class="${chg >= 0 ? 'g' : 'rd'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}</td><td class="l spk">${sparkTxt(live[m.id].hist)}</td><td class="dm">${F.compact(m.volume)}</td><td class="cy">${Math.round(m.agentEstimate * 100)}</td>`;
+}
+$('#mon').innerHTML = open.map(m => `<tr class="row" data-m="${m.id}">${monRow(m)}</tr>`).join('');
+document.querySelectorAll('#mon tr').forEach(tr => tr.onclick = () => openMarket(tr.dataset.m));
+
+/* ---------- matrix ---------- */
+const matCols = open.map(m => m.id);
+function renderMatrix() {
+  const mat = $('#mat');
+  mat.style.gridTemplateColumns = `118px repeat(${matCols.length}, minmax(0,1fr))`;
+  let h = '<div></div>' + matCols.map(id => `<div class="ch" data-m="${id}">${id.toUpperCase()}</div>`).join('');
+  M.agents.forEach(a => {
+    h += `<div class="lab" data-a="${a.id}"><span>${TKR[a.id]}</span><span class="pn ${a.pnl >= 0 ? 'g' : 'rd'}">${a.pnl >= 0 ? '+' : ''}${F.compact(a.pnl)}</span></div>`;
+    matCols.forEach(id => {
+      const p = M.getMarket(id).positions.find(p => p.agentId === a.id);
+      const k = Math.min(1, p.stake / 1800), col = p.side === 'YES' ? `rgba(31,224,122,${.12 + k * .8})` : `rgba(255,69,69,${.12 + k * .8})`;
+      h += `<div class="cell" data-a="${a.id}" data-m="${id}" style="background:${col}"></div>`;
+    });
+  });
+  mat.innerHTML = h;
+  mat.style.gridTemplateRows = `14px repeat(${M.agents.length}, minmax(14px,1fr))`;
+  mat.style.height = '100%';
+  mat.querySelectorAll('.lab').forEach(el => el.onclick = () => openAgent(el.dataset.a));
+  mat.querySelectorAll('.ch').forEach(el => el.onclick = () => openMarket(el.dataset.m));
+  mat.querySelectorAll('.cell').forEach(el => {
+    el.onclick = () => openPosition(el.dataset.a, el.dataset.m);
+    el.onmouseenter = ev => { const m = M.getMarket(el.dataset.m), p = m.positions.find(p => p.agentId === el.dataset.a); showTip(ev, `<span class="t">${TKR[p.agentId]} × ${m.id.toUpperCase()}</span><br>${esc(m.title)}<br><span class="${p.side === 'YES' ? 'g' : 'rd'}">${p.side}</span> ${F.usd(p.stake)} · est ${Math.round(p.estimate * 100)}% vs px ${Math.round(m.yes * 100)}`); };
+    el.onmousemove = moveTip; el.onmouseleave = hideTip;
+  });
+}
+renderMatrix();
+
+/* ---------- region board ---------- */
+const regFlow = {};
+const prod = M.regions.filter(r => r.kind === 'production').sort((a, b) => b.risk - a.risk);
+function blocks(r) { const n = Math.round(r * 12); return `<span class="blocks" style="color:${riskCol(r)}">${'█'.repeat(n)}</span><span class="blocks" style="color:#1d2626">${'█'.repeat(12 - n)}</span> <span style="color:${riskCol(r)}">${Math.round(r * 100)}</span>`; }
+function renderRegions() {
+  $('#reg').innerHTML = prod.map(r => `<tr class="row" data-r="${r.id}"><td class="tk">${esc(r.name.toUpperCase().slice(0, 16))}</td><td class="l">${blocks(r.risk)}</td><td>${F.compact(r.fund)}</td><td class="${regFlow[r.id] ? 'am' : 'dm'}">${regFlow[r.id] ? F.compact(regFlow[r.id]) : '—'}</td></tr>`).join('');
+  document.querySelectorAll('#reg tr').forEach(tr => tr.onclick = () => openRegion(tr.dataset.r));
+}
+renderRegions();
+let fund = M.fund.balance;
+$('#cut').textContent = (M.fund.cutBps / 100).toFixed(2) + '%';
+const showFund = () => $('#fund').textContent = F.usd(fund);
+showFund();
+
+/* ---------- tape ---------- */
+const betById = {};
+let notional = 0, nYes = 0, nNo = 0, betTimes = [];
+function tapeLi(b, isNew) {
+  const m = M.getMarket(b.marketId);
+  const big = b.stake >= 1000;
+  return `<li class="${isNew ? 'new' : ''}" data-b="${b.id}"><span class="dm">${hms(b.ts)}</span><span class="${b.actorType === 'agent' ? 'am' : b.actorType === 'human' ? '' : 'cy'}">${actorTkr(b)}</span><span class="tk">${b.marketId.toUpperCase()}</span><span class="dm">${esc(short(m))}</span><span class="${b.side === 'YES' ? 'g' : 'rd'}">${b.side === 'YES' ? 'Y' : 'N'}</span><span class="${big ? 'big' : ''}">${b.stake.toLocaleString('en-US')}</span><span>${(b.priceAfter * 100).toFixed(1)}</span></li>`;
+}
+function pushTape(b, isNew) {
+  betById[b.id] = b;
+  const ul = $('#tape');
+  ul.insertAdjacentHTML('afterbegin', tapeLi(b, isNew));
+  ul.firstElementChild.onclick = () => openBet(b.id);
+  while (ul.children.length > 60) ul.lastElementChild.remove();
+}
+M.recentBets(40).reverse().forEach(b => pushTape(b, false));
+
+/* ---------- news ---------- */
+const newsItems = [
+  'SEAL VERIFIED: backtest holdout committed on Solana devnet, merkle root matches',
+  ...open.slice(0, 8).map(m => `${m.id.toUpperCase()} ${short(m)} ${Math.round(m.yes * 100)}¢ ${m.change7d >= 0 ? '▲' : '▼'}${Math.abs(m.change7d).toFixed(1)} 7D`),
+  `RESILIENCE FUND ${F.usd(M.fund.balance)} · TOP ALLOC ${M.getRegion(M.fund.allocation[0].regionId).name.toUpperCase()}`,
+  ...M.agents.slice(0, 4).map(a => `${TKR[a.id]}: ${a.worldModel.toUpperCase()}`),
+];
+$('#news').innerHTML = newsItems.map(t => `<span>■ ${esc(t)}</span>`).join('');
+
+/* ---------- map canvas ---------- */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1, proj, landLayer, regionXY = {}, packets = [], traces = [], hover = null;
+let world = null;
+const STEP = 5;
+function layoutMap() {
+  const r = cv.parentElement.getBoundingClientRect(); W = r.width; H = r.height; DPR = Math.min(2, devicePixelRatio || 1);
+  cv.width = W * DPR; cv.height = H * DPR;
+  const ext = { type: 'MultiPoint', coordinates: [[-13, 33], [-13, 62], [57, 62], [57, 21], [-13, 21]] };
+  proj = d3.geoEquirectangular().fitExtent([[40, 24], [W - 46, H - 26]], ext);
+  // land mask -> dot layer
+  const off = document.createElement('canvas'); off.width = W; off.height = H;
+  const o = off.getContext('2d');
+  o.fillStyle = '#fff'; o.beginPath(); d3.geoPath(proj, o)(world); o.fill();
+  const data = o.getImageData(0, 0, Math.ceil(W), Math.ceil(H)).data;
+  landLayer = document.createElement('canvas'); landLayer.width = W * DPR; landLayer.height = H * DPR;
+  const l = landLayer.getContext('2d'); l.scale(DPR, DPR);
+  for (let y = STEP / 2; y < H; y += STEP) for (let x = STEP / 2; x < W; x += STEP) {
+    const i = (Math.floor(y) * Math.ceil(W) + Math.floor(x)) * 4;
+    if (data[i + 3] > 100) { l.fillStyle = '#6b5627'; l.fillRect(x - 1.25, y - 1.25, 2.5, 2.5); }
+    else { l.fillStyle = '#0f1717'; l.fillRect(x - .5, y - .5, 1, 1); }
+  }
+  // graticule ticks
+  l.fillStyle = '#4a5150'; l.font = '9px ' + getComputedStyle(document.body).fontFamily;
+  for (let lon = -10; lon <= 50; lon += 10) { const [x] = proj([lon, 21]); l.fillText(lon + '°', x - 8, H - 8); }
+  for (let lat = 25; lat <= 60; lat += 10) { const [, y] = proj([-13, lat]); l.fillText(lat + '°N', 4, y + 3); }
+  // regions
+  regionXY = {};
+  const offEdge = [];
+  M.regions.forEach(r => {
+    let [x, y] = proj([r.lng, r.lat]);
+    if (x < 40 || x > W - 46 || y < 20 || y > H - 20) { offEdge.push(r); return; }
+    regionXY[r.id] = { x, y, off: false };
+  });
+  offEdge.forEach((r, i) => { regionXY[r.id] = { x: W - 40, y: 34 + i * 16, off: true }; });
+  // greedy label placement: right of the cell, else left, else hidden
+  const boxes = [];
+  M.regions.filter(r => regionXY[r.id] && !regionXY[r.id].off).sort((a, b) => b.risk - a.risk).forEach(r => {
+    const p = regionXY[r.id], s = 3 + r.risk * 4, w = (r.kind === 'capital_origin' ? r.name.length : Math.min(11, r.name.length) + 3) * 6 + 4;
+    const cands = [{ x: p.x + s + 4, side: 'r' }, { x: p.x - s - 4 - w, side: 'l' }];
+    const fit = cands.find(c => !boxes.some(b => Math.abs(b.y - p.y) < 11 && c.x < b.x + b.w && b.x < c.x + w));
+    p.lab = fit && (W > 500 || r.risk > .7 || r.kind === 'capital_origin') ? fit : null;
+    if (p.lab) { boxes.push({ x: p.lab.x, y: p.y, w }); p.lab.w = w; }
+    boxes.push({ x: p.x - s - 2, y: p.y, w: 2 * s + 4 });
+  });
+}
+function portX(key) {
+  const el = document.querySelector(`.port[data-k="${key}"]`), a = el.getBoundingClientRect(), c = cv.getBoundingClientRect();
+  return a.left - c.left + a.width / 2;
+}
+function addPacket(b) {
+  const m = M.getMarket(b.marketId);
+  const cand = m.regions.filter(id => regionXY[id]);
+  const rid = cand[Math.floor(Math.random() * cand.length)]; if (!rid) return;
+  const to = regionXY[rid], fx = portX(actorKey(b));
+  // circuit routing: down from the port, across, then down/up to the region
+  const midY = 8 + (Object.keys(TKR).indexOf(b.actorId) + 2) * 3;
+  const pts = [[fx, 0], [fx, midY], [to.x, midY], [to.x, to.y]];
+  const segs = []; let L = 0;
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(d); L += d; }
+  const col = b.side === 'YES' ? '#1fe07a' : '#ff4545';
+  traces.push({ pts, segs, L, t0: performance.now(), dur: 650 + L * .9, col, rid, b, w: b.stake >= 1000 ? 2 : 1 });
+  regFlow[rid] = (regFlow[rid] || 0) + b.stake;
+}
+function pointAt(tr, d) {
+  for (let i = 0; i < tr.segs.length; i++) {
+    if (d <= tr.segs[i]) { const k = d / tr.segs[i], a = tr.pts[i], c = tr.pts[i + 1]; return [a[0] + (c[0] - a[0]) * k, a[1] + (c[1] - a[1]) * k]; }
+    d -= tr.segs[i];
+  }
+  return tr.pts[tr.pts.length - 1];
+}
+const bursts = [];
+function draw(now) {
+  if (!landLayer) return requestAnimationFrame(draw);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(landLayer, 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // capital flows (dashed)
+  ctx.setLineDash([2, 4]); ctx.lineDashOffset = -now / 60; ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(63,208,255,.45)';
+  M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => {
+    const a = regionXY[r.id], c = regionXY[f.regionId]; if (!a || !c) return;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.x, c.y); ctx.lineTo(c.x, c.y); ctx.stroke();
+  }));
+  ctx.setLineDash([]);
+  // traces
+  traces = traces.filter(tr => now - tr.t0 < tr.dur + 2200);
+  traces.forEach(tr => {
+    const k = Math.min(1, (now - tr.t0) / tr.dur), head = k * tr.L;
+    const fade = k < 1 ? 1 : Math.max(0, 1 - (now - tr.t0 - tr.dur) / 2200);
+    ctx.globalAlpha = .55 * fade; ctx.strokeStyle = tr.col; ctx.lineWidth = tr.w;
+    ctx.beginPath(); ctx.moveTo(tr.pts[0][0], tr.pts[0][1]);
+    let acc = 0;
+    for (let i = 1; i < tr.pts.length; i++) {
+      if (acc + tr.segs[i - 1] <= head) ctx.lineTo(tr.pts[i][0], tr.pts[i][1]);
+      else { const p = pointAt(tr, head); ctx.lineTo(p[0], p[1]); break; }
+      acc += tr.segs[i - 1];
+    }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    if (k < 1) { const p = pointAt(tr, head); ctx.fillStyle = '#fff'; ctx.fillRect(p[0] - 2, p[1] - 2, 4, 4); ctx.fillStyle = tr.col; ctx.fillRect(p[0] - 4, p[1] - 4, 8, 8); ctx.fillStyle = '#fff'; ctx.fillRect(p[0] - 1.5, p[1] - 1.5, 3, 3); }
+    else if (!tr.landed) { tr.landed = true; bursts.push({ x: tr.pts[3][0], y: tr.pts[3][1], t0: now, col: tr.col, txt: `${actorTkr(tr.b)} ${tr.b.side[0]} ${F.compact(tr.b.stake)}` }); }
+  });
+  // regions
+  const font = getComputedStyle(document.body).fontFamily;
+  M.regions.forEach(r => {
+    const p = regionXY[r.id]; if (!p) return;
+    if (r.kind === 'capital_origin') {
+      ctx.fillStyle = '#3fd0ff'; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore();
+      ctx.font = '10px ' + font; ctx.fillStyle = '#3fd0ff'; if (p.lab) ctx.fillText(r.name.toUpperCase(), p.lab.x, p.y + 3);
+      return;
+    }
+    const col = riskCol(r.risk);
+    if (p.off) {
+      ctx.font = '10px ' + font; ctx.fillStyle = col; ctx.textAlign = 'right';
+      ctx.fillText('▶ ' + r.name.toUpperCase().slice(0, 14), p.x + 38, p.y + 3); ctx.textAlign = 'left';
+      return;
+    }
+    const pulse = .5 + .5 * Math.sin(now / (520 - r.risk * 300) + r.lat);
+    const s = 3 + r.risk * 4;
+    ctx.globalAlpha = .18 + .25 * pulse; ctx.fillStyle = col; ctx.fillRect(p.x - s - 4 * pulse, p.y - s - 4 * pulse, (s + 4 * pulse) * 2, (s + 4 * pulse) * 2);
+    ctx.globalAlpha = 1; ctx.fillRect(p.x - s / 2 - 1, p.y - s / 2 - 1, s + 2, s + 2);
+    if (hover === r.id) { ctx.strokeStyle = '#fff'; ctx.strokeRect(p.x - s - 6, p.y - s - 6, (s + 6) * 2, (s + 6) * 2); }
+    ctx.font = '9.5px ' + font; ctx.fillStyle = hover === r.id ? '#fff' : '#b8b1a0';
+    if (p.lab || hover === r.id) ctx.fillText(r.name.toUpperCase().slice(0, 11) + ' ' + Math.round(r.risk * 100), p.lab ? p.lab.x : p.x + s + 4, p.y + 3);
+  });
+  // bursts
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const bu = bursts[i], k = (now - bu.t0) / 1400;
+    if (k > 1) { bursts.splice(i, 1); continue; }
+    ctx.strokeStyle = bu.col; ctx.globalAlpha = 1 - k; ctx.lineWidth = 1;
+    const s = 6 + k * 22; ctx.strokeRect(bu.x - s, bu.y - s, s * 2, s * 2);
+    ctx.font = 'bold 10.5px ' + font; ctx.fillStyle = bu.col; ctx.fillText(bu.txt, bu.x + 10, bu.y - 10 - k * 14);
+    ctx.globalAlpha = 1;
+  }
+  requestAnimationFrame(draw);
+}
+cv.addEventListener('mousemove', ev => {
+  const c = cv.getBoundingClientRect(), x = ev.clientX - c.left, y = ev.clientY - c.top;
+  let best = null, bd = 14;
+  for (const r of M.regions) { const p = regionXY[r.id]; if (!p) continue; const d = Math.hypot(p.x + (p.off ? 0 : 0) - x, p.y - y); if (d < bd) { bd = d; best = r; } }
+  hover = best ? best.id : null; cv.style.cursor = best ? 'pointer' : 'default';
+  if (best) showTip(ev, `<span class="t">${esc(best.name.toUpperCase())} · ${esc(best.country.toUpperCase())}</span><br>${esc(best.crop)}${best.risk ? `<br>RISK ${Math.round(best.risk * 100)} · FUND ${F.usd(best.fund)}` : ''}<br><span class="dm">FLOW ${F.usd(regFlow[best.id] || 0)} · CLICK FOR DES</span>`); else hideTip();
+});
+cv.addEventListener('mouseleave', () => { hover = null; hideTip(); });
+cv.addEventListener('click', () => { if (hover) openRegion(hover); });
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+function showTip(ev, html) { tip.innerHTML = html; tip.style.display = 'block'; moveTip(ev); }
+function moveTip(ev) { tip.style.left = Math.min(ev.clientX + 12, innerWidth - 270) + 'px'; tip.style.top = (ev.clientY + 14) + 'px'; }
+function hideTip() { tip.style.display = 'none'; }
+
+/* ---------- DES window ---------- */
+function openWin(title, body) {
+  $('#wtitle').textContent = title; $('#wb').innerHTML = body; $('#win').classList.add('on');
+  $('#wb').querySelectorAll('[data-open]').forEach(el => el.onclick = () => { const [k, id, id2] = el.dataset.open.split(':'); ({ m: openMarket, a: openAgent, r: openRegion, b: openBet, p: (a) => openPosition(a, id2) })[k](id); });
+}
+function closeWin() { $('#win').classList.remove('on'); }
+$('#wx').onclick = closeWin;
+addEventListener('keydown', e => { if (e.key === 'Escape') closeWin(); });
+const kv = pairs => `<div class="kvs">${pairs.map(([k, v]) => `<div><span>${k}</span><span>${v}</span></div>`).join('')}</div>`;
+function chartSvg(vals, col) {
+  const w = 680, h = 120, lo = Math.min(...vals), hi = Math.max(...vals), sx = w / (vals.length - 1), sy = v => h - 8 - (v - lo) / ((hi - lo) || 1) * (h - 16);
+  const pts = vals.map((v, i) => `${(i * sx).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
+  let grid = ''; for (let i = 1; i < 4; i++) grid += `<line x1="0" x2="${w}" y1="${h * i / 4}" y2="${h * i / 4}" stroke="#121818"/>`;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+}
+const recentFor = f => Object.values(betById).filter(f).sort((a, b) => b.ts - a.ts).slice(0, 8);
+const tapeTbl = list => list.length ? `<table>${list.map(b => `<tr class="row" data-open="b:${b.id}"><td class="dm">${hms(b.ts)}</td><td class="am l">${actorTkr(b)}</td><td class="tk l">${b.marketId.toUpperCase()}</td><td class="${b.side === 'YES' ? 'g' : 'rd'}">${b.side}</td><td>${F.usd(b.stake)}</td><td>${Math.round(b.priceBefore * 100)}→${Math.round(b.priceAfter * 100)}</td></tr>`).join('')}</table>` : '<p class="dm">NO PRINTS THIS SESSION</p>';
+function openMarket(id) {
+  const m = M.getMarket(id);
+  openWin(`${m.id.toUpperCase()} <MKT> DES · ${m.type === 'hard' ? 'COMMODITY' : 'POLICY'}`, `
+    <div style="font-size:15px;color:#fff">${esc(m.title)}</div>
+    <div style="font-size:26px;color:var(--amber);margin:4px 0">${(m.yes * 100).toFixed(1)}¢ <span class="${m.change7d >= 0 ? 'g' : 'rd'}" style="font-size:13px">${m.change7d >= 0 ? '+' : ''}${m.change7d.toFixed(1)} 7D</span> <span class="cy" style="font-size:13px">AGT CONS ${Math.round(m.agentEstimate * 100)}</span></div>
+    ${chartSvg(m.probHistory.concat(live[id] ? live[id].hist.slice(-6) : []), '#ffae00')}
+    ${kv([['VOL', F.usd(m.volume)], ['24H', F.usd(m.volume24h)], ['LIQ', F.usd(m.liquidity)], ['TRADERS', m.traders], ['OPENED', m.createdAt], ['EXPIRY', m.endDate], ['SPOT', m.spot || '—'], ['CAT', m.category.toUpperCase()]])}
+    <h6>DESCRIPTION</h6><p>${esc(m.description)}</p><p class="dm">SRC: ${esc(m.resolutionSource)}</p>
+    <h6>REGIONS</h6><p>${m.regions.map(r => `<span class="lk" data-open="r:${r}">${esc(M.getRegion(r).name.toUpperCase())}</span>`).join(' · ')}</p>
+    <h6>AGENT BOOK</h6><table>${m.positions.slice().sort((a, b) => b.stake - a.stake).map(p => `<tr class="row" data-open="a:${p.agentId}"><td class="am">${TKR[p.agentId]}</td><td class="${p.side === 'YES' ? 'g' : 'rd'}">${p.side}</td><td>${F.usd(p.stake)}</td><td class="cy">EST ${Math.round(p.estimate * 100)}</td><td class="l dm" style="white-space:normal">${esc(p.rationale)}</td></tr>`).join('')}</table>
+    <h6>LAST PRINTS</h6>${tapeTbl(recentFor(b => b.marketId === id))}`);
+}
+function openAgent(id) {
+  const a = M.getAgent(id);
+  openWin(`${TKR[id]} <AGENT> DES · WORLD MODEL`, `
+    <div style="font-size:15px;color:#fff">${a.emoji} ${esc(a.name.toUpperCase())}</div>
+    <p class="am">"${esc(a.worldModel)}"</p>
+    ${kv([['PNL', `<span class="${a.pnl >= 0 ? 'g' : 'rd'}">${F.usd(a.pnl)}</span>`], ['BRIER', a.brier.toFixed(3)], ['HARD', a.brierHard.toFixed(3)], ['SOFT', a.brierSoft.toFixed(3)], ['WIN%', Math.round(a.winRate * 100)], ['BETS', a.bets], ['SESSION', portCount[id] || 0], ['RANK', [...M.agents].sort((x, y) => x.brier - y.brier).indexOf(a) + 1 + '/8']])}
+    <h6>CUM PNL Q1 23 → Q4 26</h6>${chartSvg(a.pnlHistory, a.pnl >= 0 ? '#1fe07a' : '#ff4545')}
+    <h6>THESIS</h6><p>${esc(a.conviction)}</p>
+    <h6>BOOK</h6><table>${open.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).sort((x, y) => y.p.stake - x.p.stake).slice(0, 8).map(({ m, p }) => `<tr class="row" data-open="m:${m.id}"><td class="tk">${m.id.toUpperCase()}</td><td class="l nm">${esc(short(m))}</td><td class="${p.side === 'YES' ? 'g' : 'rd'}">${p.side}</td><td>${F.usd(p.stake)}</td><td class="cy">${Math.round(p.estimate * 100)} vs ${Math.round(m.yes * 100)}</td></tr>`).join('')}</table>
+    <h6>LAST PRINTS</h6>${tapeTbl(recentFor(b => b.actorId === id))}`);
+}
+function openCrowd(k) {
+  const hum = k === '__hum';
+  openWin(`${hum ? 'HUM' : 'EXT'} <FLOW> DES`, `<p>${hum ? 'HUMAN TRADERS VIA DEVNET WALLETS. TEAM IS MARKET MAKER.' : 'EXTERNAL AGENTS VIA OPEN API. TEAM IS MARKET MAKER.'}</p>
+    ${hum ? `<h6>LEADERBOARD</h6><table>${M.users.slice(0, 10).map(u => `<tr><td class="am">#${u.rank}</td><td class="l">${esc(u.nick)}</td><td class="dm">${esc(u.country)}</td><td class="${u.pnl >= 0 ? 'g' : 'rd'}">${F.usd(u.pnl)}</td><td>${Math.round(u.winRate * 100)}%</td></tr>`).join('')}</table>` : ''}
+    <h6>LAST PRINTS</h6>${tapeTbl(recentFor(b => b.actorType === (hum ? 'human' : 'external_agent')))}`);
+}
+function openRegion(id) {
+  const r = M.getRegion(id);
+  const mks = open.filter(m => m.regions.includes(id));
+  openWin(`${r.name.toUpperCase()} <REGION> DES`, `
+    <div style="font-size:15px;color:#fff">${esc(r.name.toUpperCase())}, ${esc(r.country.toUpperCase())}</div>
+    ${r.risk ? `<p>${blocks(r.risk)}</p>` : ''}
+    ${kv([['CROP', esc(r.crop)], ['LAT/LNG', r.lat + ' / ' + r.lng], ['FUND', F.usd(r.fund)], ['FLOW', F.usd(regFlow[id] || 0)]])}
+    <h6>NOTE</h6><p>${esc(r.note)}</p>
+    ${r.flowsTo ? `<h6>SOVEREIGN CAPITAL OUT</h6><table>${r.flowsTo.map(f => `<tr class="row" data-open="r:${f.regionId}"><td class="tk">${esc(M.getRegion(f.regionId).name.toUpperCase())}</td><td>${F.usd(f.usd)}</td></tr>`).join('')}</table>` : ''}
+    <h6>MARKETS</h6><table>${mks.map(m => `<tr class="row" data-open="m:${m.id}"><td class="tk">${m.id.toUpperCase()}</td><td class="l">${esc(m.title)}</td><td class="am">${(m.yes * 100).toFixed(1)}</td></tr>`).join('')}</table>
+    <h6>LAST PRINTS</h6>${tapeTbl(recentFor(b => mks.some(m => m.id === b.marketId)))}`);
+}
+function openPosition(aid, mid) {
+  const m = M.getMarket(mid), p = m.positions.find(p => p.agentId === aid), a = M.getAgent(aid);
+  openWin(`${TKR[aid]} × ${mid.toUpperCase()} <POS> DES`, `
+    <div style="font-size:14px;color:#fff"><span class="lk" data-open="a:${aid}">${esc(a.name.toUpperCase())}</span> in <span class="lk" data-open="m:${mid}">${esc(m.title)}</span></div>
+    ${kv([['SIDE', `<span class="${p.side === 'YES' ? 'g' : 'rd'}">${p.side}</span>`], ['STAKE', F.usd(p.stake)], ['AVG PX', Math.round(p.avgPrice * 100) + '¢'], ['EST', Math.round(p.estimate * 100) + '%'], ['MKT', Math.round(m.yes * 100) + '¢'], ['EDGE', ((p.estimate - m.yes) * 100).toFixed(1)]])}
+    <h6>RATIONALE</h6><p>${esc(p.rationale)}</p>
+    <h6>LAST PRINTS</h6>${tapeTbl(recentFor(b => b.actorId === aid && b.marketId === mid))}`);
+}
+function openBet(id) {
+  const b = betById[id]; if (!b) return;
+  openWin(`PRINT ${b.id.toUpperCase()} <TX> DES`, `
+    ${kv([['TIME', hms(b.ts)], ['ACTOR', esc(b.actorName)], ['TYPE', b.actorType.toUpperCase()], ['SIDE', `<span class="${b.side === 'YES' ? 'g' : 'rd'}">${b.side}</span>`], ['SIZE', F.usd(b.stake)], ['PX IN', (b.priceBefore * 100).toFixed(1)], ['PX OUT', (b.priceAfter * 100).toFixed(1)], ['IMPACT', (b.priceImpact >= 0 ? '+' : '') + b.priceImpact.toFixed(2)]])}
+    <h6>MARKET</h6><p><span class="lk" data-open="m:${b.marketId}">${b.marketId.toUpperCase()} ${esc(b.marketTitle)}</span></p>
+    ${b.actorType === 'agent' ? `<p><span class="lk" data-open="a:${b.actorId}">→ ${TKR[b.actorId]} AGENT DES</span></p>` : ''}
+    <h6>RATIONALE</h6><p>"${esc(b.rationale)}"</p>
+    <h6>SOLANA DEVNET SIG</h6><p class="dm" style="word-break:break-all">${b.tx}</p>
+    <p><a class="lk" target="_blank" rel="noopener" href="https://explorer.solana.com/tx/${b.tx}?cluster=devnet">OPEN IN EXPLORER ↗</a></p>`);
+}
+
+/* ---------- command line ---------- */
+$('#cmd').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const q = e.target.value.trim().toLowerCase(); if (!q) return; e.target.value = '';
+  const m = M.markets.find(x => x.id === q || x.title.toLowerCase().includes(q)); if (m) return openMarket(m.id);
+  const ak = Object.keys(TKR).find(k => TKR[k].toLowerCase() === q || M.getAgent(k).name.toLowerCase().includes(q)); if (ak) return openAgent(ak);
+  const r = M.regions.find(x => (x.id + ' ' + x.name + ' ' + x.country).toLowerCase().includes(q)); if (r) return openRegion(r.id);
+});
+addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== $('#cmd')) { e.preventDefault(); $('#cmd').focus(); } });
+
+/* ---------- stream ---------- */
+const t0 = Date.now();
+function onBet(b) {
+  pushTape(b, true);
+  notional += b.stake; b.side === 'YES' ? nYes++ : nNo++;
+  betTimes.push(Date.now()); betTimes = betTimes.filter(t => Date.now() - t < 60000);
+  $('#bpm').textContent = Math.round(betTimes.length * 60000 / Math.max(10000, Math.min(60000, Date.now() - t0)));
+  $('#notional').textContent = '$' + F.compact(notional); $('#yn').innerHTML = `<span class="g">${nYes}</span>/<span class="rd">${nNo}</span>`;
+  $('#tapeS').textContent = (nYes + nNo) + ' PRINTS';
+  const k = actorKey(b); portCount[k] = (portCount[k] || 0) + 1;
+  const port = document.querySelector(`.port[data-k="${k}"]`); port.classList.add('hit'); clearTimeout(port._t); port._t = setTimeout(() => port.classList.remove('hit'), 280);
+  document.querySelector(`[data-c="${k}"]`).textContent = portCount[k];
+  // monitor
+  const m = M.getMarket(b.marketId); live[m.id].hist.push(m.yes); live[m.id].hist.shift();
+  const tr = document.querySelector(`#mon tr[data-m="${m.id}"]`);
+  tr.innerHTML = monRow(m); tr.classList.remove('flash-g', 'flash-r'); void tr.offsetWidth; tr.classList.add(b.priceImpact >= 0 ? 'flash-g' : 'flash-r');
+  // matrix
+  if (b.actorType === 'agent') { const c = document.querySelector(`.cell[data-a="${b.actorId}"][data-m="${b.marketId}"]`); if (c) { c.classList.remove('hit'); void c.offsetWidth; c.classList.add('hit'); } }
+  fund += b.stake * M.fund.cutBps / 10000; showFund();
+  addPacket(b);
+  if ((nYes + nNo) % 4 === 0) renderRegions();
+  $('#mapS').textContent = `${traces.length} PKTS IN FLIGHT`;
+  $('#hud').innerHTML = `LAST <b>${actorTkr(b)}</b> → <b>${b.marketId.toUpperCase()}</b> ${b.side} ${F.usd(b.stake)}<br>${esc(b.rationale.slice(0, 64))}`;
+}
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json').then(topo => {
+  world = topojson.feature(topo, topo.objects.land);
+  layoutMap();
+  requestAnimationFrame(draw);
+  const stream = M.makeBetStream({ minMs: 300, maxMs: 1000 });
+  stream.on(onBet);
+  [0, 150, 350, 600, 900].forEach(t => setTimeout(() => stream.next(), t));
+  stream.start();
+}).catch(err => { $('#hud').textContent = 'MAP LOAD FAILED: ' + err.message; });
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => world && layoutMap(), 150); });
+</script>
+</body>
+</html>

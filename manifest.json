@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T14:42:36+00:00",
+ "generated": "2026-10-25T14:45:41+00:00",
  "pages": {
   "landing": [
    {
@@ -96,15 +96,27 @@
    },
    {
     "n": 2,
+    "id": "02",
+    "file": "live/v02.html",
+    "shot": "_shots/live-v02.png"
+   },
+   {
+    "n": 3,
     "id": "04",
     "file": "live/v04.html",
     "shot": "_shots/live-v04.png"
    },
    {
-    "n": 3,
+    "n": 4,
+    "id": "05",
+    "file": "live/v05.html",
+    "shot": "_shots/live-v05.png"
+   },
+   {
+    "n": 5,
     "id": "13",
     "file": "live/v13.html",
-    "shot": null
+    "shot": "_shots/live-v13.png"
    }
   ],
   "markets": [
@@ -112,7 +124,7 @@
     "n": 1,
     "id": "13",
     "file": "markets/v13.html",
-    "shot": null
+    "shot": "_shots/markets-v13.png"
    }
   ],
   "detail": []

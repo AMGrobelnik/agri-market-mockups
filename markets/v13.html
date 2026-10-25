@@ -239,7 +239,7 @@ footer { margin: 34px 0 40px; color: var(--muted); font-size: 12px; display: fle
   .stat b { font-size: 15px; }
   .tape { min-height: 0; }
   .tape .trow:nth-child(n+4) { display: none; }
-  .bar { top: 56px; margin-top: 10px; padding: 8px 0; }
+  .bar { position: static; margin-top: 10px; padding: 8px 0; }
   .bar-in { gap: 8px; padding: 8px; }
   .cmd { flex: 1 1 100%; max-width: none; }
   .cmd-box kbd { display: none; }
@@ -677,6 +677,7 @@ const Dots = (() => {
     P.forEach(p => { if (instant) { p.x = p.tx; p.y = p.ty; if (p.role === 'flow') { const t0 = flowPos(p); p.x = t0[0]; p.y = t0[1]; } } });
   }
   function reform() { // jump, then fly into the new formation
+    pulses.length = 0; sparks.length = 0;
     P.forEach(p => { p.vy -= 1.5 + p.r * 3.2; p.vx += (p.s - .5) * 2.4; p.d = Math.floor(p.r * 22); });
     setTargets();
   }
@@ -739,10 +740,10 @@ const Dots = (() => {
     groups.forEach((arr, key) => { const [col, a, sz] = key.split('|'); ctx.globalAlpha = +a; ctx.fillStyle = col; ctx.beginPath(); const r = +sz; for (const p of arr) { ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, 6.283); } ctx.fill(); });
     ctx.globalAlpha = 1;
     // pulses
-    for (let i = pulses.length - 1; i >= 0; i--) { const q = pulses[i]; q.t += 1; const u = q.t / 50; if (u >= 1) { pulses.splice(i, 1); continue; } ctx.strokeStyle = q.col; ctx.globalAlpha = (1 - u) * .8; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(q.x, q.y, 4 + u * 26, 0, 6.283); ctx.stroke(); }
+    for (let i = pulses.length - 1; i >= 0; i--) { const q = pulses[i]; q.t += steps; const u = q.t / 50; if (u >= 1) { pulses.splice(i, 1); continue; } ctx.strokeStyle = q.col; ctx.globalAlpha = (1 - u) * .8; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(q.x, q.y, 4 + u * 26, 0, 6.283); ctx.stroke(); }
     ctx.globalAlpha = 1;
     // sparks (bets in agents mode)
-    for (let i = sparks.length - 1; i >= 0; i--) { const s = sparks[i]; s.u += 0.025; if (s.u >= 1) { sparks.splice(i, 1); pulses.push({ x: s.x1, y: s.y1, t: 0, col: s.col }); continue; } const u = s.u, x = (1 - u) * (1 - u) * s.x0 + 2 * (1 - u) * u * s.mx + u * u * s.x1, y = (1 - u) * (1 - u) * s.y0 + 2 * (1 - u) * u * s.my + u * u * s.y1; ctx.fillStyle = s.col; ctx.beginPath(); ctx.arc(x, y, 3, 0, 6.283); ctx.fill(); }
+    for (let i = sparks.length - 1; i >= 0; i--) { const s = sparks[i]; s.u += 0.025 * steps; if (s.u >= 1) { sparks.splice(i, 1); pulses.push({ x: s.x1, y: s.y1, t: 0, col: s.col }); continue; } const u = s.u, x = (1 - u) * (1 - u) * s.x0 + 2 * (1 - u) * u * s.mx + u * u * s.x1, y = (1 - u) * (1 - u) * s.y0 + 2 * (1 - u) * u * s.my + u * u * s.y1; ctx.fillStyle = s.col; ctx.beginPath(); ctx.arc(x, y, 3, 0, 6.283); ctx.fill(); }
     // labels
     labelsHit = [];
     if (form === 'map') {

@@ -112,7 +112,7 @@ a{color:inherit}
 .feed{list-style:none;margin:0;padding:0 8px 8px;overflow:hidden;flex:1;min-height:0}
 .feed li{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:10px;cursor:pointer;animation:slidein 1.2s ease-out}
 .feed li:hover{background:var(--line2)}
-@keyframes slidein{from{background:var(--blue-50)}to{background:transparent}}
+@keyframes slidein{from{background:#f2f6ff}to{background:transparent}}
 .feed .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex:none}
 .feed .b{font-size:12.5px;line-height:1.35;color:var(--ink2);min-width:0}
 .feed .b b{color:var(--ink)}
@@ -343,7 +343,7 @@ function drawRegions() {
         const rr = 4 + d.risk * 6;
         g.append('circle').attr('class', 'halo').attr('r', rr).attr('fill', riskColor(d.risk)).style('--dur', (3.4 - d.risk * 2.4).toFixed(2) + 's');
         g.append('circle').attr('class', 'core').attr('r', rr).attr('fill', riskColor(d.risk));
-        if (topRisk.has(d.id) || W > 800) g.append('text').attr('x', rr + 5).attr('y', 4).text(d.name);
+        if (topRisk.has(d.id) || W > 800) { const left = d.id === 'ebro'; g.append('text').attr('x', left ? -rr - 5 : rr + 5).attr('y', 4).attr('text-anchor', left ? 'end' : 'start').text(d.name); }
       }
     });
     g.on('mouseenter', (ev, d) => showTip(ev, `<div class="tt">${esc(d.name)}, ${esc(d.country)}</div><div class="tm">${esc(d.crop)}${d.risk ? ' · risk ' + Math.round(d.risk * 100) : ''}</div><div class="tm">${regionHeat[d.id] || 0} bets this session · click for details</div>`))

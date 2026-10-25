@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST Field Almanac</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Work+Sans:wght@400;500;600&family=Caveat:wght@600&display=swap">
+<style>
+:root{
+  --paper:#f2e8d2; --paper2:#e9dcc0; --card:#fbf5e6; --soil:#3a2717; --soil2:#6b4a2e; --muted:#8a7357;
+  --wheat:#d9a441; --wheat2:#f0c96a; --olive:#5f7330; --olive2:#8ea24a; --clay:#b5562f; --sky:#7aa3a0;
+  --yes:#5f7330; --no:#b5562f;
+  --blob:42% 58% 55% 45% / 48% 42% 58% 52%;
+  --blob2:58% 42% 38% 62% / 52% 60% 40% 48%;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Work Sans',system-ui,sans-serif;color:var(--soil);background:var(--paper);overflow:hidden;
+  background-image:radial-gradient(rgba(107,74,46,.07) 1px,transparent 1.4px),radial-gradient(1200px 500px at 20% -10%,#f8eed6,transparent),radial-gradient(900px 700px at 100% 100%,#e6d3ad,transparent);
+  background-size:6px 6px,auto,auto}
+.serif{font-family:'Fraunces',Georgia,serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.app{display:grid;grid-template-columns:1fr 470px;grid-template-rows:68px 1fr 150px;gap:14px 18px;height:100vh;padding:12px 22px 22px}
+
+header{grid-column:1/3;display:flex;align-items:center;gap:22px}
+.brand{font-family:'Fraunces';font-weight:800;font-size:30px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.brand .sheaf{width:40px;height:40px;border-radius:var(--blob);background:var(--wheat);display:grid;place-items:center;font-size:20px;box-shadow:inset -4px -6px 0 rgba(107,74,46,.18)}
+.tag{font-family:'Fraunces';font-style:italic;color:var(--soil2);font-size:15px}
+.season{margin-left:auto;display:flex;gap:26px;align-items:center}
+.season div{line-height:1.1}
+.season small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+.season b{font-family:'Fraunces';font-size:20px;font-weight:600}
+.live{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--olive);color:#f8f1dc;border-radius:var(--blob2);font-weight:600;font-size:13px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--wheat2);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{transform:scale(1.8);opacity:.3}}
+
+/* map */
+.field{position:relative;background:var(--card);border-radius:34px 28px 40px 30px;box-shadow:0 1px 0 #fff inset,0 18px 40px -20px rgba(58,39,23,.45);overflow:hidden;border:1px solid rgba(107,74,46,.15)}
+.field h2{position:absolute;top:18px;left:24px;font-family:'Fraunces';font-size:22px;font-weight:600;z-index:3}
+.field h2 em{display:block;font-size:13px;color:var(--muted);font-weight:400;font-family:'Work Sans';font-style:normal;margin-top:2px}
+#dots{position:absolute;inset:0}
+#mapsvg{position:absolute;inset:0;width:100%;height:100%}
+.reg{cursor:pointer}
+.reg .blob{transition:transform .3s;transform-box:fill-box;transform-origin:center}
+.reg:hover .blob{transform:scale(1.25)}
+.reg text{font-family:'Fraunces';font-size:12px;font-weight:600;fill:var(--soil);paint-order:stroke;stroke:var(--card);stroke-width:4px;pointer-events:none}
+.reg .halo{animation:breathe var(--d) ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes breathe{50%{transform:scale(1.35);opacity:.15}}
+.inset-ttl{font-family:'Fraunces';font-style:italic;font-size:12px;fill:var(--soil2)}
+.legend{position:absolute;left:18px;bottom:14px;background:rgba(251,245,230,.92);padding:6px 12px;border-radius:999px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);z-index:3}
+.legend .sw{display:flex;gap:3px}.legend .sw i{width:14px;height:14px;border-radius:var(--blob)}
+
+/* granary */
+.right{grid-row:2/4;grid-column:2;display:flex;flex-direction:column;gap:14px;min-height:0}
+.box{background:var(--card);border-radius:30px 26px 32px 24px;padding:14px 18px;border:1px solid rgba(107,74,46,.15);box-shadow:0 18px 40px -24px rgba(58,39,23,.5)}
+.box h3{font-family:'Fraunces';font-size:19px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.box h3 small{font-family:'Work Sans';font-size:12px;color:var(--muted);font-weight:400}
+.granary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sack{position:relative;height:104px;border-radius:44% 44% 30% 30% / 30% 30% 22% 22%;background:var(--paper2);overflow:hidden;cursor:pointer;border:1.5px solid rgba(107,74,46,.25);transition:transform .3s}
+.sack:hover{transform:translateY(-3px) rotate(-1deg)}
+.sack.wob{animation:wob .7s}
+@keyframes wob{25%{transform:rotate(3deg)}60%{transform:rotate(-2deg)}}
+.sack .fill{position:absolute;left:-10%;right:-10%;bottom:0;background:var(--c);opacity:.85;transition:height .8s cubic-bezier(.2,.8,.2,1);border-radius:50% 50% 0 0 / 14px 14px 0 0}
+.sack .in{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 4px 12px;text-align:center}
+.sack .em{font-size:22px}
+.sack .lb{font-size:11px;font-weight:600;line-height:1.1}
+.sack .pc{font-family:'Fraunces';font-size:24px;font-weight:800;line-height:1}
+.sack .q{display:none}
+.council{display:flex;flex-direction:column;gap:7px}
+.law{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:16px 20px 14px 22px;background:var(--paper);cursor:pointer;font-size:13px;border:1px solid transparent;transition:.2s}
+.law:hover{border-color:rgba(107,74,46,.3)}
+.law span{flex:1;line-height:1.25}
+.law b{font-family:'Fraunces';font-size:18px;min-width:44px;text-align:right}
+.law b.up{color:var(--olive)}.law b.dn{color:var(--clay)}
+.notes{flex:1;min-height:0;display:flex;flex-direction:column}
+.feed{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}
+.note{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:7px 6px;border-bottom:1px dashed rgba(107,74,46,.25);cursor:pointer;animation:drop .6s cubic-bezier(.2,.8,.2,1)}
+.note:hover{background:rgba(217,164,65,.12)}
+@keyframes drop{from{background:rgba(217,164,65,.35)}}
+.note .e{font-size:18px;text-align:center}
+.note .w{font-size:12.5px;line-height:1.25;min-width:0}
+.note .w b{font-family:'Caveat';font-size:18px;font-weight:600;color:var(--soil2)}
+.note .w div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:11.5px}
+.stamp{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:var(--blob);border:1.5px solid currentColor;transform:rotate(-4deg);margin:0 3px}
+.stamp.YES{color:var(--olive)}.stamp.NO{color:var(--clay)}
+.note .s{font-family:'Fraunces';font-weight:600;font-size:15px;text-align:right}
+.note .s small{display:block;font-family:'Work Sans';font-weight:400;font-size:10.5px;color:var(--muted)}
+
+/* cooperative */
+.coop{grid-column:1;display:flex;align-items:stretch;gap:12px;background:var(--soil);border-radius:30px 40px 26px 36px;padding:14px 18px;color:#f3e7cc;position:relative}
+.coop .lbl{writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Fraunces';font-style:italic;font-size:15px;color:var(--wheat2);text-align:center}
+.farmers{flex:1;display:grid;grid-template-columns:repeat(10,1fr);gap:8px}
+.farmer{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;text-align:center;border-radius:20px;padding:6px 2px;transition:background .2s}
+.farmer:hover{background:rgba(240,201,106,.12)}
+.farmer .pt{width:52px;height:52px;border-radius:var(--blob);display:grid;place-items:center;font-size:24px;background:#f3e7cc;box-shadow:0 0 0 3px var(--c);transition:transform .3s}
+.farmer.sow .pt{animation:sow .6s}
+@keyframes sow{30%{transform:translateY(-8px) scale(1.12) rotate(-6deg)}}
+.farmer .n{font-size:11px;font-weight:600;line-height:1.15}
+.farmer .p{font-size:10.5px;font-family:'Fraunces'}
+
+/* flights */
+#sky{position:fixed;inset:0;pointer-events:none;z-index:30;width:100%;height:100%}
+.pop{position:fixed;z-index:31;pointer-events:none;font-family:'Fraunces';font-weight:800;font-size:13px;transform:translate(-50%,-50%);animation:rise 1.6s forwards;white-space:nowrap;text-align:center}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}20%{opacity:1;transform:translate(-50%,-70%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-160%)}}
+
+/* page panel */
+#veil{position:fixed;inset:0;background:rgba(58,39,23,.25);opacity:0;pointer-events:none;transition:.3s;z-index:40}
+#page{position:fixed;left:22px;top:92px;bottom:22px;width:460px;max-width:calc(100vw - 32px);z-index:50;background:var(--card);border-radius:30px 36px 30px 26px;box-shadow:0 30px 60px -20px rgba(58,39,23,.6);padding:26px 26px 30px;overflow:auto;transform:translateX(-110%) rotate(-3deg);transition:transform .5s cubic-bezier(.2,.8,.2,1);border:1px solid rgba(107,74,46,.2)}
+body.open #page{transform:none} body.open #veil{opacity:1;pointer-events:auto}
+#page .x{position:absolute;top:16px;right:18px;width:36px;height:36px;border-radius:var(--blob);background:var(--paper2);font-size:20px}
+.kick{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--olive);font-weight:600;margin-bottom:6px}
+#page h2{font-family:'Fraunces';font-size:28px;line-height:1.1;margin-bottom:12px;padding-right:40px}
+#page p{font-size:14px;line-height:1.55;color:var(--soil2);margin-bottom:12px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 6px}
+.facts div{background:var(--paper);border-radius:18px 14px 20px 16px;padding:10px 12px}
+.facts small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.facts b{font-family:'Fraunces';font-size:19px}
+.sub{font-family:'Fraunces';font-size:16px;font-weight:600;margin:16px 0 8px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:8px 2px;border-bottom:1px dashed rgba(107,74,46,.25);font-size:13.5px;cursor:pointer}
+.row:hover{color:var(--olive)}
+.row b{font-family:'Fraunces'}
+.huge{font-family:'Fraunces';font-weight:800;font-size:56px;line-height:1;color:var(--olive)}
+.tx{font-family:ui-monospace,monospace;font-size:11px;word-break:break-all;color:var(--soil2);background:var(--paper);padding:8px 10px;border-radius:12px}
+.vlabel{position:fixed;left:10px;bottom:3px;font:11px ui-monospace,monospace;color:var(--muted);z-index:60;pointer-events:none}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{display:flex;flex-direction:column;height:auto;padding:12px 16px 40px}
+  header{flex-wrap:wrap;gap:8px}.tag{display:none}.season{margin-left:0;gap:14px}.season div:nth-child(n+3){display:none}
+  .field{height:420px}
+  .coop{flex-direction:column}.coop .lbl{writing-mode:horizontal-tb;transform:none}
+  .farmers{grid-template-columns:repeat(5,1fr)}
+  .granary{grid-template-columns:repeat(4,1fr)}
+  .notes{height:420px;flex:none}
+  #page{top:12px;left:12px;bottom:12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><span class="sheaf">🌾</span><span id="bName">HARVEST</span></div>
+    <div class="tag" id="bTag"></div>
+    <div class="season">
+      <div><small>Sown today</small><b id="sVol">$0</b></div>
+      <div><small>Bets this hour</small><b id="sBets">0</b></div>
+      <div><small>Resilience Fund</small><b id="sFund" style="cursor:pointer">$0</b></div>
+      <div class="live"><i></i>Live · Solana devnet</div>
+    </div>
+  </header>
+
+  <section class="field" id="field">
+    <h2>The field today<em>Bets land where the harvest is at stake. Soil darkens with climate risk.</em></h2>
+    <canvas id="dots"></canvas>
+    <svg id="mapsvg"></svg>
+    <div class="legend">risk <span class="sw"><i style="background:#c9bd94"></i><i style="background:#d9a441"></i><i style="background:#c9772f"></i><i style="background:#9b3b1f"></i></span> low → severe · <span style="color:var(--olive)">🌱 YES</span> <span style="color:var(--clay)">🍂 NO</span></div>
+  </section>
+
+  <aside class="right">
+    <div class="box"><h3>The granary <small>headline odds per crop</small></h3><div class="granary" id="granary"></div></div>
+    <div class="box"><h3>Council &amp; land <small>policy markets</small></h3><div class="council" id="council"></div></div>
+    <div class="box notes"><h3>Field notes <small id="nCount">live bets</small></h3><div class="feed" id="feed"></div></div>
+  </aside>
+
+  <section class="coop">
+    <div class="lbl">the cooperative</div>
+    <div class="farmers" id="farmers"></div>
+  </section>
+</div>
+<svg id="sky"></svg>
+<div id="veil"></div>
+<aside id="page"><button class="x" id="px">×</button><div id="pbody"></div></aside>
+<div class="vlabel">live v05 · Earthy harvest</div>
+
+<script src="../shared/mock-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+document.getElementById('bName').textContent = BRAND.name;
+document.getElementById('bTag').textContent = BRAND.tagline;
+document.title = BRAND.name + ' Field Almanac';
+const M = window.MOCK, F = M.fmt, $ = s => document.querySelector(s);
+const openMarkets = M.markets.filter(m => m.status === 'open');
+const riskCol = d3.scaleLinear().domain([0, .5, .7, .9]).range(['#c9bd94', '#d9a441', '#c9772f', '#9b3b1f']).clamp(true);
+const bets = [];
+
+/* ---------- map: Europe main + three lens insets ---------- */
+const field = $('#field'), svg = d3.select('#mapsvg'), canvas = $('#dots');
+const FAR = { brazil: ['mato_grosso', 'minas_gerais'], wafrica: ['ci_cocoa', 'ghana_ashanti'], asia: ['punjab', 'mekong'] };
+const farOf = {}; Object.entries(FAR).forEach(([k, ids]) => ids.forEach(id => farOf[id] = k));
+const LENS = { brazil: { rot: [52, 16], scale: 2.1, title: 'Brazil' }, wafrica: { rot: [4, -7], scale: 3.4, title: 'West Africa' }, asia: { rot: [-90, -21], scale: 1.6, title: 'South & SE Asia' } };
+let land = null, proj, lenses = {}, regionPos = {};
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-50m.json').then(r => r.json()).then(t => { land = topojson.feature(t, t.objects.land); draw(); });
+
+function draw() {
+  if (!land) return;
+  const W = field.clientWidth, H = field.clientHeight, lensW = W > 700 ? 170 : 0;
+  const dpr = devicePixelRatio || 1; canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  svg.attr('viewBox', `0 0 ${W} ${H}`);
+  const box = { type: 'MultiPoint', coordinates: [[-11, 34], [42, 58], [57, 23], [-9, 50], [30, 27]] };
+  proj = d3.geoConicConformal().rotate([-18, 0]).parallels([35, 60]).fitExtent([[20, 70], [W - lensW - 20, H - 40]], box);
+  // lens projections (orthographic discs)
+  const R = lensW ? 68 : 0;
+  Object.keys(LENS).forEach((k, i) => { const L = LENS[k]; const cx = W - lensW / 2 - 4, cy = 110 + i * (R * 2 + 34); L.cx = cx; L.cy = cy; L.R = R; L.p = d3.geoOrthographic().rotate(L.rot).scale(R * L.scale).translate([cx, cy]).clipAngle(90); });
+  // stipple: rasterise land, sample on a grid, colour by nearest risk
+  const off = document.createElement('canvas'); off.width = W; off.height = H; const oc = off.getContext('2d');
+  oc.fillStyle = '#000'; oc.beginPath(); d3.geoPath(proj, oc)(land); oc.fill();
+  Object.values(LENS).forEach(L => { if (!L.R) return; oc.save(); oc.beginPath(); oc.arc(L.cx, L.cy, L.R, 0, 7); oc.clip(); oc.clearRect(0, 0, W, H); oc.beginPath(); d3.geoPath(L.p, oc)(land); oc.fill(); oc.restore(); });
+  const img = oc.getImageData(0, 0, W, H).data;
+  regionPos = {};
+  M.regions.forEach(r => { const L = LENS[farOf[r.id]]; regionPos[r.id] = L ? (L.R ? L.p([r.lng, r.lat]) : null) : proj([r.lng, r.lat]); });
+  const prod = M.regions.filter(r => r.risk > 0 && regionPos[r.id]);
+  const ctx = canvas.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const step = 7;
+  for (let y = step / 2; y < H; y += step) for (let x = step / 2 + ((y / step) % 2) * step / 2; x < W; x += step) {
+    if (img[(Math.floor(y) * W + Math.floor(x)) * 4 + 3] < 128) continue;
+    let heat = 0; for (const r of prod) { const p = regionPos[r.id]; const d = Math.hypot(p[0] - x, p[1] - y); const k = Math.max(0, 1 - d / 70) * r.risk; if (k > heat) heat = k; }
+    ctx.fillStyle = heat > .05 ? riskCol(.35 + heat * .65) : '#bba985';
+    ctx.beginPath(); ctx.arc(x, y, heat > .05 ? 2 + heat * 1.3 : 2, 0, 7); ctx.fill();
+  }
+  // svg layer
+  svg.selectAll('*').remove();
+  const defs = svg.append('defs');
+  Object.entries(LENS).forEach(([k, L]) => { if (!L.R) return;
+    svg.append('circle').attr('cx', L.cx).attr('cy', L.cy).attr('r', L.R + 6).attr('fill', 'none').attr('stroke', '#6b4a2e').attr('stroke-width', 1.5).attr('stroke-dasharray', '2 5').attr('stroke-linecap', 'round');
+    svg.append('circle').attr('cx', L.cx).attr('cy', L.cy).attr('r', L.R).attr('fill', 'none').attr('stroke', 'rgba(107,74,46,.35)');
+    svg.append('text').attr('class', 'inset-ttl').attr('x', L.cx).attr('y', L.cy + L.R + 22).attr('text-anchor', 'middle').text(L.title);
+  });
+  // sovereign capital flows as dashed furrows
+  M.regions.filter(r => r.flowsTo).forEach(o => o.flowsTo.forEach(f => {
+    const a = regionPos[o.id], b = regionPos[f.regionId]; if (!a || !b) return;
+    svg.append('path').attr('d', `M${a[0]},${a[1]} Q${(a[0] + b[0]) / 2},${Math.min(a[1], b[1]) - 60} ${b[0]},${b[1]}`).attr('fill', 'none').attr('stroke', '#6b4a2e').attr('stroke-opacity', .35).attr('stroke-width', 1 + f.usd / 3e7).attr('stroke-dasharray', '1 6').attr('stroke-linecap', 'round')
+      .append('animate').attr('attributeName', 'stroke-dashoffset').attr('from', 28).attr('to', 0).attr('dur', '2s').attr('repeatCount', 'indefinite');
+  }));
+  const blob = (r) => { const n = 9, pts = d3.range(n).map(i => { const a = i / n * Math.PI * 2, k = r * (0.82 + 0.3 * Math.abs(Math.sin(i * 2.3 + r))); return [Math.cos(a) * k, Math.sin(a) * k]; }); return d3.line().curve(d3.curveCardinalClosed.tension(.2))(pts); };
+  const labelled = new Set(['andalusia', 'po_valley', 'thessaly', 'puglia', 'beauce', 'ukraine_chernozem', 'pannonia', 'catalonia', 'dobrogea', 'kuban', 'riyadh', 'abu_dhabi', 'crete', 'ebro', 'punjab', 'mekong', 'mato_grosso', 'minas_gerais', 'ci_cocoa', 'ghana_ashanti']);
+  const dx = { catalonia: 8, ebro: -8, andalusia: 0, crete: 0, abu_dhabi: 6, ci_cocoa: -6, ghana_ashanti: 6 }, anchorL = new Set(['ebro', 'ci_cocoa', 'beauce']), below = new Set(['andalusia', 'crete', 'riyadh', 'puglia', 'ghana_ashanti', 'minas_gerais', 'mekong']);
+  M.regions.forEach(r => {
+    const p = regionPos[r.id]; if (!p) return;
+    const g = svg.append('g').attr('class', 'reg').attr('id', 'r-' + r.id).attr('transform', `translate(${p[0]},${p[1]})`).on('click', () => openRegion(r.id));
+    if (r.kind === 'capital_origin') {
+      g.append('rect').attr('class', 'blob').attr('x', -7).attr('y', -7).attr('width', 14).attr('height', 14).attr('rx', 3).attr('fill', '#3a2717');
+      g.append('text').attr('y', 22).attr('text-anchor', 'middle').text('💰 ' + r.name);
+      return;
+    }
+    const s = 8 + r.risk * 9;
+    g.append('path').attr('class', 'halo').attr('d', blob(s * 1.7)).attr('fill', riskCol(r.risk)).attr('opacity', .3).style('--d', (3.6 - r.risk * 2.4) + 's');
+    g.append('path').attr('class', 'blob').attr('d', blob(s)).attr('fill', riskCol(r.risk)).attr('stroke', '#3a2717').attr('stroke-width', 1.2);
+    if (labelled.has(r.id)) {
+      const ox = dx[r.id] || 0, left = anchorL.has(r.id), bel = below.has(r.id);
+      g.append('text').attr('x', ox + (bel ? 0 : left ? -s - 6 : s + 6)).attr('y', bel ? s + 16 : 4).attr('text-anchor', bel ? 'middle' : left ? 'end' : 'start').text(r.name);
+    }
+  });
+}
+
+/* ---------- granary ---------- */
+const comms = Object.keys(M.commodities);
+const headline = {}; comms.forEach(c => headline[c] = openMarkets.filter(m => m.commodity === c).sort((a, b) => b.volume - a.volume)[0]);
+const gEl = $('#granary'), sackEl = {};
+comms.forEach(c => {
+  const C = M.commodities[c], m = headline[c];
+  const el = document.createElement('div'); el.className = 'sack'; el.style.setProperty('--c', C.color);
+  el.innerHTML = `<div class="fill"></div><div class="in"><span class="em">${C.emoji}</span><span class="lb">${C.label}</span><span class="pc">0%</span><span class="q">${m.title.replace('?', '')}</span></div>`;
+  el.onclick = () => openCommodity(c); gEl.appendChild(el); sackEl[c] = el; paintSack(c);
+});
+function paintSack(c) { const m = headline[c], el = sackEl[c]; el.querySelector('.fill').style.height = (m.yes * 100) + '%'; el.querySelector('.pc').textContent = F.pct(m.yes); }
+const soft = openMarkets.filter(m => m.type === 'soft').sort((a, b) => b.volume - a.volume).slice(0, 3), lawEl = {};
+soft.forEach(m => { const el = document.createElement('div'); el.className = 'law'; el.innerHTML = `<span>${m.title}</span><b>${F.pct(m.yes)}</b>`; el.onclick = () => openMarket(m.id); $('#council').appendChild(el); lawEl[m.id] = el; });
+
+/* ---------- cooperative ---------- */
+const actors = M.agents.map(a => ({ id: a.id, name: a.name, emoji: a.emoji, color: a.color, pnl: a.pnl })).concat([{ id: '_ext', name: 'Outside bots', emoji: '🤖', color: '#7aa3a0' }, { id: '_hum', name: 'Neighbours', emoji: '🧑‍🌾', color: '#f0c96a' }]);
+const fEl = {};
+actors.forEach(a => {
+  const el = document.createElement('div'); el.className = 'farmer'; el.style.setProperty('--c', a.color);
+  el.innerHTML = `<div class="pt">${a.emoji}</div><div class="n">${a.name}</div><div class="p" style="color:${a.pnl == null ? '#f0c96a' : a.pnl >= 0 ? '#b9cf6a' : '#f08a62'}">${a.pnl == null ? (a.id === '_ext' ? 'via API' : '30 online') : (a.pnl >= 0 ? '+' : '−') + '$' + F.compact(Math.abs(a.pnl))}</div>`;
+  el.onclick = () => a.id[0] === '_' ? openCrowd(a.id) : openAgent(a.id);
+  $('#farmers').appendChild(el); fEl[a.id] = el;
+});
+const keyOf = b => b.actorType === 'agent' ? b.actorId : b.actorType === 'external_agent' ? '_ext' : '_hum';
+
+/* ---------- flights ---------- */
+const sky = d3.select('#sky');
+function fly(b) {
+  const m = M.getMarket(b.marketId), rid = m.regions[Math.floor(Math.random() * m.regions.length)], p = regionPos[rid];
+  const f = fEl[keyOf(b)]; f.classList.remove('sow'); void f.offsetWidth; f.classList.add('sow');
+  if (!p) return;
+  const fr = field.getBoundingClientRect(), pr = f.querySelector('.pt').getBoundingClientRect();
+  const x1 = pr.left + pr.width / 2, y1 = pr.top, x2 = fr.left + p[0], y2 = fr.top + p[1];
+  const cx = (x1 + x2) / 2 + (Math.random() - .5) * 160, cy = Math.min(y1, y2) - 90;
+  const col = b.side === 'YES' ? '#5f7330' : '#b5562f';
+  const path = sky.append('path').attr('d', `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`).attr('fill', 'none').attr('stroke', col).attr('stroke-width', 2.2 + Math.min(3, b.stake / 800)).attr('stroke-linecap', 'round').attr('stroke-dasharray', '0.5 9');
+  const L = path.node().getTotalLength();
+  const seed = sky.append('ellipse').attr('rx', 6).attr('ry', 3.2).attr('fill', b.side === 'YES' ? '#d9a441' : '#9b3b1f').attr('stroke', '#3a2717');
+  path.attr('opacity', 0).transition().duration(150).attr('opacity', .8);
+  seed.transition().duration(1100).ease(d3.easeCubicInOut).attrTween('transform', () => t => { const a = path.node().getPointAtLength(t * L), c = path.node().getPointAtLength(Math.min(L, t * L + 1)); return `translate(${a.x},${a.y}) rotate(${Math.atan2(c.y - a.y, c.x - a.x) * 57.3})`; })
+    .on('end', () => { seed.remove(); path.transition().duration(500).attr('opacity', 0).remove(); landed(b, rid, x2, y2); });
+}
+function landed(b, rid, x, y) {
+  const pop = document.createElement('div'); pop.className = 'pop'; pop.style.left = x + 'px'; pop.style.top = y + 'px'; pop.style.color = b.side === 'YES' ? '#5f7330' : '#b5562f';
+  pop.innerHTML = `<div style="font-size:22px">${b.side === 'YES' ? '🌱' : '🍂'}</div>${F.usd(b.stake)}`; document.body.appendChild(pop); setTimeout(() => pop.remove(), 1700);
+  const g = d3.select('#r-' + rid + ' .blob'); if (!g.empty()) g.transition().duration(150).attr('transform', 'scale(1.6)').transition().duration(500).attr('transform', 'scale(1)');
+}
+
+/* ---------- field notes ---------- */
+function note(b, anim) {
+  const el = document.createElement('div'); el.className = 'note'; if (!anim) el.style.animation = 'none';
+  el.innerHTML = `<div class="e">${b.actorEmoji}</div><div class="w"><b>${b.actorName}</b> sowed <span class="stamp ${b.side}">${b.side}</span><div>${b.marketTitle}</div></div><div class="s">${F.usd(b.stake)}<small>at ${F.cents(b.priceAfter)}</small></div>`;
+  el.onclick = () => openBet(b); $('#feed').prepend(el); const fd = $('#feed'); while (fd.children.length > 12) fd.lastChild.remove();
+}
+M.recentBets(12).reverse().forEach(b => { note(b, false); bets.push(b); });
+
+let vol = openMarkets.reduce((s, m) => s + m.volume24h, 0), fund = M.fund.balance, nBets = 412;
+function stats() { $('#sVol').textContent = '$' + F.compact(vol); $('#sBets').textContent = nBets; $('#sFund').textContent = F.usd(fund); }
+stats(); $('#sFund').onclick = () => openFund();
+
+const stream = M.makeBetStream({ minMs: 500, maxMs: 1500 });
+stream.on(b => {
+  bets.push(b); if (bets.length > 300) bets.shift();
+  fly(b); note(b, true); vol += b.stake; fund += b.stake * M.fund.cutBps / 10000; nBets++; stats();
+  const m = M.getMarket(b.marketId);
+  if (m.commodity && headline[m.commodity] === m) { paintSack(m.commodity); const s = sackEl[m.commodity]; s.classList.remove('wob'); void s.offsetWidth; s.classList.add('wob'); }
+  if (lawEl[m.id]) { const v = lawEl[m.id].querySelector('b'); v.textContent = F.pct(m.yes); v.className = b.priceImpact >= 0 ? 'up' : 'dn'; }
+});
+
+/* ---------- almanac page (details) ---------- */
+const pb = $('#pbody');
+function show(html) { pb.innerHTML = html; document.body.classList.add('open'); pb.querySelectorAll('[data-m]').forEach(e => e.onclick = () => openMarket(e.dataset.m)); pb.querySelectorAll('[data-r]').forEach(e => e.onclick = () => openRegion(e.dataset.r)); pb.querySelectorAll('[data-a]').forEach(e => e.onclick = () => openAgent(e.dataset.a)); }
+const hide = () => document.body.classList.remove('open');
+$('#px').onclick = hide; $('#veil').onclick = hide; addEventListener('keydown', e => e.key === 'Escape' && hide());
+const mrow = m => `<div class="row" data-m="${m.id}"><span>${m.type === 'hard' ? M.commodities[m.commodity].emoji : '🏛️'} ${m.title}</span><b>${F.pct(m.yes)}</b></div>`;
+function furrow(h, col) { const w = 400, hh = 90, x = d3.scaleLinear([0, h.length - 1], [0, w]), y = d3.scaleLinear(d3.extent(h), [hh - 6, 6]); return `<svg viewBox="0 0 ${w} ${hh}" width="100%"><path d="${d3.area().x((d, i) => x(i)).y0(hh).y1(y).curve(d3.curveBasis)(h)}" fill="${col}" opacity=".18"/><path d="${d3.line().x((d, i) => x(i)).y(y).curve(d3.curveBasis)(h)}" fill="none" stroke="${col}" stroke-width="2.5"/></svg>`; }
+function openRegion(id) {
+  const r = M.getRegion(id), ms = openMarkets.filter(m => m.regions.includes(id));
+  if (r.kind === 'capital_origin') return show(`<div class="kick">Capital origin · ${r.country}</div><h2>${r.name}</h2><p>${r.note}</p><div class="sub">Farmland it is buying</div>${r.flowsTo.map(f => `<div class="row" data-r="${f.regionId}"><span>→ ${M.getRegion(f.regionId).name}</span><b>$${F.compact(f.usd)}</b></div>`).join('')}<div class="sub">Markets</div>${ms.map(mrow).join('')}`);
+  show(`<div class="kick">${r.country} · ${r.crop}</div><h2>${r.name}</h2><p>${r.note}</p>
+  <div class="facts"><div><small>Climate risk</small><b style="color:${riskCol(r.risk)}">${Math.round(r.risk * 100)} / 100</b></div><div><small>Fund share</small><b>${F.usd(r.fund)}</b></div></div>
+  <div class="sub">Markets rooted here</div>${ms.map(mrow).join('') || '<p>None open.</p>'}
+  <div class="sub">Recent seeds</div>${bets.filter(b => M.getMarket(b.marketId).regions.includes(id)).slice(-6).reverse().map(b => `<div class="row"><span>${b.actorEmoji} ${b.actorName} <span class="stamp ${b.side}">${b.side}</span></span><b>${F.usd(b.stake)}</b></div>`).join('') || '<p>No bets yet this session.</p>'}`);
+}
+function openMarket(id) {
+  const m = M.getMarket(id);
+  show(`<div class="kick">${m.type === 'hard' ? M.commodities[m.commodity].label + ' · hard market' : m.topic + ' · policy market'}</div><h2>${m.title}</h2>
+  <div style="display:flex;gap:16px;align-items:flex-end"><div class="huge">${F.pct(m.yes)}</div><p style="margin:0 0 6px">chance of YES<br>agents say <b>${F.pct(m.agentEstimate)}</b></p></div>
+  ${furrow(m.probHistory.concat([m.yes]), '#5f7330')}
+  <div class="facts"><div><small>Volume</small><b>$${F.compact(m.volume)}</b></div><div><small>Closes</small><b>${m.endDate}</b></div><div><small>Traders</small><b>${m.traders}</b></div><div><small>Liquidity</small><b>$${F.compact(m.liquidity)}</b></div></div>
+  <p>${m.description}</p><div class="sub">How each world model sees it</div>
+  ${m.positions.map(p => { const a = M.getAgent(p.agentId); return `<div class="row" data-a="${a.id}"><span>${a.emoji} ${a.name} <span class="stamp ${p.side}">${p.side}</span></span><b>${F.pct(p.estimate)}</b></div>`; }).join('')}
+  <div class="sub">Fields</div>${m.regions.map(r => `<div class="row" data-r="${r}"><span>${M.getRegion(r).name}</span><b>→</b></div>`).join('')}
+  <div class="sub">Settles on</div><p>${m.resolutionSource}</p>`);
+}
+function openCommodity(c) { const C = M.commodities[c]; show(`<div class="kick">Commodity · ${C.unit}</div><h2>${C.emoji} ${C.label}</h2><p>Every open market on ${C.label.toLowerCase()}. The sack fills with the YES odds of the busiest one.</p>${openMarkets.filter(m => m.commodity === c).map(mrow).join('')}<div class="sub">Growing regions</div>${M.regions.filter(r => r.commodities.includes(c)).map(r => `<div class="row" data-r="${r.id}"><span>${r.name}, ${r.country}</span><b style="color:${riskCol(r.risk)}">${Math.round(r.risk * 100)}</b></div>`).join('')}`); }
+function openAgent(id) {
+  const a = M.getAgent(id), pos = openMarkets.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  show(`<div class="kick">AI agent · world model</div><h2>${a.emoji} ${a.name}</h2><p style="font-family:Fraunces;font-style:italic;font-size:17px;color:var(--soil)">“${a.worldModel}”</p><p>${a.conviction}</p>
+  <div class="facts"><div><small>Profit</small><b style="color:${a.pnl >= 0 ? 'var(--olive)' : 'var(--clay)'}">${F.usd(a.pnl)}</b></div><div><small>Brier score</small><b>${a.brier.toFixed(3)}</b></div><div><small>Win rate</small><b>${F.pct(a.winRate)}</b></div><div><small>Bets placed</small><b>${a.bets.toLocaleString()}</b></div></div>
+  <div class="sub">Profit by season</div>${furrow(a.pnlHistory, a.pnl >= 0 ? '#5f7330' : '#b5562f')}
+  <div class="sub">Biggest plantings</div>${pos.map(({ m, p }) => `<div class="row" data-m="${m.id}"><span><span class="stamp ${p.side}">${p.side}</span> ${m.title}</span><b>$${F.compact(p.stake)}</b></div>`).join('')}`);
+}
+function openCrowd(k) { const list = bets.filter(b => keyOf(b) === k).slice(-8).reverse(); show(`<div class="kick">${k === '_ext' ? 'External agents' : 'Human traders'}</div><h2>${k === '_ext' ? '🤖 Outside bots' : '🧑‍🌾 Neighbours'}</h2><p>${k === '_ext' ? 'Third-party agents trade the same book through the Solana program; the team makes the market.' : 'Anyone with a devnet wallet can take the other side of an agent.'}</p><div class="sub">Latest</div>${list.map(b => `<div class="row" data-m="${b.marketId}"><span>${b.actorName} <span class="stamp ${b.side}">${b.side}</span> ${b.marketTitle}</span><b>${F.usd(b.stake)}</b></div>`).join('') || '<p>Waiting for the next seed.</p>'}`); }
+function openBet(b) {
+  show(`<div class="kick">A bet, sown ${new Date(b.ts).toLocaleTimeString()}</div><h2>${b.actorEmoji} ${b.actorName} <span class="stamp ${b.side}" style="font-size:16px">${b.side}</span></h2>
+  <div class="facts"><div><small>Stake</small><b>${F.usd(b.stake)}</b></div><div><small>Price moved</small><b>${F.cents(b.priceBefore)} → ${F.cents(b.priceAfter)}</b></div><div><small>Impact</small><b>${b.priceImpact >= 0 ? '+' : ''}${b.priceImpact} pts</b></div><div><small>To the fund</small><b>${F.usd(b.stake * M.fund.cutBps / 10000)}</b></div></div>
+  <div class="sub">Why</div><p style="font-family:Fraunces;font-style:italic;font-size:16px;color:var(--soil)">“${b.rationale}”</p>
+  <div class="sub">Market</div>${mrow(M.getMarket(b.marketId))}${b.actorType === 'agent' ? `<div class="row" data-a="${b.actorId}"><span>Meet ${b.actorName}</span><b>→</b></div>` : ''}
+  <div class="sub">Solana devnet signature</div><div class="tx">${b.tx}</div>`);
+}
+function openFund() { show(`<div class="kick">Resilience Fund</div><h2>${F.usd(fund)}</h2><p>${M.fund.cutBps / 100}% of all volume is set aside and shared out to the regions most at risk.</p><div class="sub">Where it goes</div>${M.fund.allocation.slice(0, 10).map(x => `<div class="row" data-r="${x.regionId}"><span>${M.getRegion(x.regionId).name}</span><b>${F.usd(x.amount)}</b></div>`).join('')}`); }
+
+addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(draw, 150); });
+stream.start(); setTimeout(() => stream.next(), 600);
+</script>
+</body>
+</html>

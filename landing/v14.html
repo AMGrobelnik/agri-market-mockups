@@ -549,6 +549,7 @@ const lblA = k => clamp((wOf(k) - .55) / .45, 0, 1);
 const BUCK = PAL.map(() => ALV.map(() => null));
 let lastNow = 0, fps = 60, dom = 0;
 function frame(now) {
+  frame.n = (frame.n || 0) + 1;
   const dt = Math.min(50, now - (lastNow || now)); lastNow = now; fps = fps * .95 + (dt ? 1000 / dt : 60) * .05;
   if (!RM) t = now;
   scrollState();
@@ -799,7 +800,7 @@ if (RM) { scrollState(); for (let i = 0; i < N; i++) { X[i] = FX[A][i]; Y[i] = F
 requestAnimationFrame(frame);
 stream.next(); stream.next();
 stream.start();
-window.__v14 = { N, get fps() { return Math.round(fps); }, get state() { return { A, B, FR }; } };
+window.__v14 = { N, frames: () => frame.n, dist() { let d = 0; for (let i = 0; i < N; i++) d += Math.abs(X[i] - FX[A][i]) + Math.abs(Y[i] - FY[A][i]); return d / N; }, get fps() { return Math.round(fps); }, get state() { return { A, B, FR }; } };
 })();
 </script>
 </body>

@@ -83,7 +83,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .feed{display:flex;flex-direction:column;gap:8px;overflow:hidden;min-height:0;flex:1}
 .bet{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.04);cursor:pointer;animation:slide .5s cubic-bezier(.2,.8,.2,1);border:1px solid transparent}
 .bet:hover{border-color:var(--edge);background:rgba(255,255,255,.08)}
-@keyframes slide{from{opacity:0;transform:translateY(-16px) scale(.97)}}
+@keyframes slide{from{transform:translateY(-10px);background:rgba(20,241,149,.25)}}
 .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;background:rgba(255,255,255,.08);box-shadow:0 0 0 1.5px var(--c)}
 .bet .who{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bet .what{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -126,8 +126,9 @@ body.open #drawer{transform:none} body.open #scrim{opacity:1;pointer-events:auto
 .vlabel{position:fixed;left:10px;bottom:2px;font:11px 'JetBrains Mono',monospace;color:var(--dim);z-index:60;pointer-events:none}
 
 @media (max-width:900px){
-  body{overflow:auto}
-  .top{position:sticky;top:0;left:0;right:0;margin:10px 16px 0;height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
+  body{overflow-x:hidden;overflow-y:auto;display:flex;flex-direction:column}
+  .top{order:0}#stage{order:1;overflow:hidden}#right{order:2}#left{order:3}.dock{order:4}
+  .top{position:relative;top:0;left:0;right:0;margin:10px 16px 0;height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
   .nav,.stats .stat:nth-child(n+2){display:none}
   #stage{position:relative;left:0;right:0;top:0;bottom:auto;height:440px;margin:10px 0}
   .orb .face{width:36px;height:36px;font-size:16px}.orb .nm,.orb .pn{display:none}
@@ -211,12 +212,13 @@ globe.controls().enableZoom = false;
 globe.controls().autoRotate = false;
 fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()).then(topo => {
   const countries = topojson.feature(topo, topo.objects.countries).features;
-  globe.hexPolygonsData(countries).hexPolygonResolution(3).hexPolygonMargin(0.35)
-    .hexPolygonColor(f => { const c = d3c(f); return c; });
+  globe.polygonsData(countries.filter(f => f.properties.name !== 'Antarctica')).polygonAltitude(0.006)
+    .polygonCapColor(f => d3c(f)).polygonSideColor(() => 'rgba(0,0,0,0)').polygonStrokeColor(() => 'rgba(25,195,255,.55)')
+    .polygonsTransitionDuration(0);
 });
 function d3c(f) { // Europe gets brighter hexes
   const n = f.properties.name || '';
-  return /Spain|Italy|Greece|France|Ukraine|Romania|Hungary|Germany|Poland|Portugal/.test(n) ? 'rgba(25,195,255,.75)' : 'rgba(153,69,255,.45)';
+  return /Spain|Italy|Greece|France|Ukraine|Romania|Hungary|Germany|Poland|Portugal/.test(n) ? 'rgba(80,60,200,.55)' : 'rgba(110,60,220,.28)';
 }
 const hexRgb = h => { const n = parseInt(h.slice(1), 16); return `${n >> 16},${(n >> 8) & 255},${n & 255}`; };
 const baseRings = M.regions.filter(r => r.kind === 'production').map(r => ({ lat: r.lat, lng: r.lng, rgb: hexRgb(riskColor(r.risk)), max: 2 + r.risk * 3, speed: 1.5, period: 2600 - r.risk * 1600 }));
@@ -232,7 +234,7 @@ pushArcs();
 function sizeGlobe() {
   const w = stage.clientWidth, h = stage.clientHeight;
   globe.width(w).height(h);
-  globe.pointOfView({ lat: 30, lng: 18, altitude: w < 600 ? 2.6 : 2.15 });
+  globe.pointOfView({ lat: 30, lng: 18, altitude: w < 600 ? 2.3 : 1.8 });
   layoutOrbs();
 }
 
@@ -437,7 +439,7 @@ addEventListener('resize', sizeGlobe);
 sizeGlobe(); requestAnimationFrame(frame);
 stream.start(); setTimeout(() => stream.next(), 200);
 // slow idle sway so the globe feels alive without losing Europe
-let sw = 0; setInterval(() => { if (document.body.classList.contains('open')) return; sw = 1 - sw; globe.pointOfView({ lat: 30 + sw * 4, lng: 18 + (sw ? 10 : -6), altitude: stage.clientWidth < 600 ? 2.6 : 2.15 }, 9000); }, 9000);
+let sw = 0; setInterval(() => { if (document.body.classList.contains('open')) return; sw = 1 - sw; globe.pointOfView({ lat: 30 + sw * 4, lng: 18 + (sw ? 10 : -6), altitude: stage.clientWidth < 600 ? 2.3 : 1.8 }, 9000); }, 9000);
 </script>
 </body>
 </html>
