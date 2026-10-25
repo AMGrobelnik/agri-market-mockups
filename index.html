@@ -34,6 +34,9 @@ h2 .count.full{color:var(--ok);border-color:var(--ok)}
 .thumb iframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none;background:#fff}
 .meta{padding:9px 12px;display:flex;justify-content:space-between;font-size:13px}
 .meta span:last-child{color:var(--muted)}
+.sub{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 8px}
+.sub.r2{color:var(--accent)}
+.brandlink{color:var(--ink)!important;border:1px solid var(--accent);border-radius:999px;padding:2px 12px;font-weight:600}
 .empty{color:var(--muted);font-size:13px;padding:14px;border:1px dashed var(--line);border-radius:10px}
 footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
 </style>
@@ -41,6 +44,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
 <body>
 <header>
   <h1>The Crophecy — UI mockups (live)</h1>
+  <nav><a class="brandlink" href="brand/index.html">Brand</a></nav>
   <nav id="nav"></nav>
   <div class="stamp">last synced <b id="stamp">--:--</b> · refreshes every 60 s</div>
 </header>
@@ -98,9 +102,16 @@ function render(man){
     if (!list.length) {
       const e = document.createElement("div"); e.className = "empty"; e.textContent = "No variants yet — they appear here automatically."; s.appendChild(e);
     } else {
-      const g = document.createElement("div"); g.className = "grid";
-      list.forEach(v => g.appendChild(card(key, v)));
-      s.appendChild(g);
+      const r2 = list.filter(v => parseInt(v.id,10) >= 13), r1 = list.filter(v => parseInt(v.id,10) < 13);
+      const grp = (arr, label, cls) => {
+        if (!arr.length) return;
+        if (r2.length) { const t = document.createElement("div"); t.className = "sub " + cls; t.textContent = label; s.appendChild(t); }
+        const g = document.createElement("div"); g.className = "grid";
+        arr.forEach(v => g.appendChild(card(key, v)));
+        s.appendChild(g);
+      };
+      grp(r2, "Round 2 \u00b7 white glass + dots", "r2");
+      grp(r1, "Round 1", "");
     }
     main.appendChild(s);
   }
