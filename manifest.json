@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T14:48:48+00:00",
+ "generated": "2026-10-25T14:51:51+00:00",
  "pages": {
   "landing": [
    {
@@ -104,7 +104,7 @@
     "n": 3,
     "id": "03",
     "file": "live/v03.html",
-    "shot": null
+    "shot": "_shots/live-v03.png"
    },
    {
     "n": 4,

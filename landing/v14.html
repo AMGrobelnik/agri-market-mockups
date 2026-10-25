@@ -127,7 +127,8 @@ h2 span{color:var(--muted2)}
 .seal{display:flex;align-items:center;gap:10px;margin-top:20px;padding:10px 14px;font:500 12.5px var(--font);color:var(--fg2)}
 .seal svg{width:16px;height:16px;flex:none}
 .seal code{margin-left:auto;font:500 11.5px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-table.dt{width:100%;border-collapse:collapse;font-size:13px}
+table.dt{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.dt col.c1{width:34px}.dt col.c3{width:92px}.dt col.c4{width:62px}.dt col.c5{width:64px}
 .dt th{height:38px;padding:0 10px;text-align:left;font:500 12px var(--font);color:var(--muted);border-bottom:1px solid rgba(228,228,231,.9);white-space:nowrap}
 .dt td{padding:8px 10px;border-bottom:1px solid rgba(228,228,231,.6);vertical-align:middle}
 .dt tbody tr{transition:background .15s}
@@ -135,9 +136,10 @@ table.dt{width:100%;border-collapse:collapse;font-size:13px}
 .dt .r{text-align:right}
 .dt .rk{width:30px;color:var(--muted);font:500 12px var(--mono)}
 .dt .nm{display:flex;align-items:center;gap:9px;min-width:0}
+.dt .nm>span:last-child{min-width:0;overflow:hidden}
 .dt .nm .e{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:#fff;border:1px solid var(--border);font-size:13px}
-.dt .nm b{display:block;font-weight:600;white-space:nowrap}
-.dt .nm small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.dt .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dt .nm small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dt .num{font:500 12.5px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dt tr.win td:first-child{color:var(--yes)}
 .dt tfoot td{font-size:12px;color:var(--muted);border-bottom:0;padding-top:8px;padding-bottom:8px;background:rgba(250,250,250,.5)}
@@ -269,7 +271,7 @@ footer{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 32px
     <p class="d" id="bP"></p>
     <div class="seal glass"><svg viewBox="0 0 16 16" fill="none" stroke="#16a34a" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg><span id="sealT"></span><code id="sealR"></code></div>
     <div class="card glass" style="margin-top:12px">
-      <table class="dt">
+      <table class="dt"><colgroup><col class="c1"><col><col class="c3"><col class="c4"><col class="c5 hide-m"></colgroup>
         <thead><tr><th>#</th><th>World model</th><th class="r">P&amp;L</th><th class="r">Brier</th><th class="r hide-m">Trades</th></tr></thead>
         <tbody id="lb"></tbody>
         <tfoot id="lbf"></tfoot>
@@ -322,7 +324,6 @@ const tg = BRAND.tagline.split('. ');
 $('#h1').innerHTML = esc(tg[0]) + '.<br><span>' + esc(tg[1] || '') + '</span>';
 document.title = BRAND.name + ' · Landing v14';
 const cr = n => Math.round(n).toLocaleString('en-US') + ' cr';
-const crS = n => (n >= 0 ? '+' : '−') + Math.abs(Math.round(n)).toLocaleString('en-US') + ' cr';
 const crC = n => F.compact(n) + ' cr';
 const crSC = n => (n >= 0 ? '+' : '−') + F.compact(Math.abs(n)) + ' cr';
 const pc = p => Math.round(p * 100) + '%';
@@ -619,7 +620,7 @@ function drawUnder() {
 
 /* geo overlay helpers: blended projection between the two current formations */
 function geoKind(k) { return k === 0 || k === 6 ? 'g' : k === 1 || k === 5 ? 'm' : null; }
-function gp(k, lat, lng, alt) { if (geoKind(k) === 'g') { const g = globeOf(k); return gproj(lat, lng, rotNow(), g.cx, g.cy, g.R, alt); } const [x, y] = mproj(lat, lng); return [x, y, 1]; }
+function gp(k, lat, lng, alt) { if (geoKind(k) === 'g') { const g = globeOf(k); return gproj(lat, lng, rotNow(), g.cx, g.cy, g.R, alt); } const [x, y] = mproj(lat, lng); return [x, y - ((alt || 1) - 1) * MAP.sc * 60, 1]; }
 function geoPt(lat, lng, alt) {
   const ka = geoKind(A), kb = geoKind(B);
   if (A === B || !kb) return ka ? [...gp(A, lat, lng, alt), wOf(A)] : null;
@@ -660,7 +661,7 @@ function drawOver(now) {
       if (fade <= 0) continue;
       if (head >= 1 && !a.hit) { a.hit = true; const rg = a.reg; if (rg) { regPulse[rg.id] = 1; rg._side = a.side; } }
       const col = a.side === 'YES' ? '22,163,74' : '239,68,68';
-      ctx.lineWidth = a.big ? 2 : 1.5; ctx.strokeStyle = `rgba(${col},${.85 * fade * Math.min(1, geoW)})`; ctx.beginPath();
+      ctx.lineWidth = a.big ? 2.4 : 1.8; ctx.strokeStyle = `rgba(${col},${.85 * fade * Math.min(1, geoW)})`; ctx.beginPath();
       let pen = false, hx = 0, hy = 0, hv = false, lx = null;
       for (const [la, ln, alt, s] of a.S) {
         if (s < tail || s > head) continue; const p = geoPt(la, ln, alt); if (!p) continue;
@@ -704,7 +705,7 @@ function drawOver(now) {
     lbl('SEALED', S.cx, S.cy + S.Rs + 14, { alpha: wl, font: '600 11px "Geist Mono", monospace', color: '#18181b' });
     lbl('Solana devnet · slot ' + BT.solana.sealSlot.toLocaleString(), S.cx, S.cy + S.Rs + 29, { alpha: wl, font: '500 10.5px "Geist Mono", monospace', color: '#71717a' });
     const xm = LBD.x0 + LBD.len(BT.baselines.marketPrice);
-    lbl('market price ' + BT.baselines.marketPrice.toFixed(3), xm, LBD.ry0 - 18, { alpha: wl, font: '500 10.5px "Geist Mono", monospace', color: '#71717a' });
+    lbl('market price ' + BT.baselines.marketPrice.toFixed(3), xm, LBD.ry0 + LBD.pitch * 8 + 6, { alpha: wl, font: '500 10.5px "Geist Mono", monospace', color: '#71717a' });
     LBD.rows.forEach((r, j) => {
       const a = AG[r.ai], dim = hlAgent >= 0 && hlAgent !== r.ai ? .3 : 1;
       lbl(String(j + 1), Z.x + 6, r.y, { align: 'left', alpha: wl * dim, font: '600 11px "Geist Mono", monospace', color: j === 0 ? '#16a34a' : '#71717a' });
@@ -750,7 +751,7 @@ $('#bP').innerHTML = `${BT.holdoutQuestions} holdout answers and every agent's f
 $('#sealT').textContent = 'Sealed at slot ' + S.sealSlot.toLocaleString();
 $('#sealR').textContent = 'root ' + S.merkleRoot.slice(0, 18) + '…';
 $('#lb').innerHTML = RANKED.map((r, j) => { const a = M.getAgent(r.agentId), i = aIdx(a.id); return `<tr data-i="${i}" class="${j === 0 ? 'win' : ''}"><td class="rk">${j + 1}</td><td><div class="nm"><span class="e">${a.emoji}</span><span style="min-width:0"><b>${esc(a.name)}</b><small>${esc(a.worldModel)}</small></span></div></td><td class="r num ${a.pnl >= 0 ? 'y' : 'n'}">${crSC(a.pnl)}</td><td class="r num">${r.brier.toFixed(3)}</td><td class="r num hide-m" id="lt-${i}">${a.bets.toLocaleString()}</td></tr>`; }).join('');
-$('#lbf').innerHTML = `<tr><td></td><td>Baselines: market price · coin flip</td><td></td><td class="r num">${BT.baselines.marketPrice.toFixed(3)} · ${BT.baselines.coinFlip.toFixed(2)}</td><td class="hide-m"></td></tr>`;
+$('#lbf').innerHTML = `<tr><td></td><td colspan="3">Baselines · market price <span class="num">${BT.baselines.marketPrice.toFixed(3)}</span> · coin flip <span class="num">${BT.baselines.coinFlip.toFixed(3)}</span></td><td class="hide-m"></td></tr>`;
 $$('#lb tr').forEach(el => { el.onmouseenter = () => { hlAgent = +el.dataset.i; el.classList.add('on'); }; el.onmouseleave = () => { hlAgent = -1; el.classList.remove('on'); }; });
 $('#prog').textContent = 'program ' + S.program.slice(0, 10) + '… · devnet';
 

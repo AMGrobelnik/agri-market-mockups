@@ -224,7 +224,7 @@ actors.forEach(a => {
 const keyOf = b => b.actorType === 'agent' ? b.actorId : b.actorType === 'external_agent' ? '_ext' : '_hum';
 
 /* ---------- board ---------- */
-const listed = openMarkets.slice().sort((a, b) => b.volume24h - a.volume24h).slice(0, 8), lrEl = {};
+const listed = openMarkets.slice().sort((a, b) => b.volume24h - a.volume24h).slice(0, 6), lrEl = {};
 listed.forEach(m => { const el = document.createElement('div'); el.className = 'lr'; el.innerHTML = `<div class="t">${m.title.toUpperCase()}</div><div class="bar"><i></i></div><div class="v"></div>`; el.onclick = () => openMarket(m.id); $('#list').appendChild(el); lrEl[m.id] = el; paintLr(m); });
 function paintLr(m) { const el = lrEl[m.id]; if (!el) return; el.querySelector('i').style.width = m.yes * 100 + '%'; el.querySelector('.v').textContent = F.pct(m.yes); }
 let hotId = listed[0].id;

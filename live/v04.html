@@ -349,7 +349,9 @@ function betRow(b, animate) {
   el.innerHTML = `<div class="av">${b.actorEmoji}</div><div style="min-width:0"><div class="who">${b.actorName}</div><div class="what"><span class="side-tag ${b.side}">${b.side}</span>${b.marketTitle}</div></div><div class="amt">${F.usd(b.stake)}<small>${F.cents(b.priceAfter)}</small></div>`;
   el.onclick = () => openBet(b); return el;
 }
-function addFeed(b, animate) { feedEl.prepend(betRow(b, animate)); while (feedEl.children.length > 14) feedEl.lastChild.remove(); }
+const pending = []; // hovering the feed pauses it so rows stay clickable
+function addFeed(b, animate) { if (animate && feedEl.matches(':hover')) { pending.push(b); return; } feedEl.prepend(betRow(b, animate)); while (feedEl.children.length > 14) feedEl.lastChild.remove(); }
+feedEl.addEventListener('mouseleave', () => pending.splice(0).forEach(x => addFeed(x, true)));
 M.recentBets(14).reverse().forEach(b => { addFeed(b, false); sessionBets.push(b); });
 
 /* ---------- stats + ticker + fund ---------- */

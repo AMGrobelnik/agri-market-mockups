@@ -72,8 +72,8 @@ h1 .l2{display:block;color:var(--faint)}
 .cf{display:flex;justify-content:space-between;align-items:center;margin:0 -14px;padding:10px 16px;border-top:1px solid rgba(228,228,231,.8);background:rgba(250,250,250,.55);font:500 12px var(--sans);color:var(--muted)}
 .cf b{font:600 13px var(--mono);color:var(--fg)}
 /* trades list */
-.tlist{display:flex;flex-direction:column;gap:2px;height:330px;overflow:hidden;padding-bottom:8px}
-.tr{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;flex:none;transition:background .2s}
+.tlist{display:flex;flex-direction:column;gap:2px;height:356px;overflow:hidden;padding-bottom:8px}
+.tr{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;height:48px;padding:0 8px;border-radius:8px;flex:none;transition:background .2s}
 .tr:hover{background:rgba(244,244,245,.8)}
 .tr.in{animation:trIn .6s cubic-bezier(.2,.8,.2,1)}
 .tr.in.YES{animation:trIn .6s cubic-bezier(.2,.8,.2,1),flY 1.8s ease-out}
@@ -149,7 +149,10 @@ footer{position:relative;z-index:2;padding:24px 40px 64px;font:500 12px var(--mo
 .rail a{width:8px;height:8px;border-radius:50%;background:#d4d4d8;position:relative;transition:all .3s}
 .rail a.on{background:#18181b;transform:scale(1.35)}
 .rail a span{position:absolute;right:16px;top:50%;transform:translateY(-50%);font:500 11px var(--mono);color:var(--muted);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
-.rail a:hover span,.rail a.on span{opacity:1}
+.rail a:hover span{opacity:1}
+body.inhero .rail{opacity:0;pointer-events:none}
+.rail{transition:opacity .3s}
+.m-show{display:none}
 .toast{position:fixed;left:24px;bottom:42px;z-index:20;display:flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 12px;font:500 12.5px var(--sans);border-radius:999px;max-width:min(520px,calc(100vw - 32px));opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;overflow:hidden}
 .toast.on{opacity:1;transform:none}
 .toast .lv{font:600 11px var(--mono);color:var(--no);display:flex;align-items:center;gap:6px;flex:none}
@@ -181,6 +184,7 @@ footer{position:relative;z-index:2;padding:24px 40px 64px;font:500 12px var(--mo
   .panel h2{font-size:25px;margin:10px 0 8px}
   .panel p{font-size:14px}
   .m-hide{display:none!important}
+  .m-show{display:block}
   .lbfull .lbr:nth-of-type(n+4){display:none}
   .big{font-size:34px}
   .cta{padding-bottom:90px}
@@ -211,7 +215,7 @@ footer{position:relative;z-index:2;padding:24px 40px 64px;font:500 12px var(--mo
   <div class="hero-head">
     <div class="badges"><span class="badge"><span class="ld"></span>Live on Solana devnet</span><span class="badge"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#a1a1aa" stroke-width="1.3"/><text x="8" y="10.6" text-anchor="middle" font-size="6.6" font-weight="700" font-family="Geist Mono,monospace" fill="#52525b">cr</text></svg>Play credits · no real money</span></div>
     <h1 id="h1">Bet on the harvest.<span class="l2">Price the climate.</span></h1>
-    <p class="lede">Eight AI agents with rival world models trade Europe's harvest, from wheat and olive oil to drought decrees. Every trade lands on the globe as it happens.</p>
+    <p class="lede">Eight AI agents with rival world models trade Europe's harvest. Every trade lands on the globe as it happens.</p>
     <div class="ctas"><a class="btn btn-p" href="#cta">Start predicting</a><a class="btn btn-o" href="#world">See how it works ↓</a></div>
   </div>
   <div id="globe" aria-label="Globe of live trades"></div>
@@ -260,7 +264,8 @@ footer{position:relative;z-index:2;padding:24px 40px 64px;font:500 12px var(--mo
   <div class="panel glass">
     <div class="kick"><b>04</b>Sealed backtest</div>
     <h2>Sealed first. Scored later.</h2>
-    <p id="btP"></p>
+    <p id="btP" class="m-hide"></p>
+    <p class="m-show">Hashed on Solana before the replay, then scored. Lower Brier is better.</p>
     <div class="lbfull"><div class="lbh"><span>#</span><span>World model</span><span>P&amp;L</span><span>Brier</span></div><div class="lbody" id="lbFull"></div></div>
     <div class="sealrow m-hide" id="sealRow"></div>
   </div>
@@ -297,7 +302,7 @@ footer{position:relative;z-index:2;padding:24px 40px 64px;font:500 12px var(--mo
 
 <script src="../shared/mock-data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.33.1/dist/globe.gl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.39.0/dist/globe.gl.min.js"></script>
 <script>
 const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
 const M = window.MOCK;
@@ -343,7 +348,7 @@ const perm = [...Array(N).keys()]; for (let i = N - 1; i > 0; i--) { const j = M
 const wpick = (ws, r) => { const s = ws.reduce((a, b) => a + b, 0); let x = r * s; for (let i = 0; i < ws.length; i++) { x -= ws[i]; if (x <= 0) return i; } return ws.length - 1; };
 
 // colours: zinc greys, green = YES, red = NO, warm = heat
-const CL = ['#a1a1aa', '#71717a', '#16a34a', '#dc2626', '#d4d4d8', '#f97316', '#3f3f46', '#fca5a5', '#f87171', '#f59e0b', '#52525b'];
+const CL = ['#a1a1aa', '#71717a', '#16a34a', '#dc2626', '#cdcdd3', '#f97316', '#3f3f46', '#fca5a5', '#f87171', '#f59e0b', '#52525b'];
 const RAD = { hero: 1.5, map: 1.75, agents: 1.6, odds: 2.3, rank: 2.0, fund: 1.7, cta: 1.6 };
 
 /* land sampling: the same dot sits on the same spot of Earth on the globe and on the map */
@@ -360,11 +365,22 @@ function onLand(lng, lat) {
   }
   return false;
 }
-function gridLand(b, kx, s) { const pts = []; let row = 0; const sx = s / kx; for (let lat = b.lat1 - s / 2; lat >= b.lat0; lat -= s, row++) for (let lng = b.lng0 + (row % 2 ? sx / 2 : 0) + sx / 4; lng <= b.lng1; lng += sx) if (onLand(lng, lat)) pts.push([lat, lng]); return pts; }
+// one global staggered lattice, so the map grid is an exact subset of the globe's land dots
+function gridLand(b, kx, s) {
+  const pts = [], sx = s / kx;
+  for (let k = Math.max(0, Math.floor((90 - b.lat1) / s - 0.5)); ; k++) {
+    const lat = 90 - (k + 0.5) * s; if (lat < b.lat0) break; if (lat > b.lat1) continue;
+    const off = (k % 2 ? 0.5 : 0) + 0.25;
+    for (let j = Math.ceil((b.lng0 + 180) / sx - off); ; j++) { const lng = -180 + (j + off) * sx; if (lng > b.lng1) break; if (lng >= b.lng0 && onLand(lng, lat)) pts.push([lat, lng]); }
+  }
+  return pts;
+}
+let LAND_S = 2.2;
 function sampleLand(b, kx, want) {
   let s = Math.sqrt((b.lng1 - b.lng0) * kx * (b.lat1 - b.lat0) * 0.3 / want), pts = [];
-  for (let it = 0; it < 7; it++) { pts = gridLand(b, kx, s); const r = pts.length / want; if (r > 0.9 && r <= 1) break; s *= Math.sqrt(r) * (r > 1 ? 1.008 : 0.995); }
+  for (let it = 0; it < 8; it++) { pts = gridLand(b, kx, s); const r = pts.length / want; if (r > 0.9 && r <= 1) break; s *= Math.sqrt(r) * (r > 1 ? 1.008 : 0.995); }
   if (pts.length > want) { const k = pts.length / want; pts = Array.from({ length: want }, (_, i) => pts[Math.floor(i * k)]); }
+  if (kx === 1) LAND_S = s;
   return pts;
 }
 
@@ -373,7 +389,7 @@ const wide0 = innerWidth >= 860;
 const NCOL = wide0 ? 6 : 4;
 const TOPM = [...OPEN].sort((a, b) => b.volume - a.volume).slice(0, NCOL), FEAT = TOPM[0];
 const perCol = Math.floor(N * 0.84 / NCOL), nCurve = N - perCol * NCOL;
-const nSeal = Math.round(N * 0.1), nLand = Math.round(N * 0.45);
+const nSeal = Math.round(N * 0.1), nLand = Math.round(N * 0.56);
 const maxB = Math.max(...AG.map(a => a.bets));
 const book = AG.map(a => { let y = 0, n = 0; OPEN.forEach(m => { const q = m.positions.find(x => x.agentId === a.id); if (q) { if (q.side === 'YES') y += q.stake; else n += q.stake; } }); return y / ((y + n) || 1); });
 const EDGES = (() => {
@@ -388,7 +404,7 @@ const EUPOOL = ['andalusia', 'catalonia', 'beauce', 'po_valley', 'puglia', 'pann
 
 P.forEach(p => {
   const k = perm[p.i];
-  if (k / N < 0.74) { p.ag = wpick(AG.map(a => a.bets), p.r1); p.edge = -1; p.agc = p.r2 < book[p.ag] * 0.34 ? 2 : p.r2 < 0.34 ? 3 : 1; }
+  if (k / N < 0.74) { p.ag = wpick(AG.map(a => a.bets), p.r1); p.edge = -1; p.agc = p.r2 < book[p.ag] * 0.26 ? 2 : p.r2 < 0.26 ? 3 : 1; }
   else { p.edge = Math.floor(p.r1 * EDGES.length); p.agc = 4; }
   if (k < nCurve) { p.oc = -1; p.cu = k / nCurve; } else { const idx = k - nCurve; p.oc = Math.floor(idx / perCol); p.ci = idx % perCol; }
   if (k < nSeal) { p.row = -1; p.sl = k; } else { const idx = k - nSeal; let r = ROWCUM.findIndex(v => idx < v); if (r < 0) r = 7; p.row = r; p.ri = idx - (r ? ROWCUM[r - 1] : 0); }
@@ -409,7 +425,7 @@ let W = 0, H = 0, DPR = 1, wide = true, Z = {}, MAPW = {}, EU = {}, NODES = [], 
 const projW = (lat, lng) => [MAPW.ox + (lng - WB.lng0) * MAPW.sc, MAPW.oy + (WB.lat1 - lat) * MAPW.sc];
 const projE = (lat, lng) => [EU.ox + (lng - EB.lng0) * EKX * EU.sc, EU.oy + (EB.lat1 - lat) * EU.sc];
 function layout() {
-  DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; wide = W >= 860;
+  DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; wide = W >= 860; SPR = {};
   cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   Z = wide ? { x: Math.max(W * 0.44, Math.min(W * 0.38, 480) + 70), y: 92, h: H - 92 - 60 } : { x: 12, y: H * 0.47, w: W - 24, h: H * 0.42 };
   if (wide) Z.w = W - 64 - Z.x;
@@ -435,10 +451,10 @@ function layout() {
   const colTop = Z.y + Z.h * (wide ? 0.42 : 0.38), colBase = Z.y + Z.h * 0.86, colW = Z.w / NCOL * (wide ? 0.56 : 0.66), across = wide ? 8 : 7, rowsC = Math.ceil(perCol / across);
   COLS = TOPM.map((m, j) => ({ m, x: Z.x + Z.w * (j + .5) / NCOL, top: colTop, base: colBase, w: colW, across, rows: rowsC, kick: 0 }));
   // 4 ranked rows + seal
-  const L = wide ? 196 : 92, r0y = Z.y + Z.h * (wide ? 0.25 : 0.27), r1y = Z.y + Z.h * 0.98, rowH = (r1y - r0y) / 8, maxLen = Z.w - L - (wide ? 70 : 46), lines = wide ? 5 : 3, sy = Math.min(rowH * 0.5 / (lines - 1), wide ? 5.2 : 4.2);
+  const L = wide ? 236 : 92, r0y = Z.y + Z.h * (wide ? 0.25 : 0.27), r1y = Z.y + Z.h * 0.98, rowH = (r1y - r0y) / 8, maxLen = Z.w - L - (wide ? 70 : 46), lines = wide ? 5 : 3, sy = Math.min(rowH * 0.5 / (lines - 1), wide ? 5.2 : 4.2);
   ROWS = ranked.map((a, k) => { const len = maxLen * skill[k] / maxSkill; return { a, k, y: r0y + rowH * (k + .5), x0: Z.x + L, len, lines, cols: Math.ceil(ROWCNT[k] / lines), sy, beat: a.brier < MP }; });
   BASEX = Z.x + L + maxLen * (0.26 - MP) / maxSkill;
-  SEAL = { x: Z.x + Z.w - (wide ? 64 : 40), y: Z.y + (wide ? 58 : 36), R: wide ? 46 : 28 };
+  SEAL = { x: Z.x + Z.w - (wide ? 70 : 30), y: ROWS[6].y - (wide ? 6 : 4), R: wide ? 50 : 22 };
   // static targets
   P.forEach(p => {
     [p.mx, p.my] = projW(p.lat, p.lng);
@@ -472,7 +488,7 @@ function initGlobe() {
       .ringsData([]).ringColor(r => tt => `rgba(${r.rgb},${1 - tt})`).ringMaxRadius('max').ringPropagationSpeed(2.4).ringRepeatPeriod('period')
       .htmlElementsData([]).htmlElement(d => { const e = document.createElement('div'); e.className = 'gbub'; e.style.color = d.color; e.textContent = d.text; return e; }).htmlAltitude(0.03)
       .onGlobeReady(() => { globeReady = true; });
-    const mat = world.globeMaterial(); mat.color.set('#ffffff'); if (mat.emissive) mat.emissive.set('#d9d9de'); mat.shininess = 4;
+    const mat = world.globeMaterial(); mat.color.set('#ececef'); if (mat.emissive) mat.emissive.set('#202024'); mat.shininess = 2;
     sizeGlobe();
     const c = world.controls(); c.autoRotate = !RM; c.autoRotateSpeed = 0.55; c.enableZoom = false;
     if (innerWidth < 860) { c.enabled = false; gEl.style.pointerEvents = 'none'; }
@@ -505,7 +521,11 @@ async function loadLand() {
     POLYS = buildPolys(feats);
     WL = sampleLand(WB, 1, N); EL = sampleLand(EB, EKX, nLand);
     assignLand(); layout();
-    if (world) world.hexPolygonsData(feats).hexPolygonResolution(2).hexPolygonMargin(0.42).hexPolygonUseDots(true).hexPolygonColor(() => '#a1a1aa').hexPolygonAltitude(0.004).hexPolygonsTransitionDuration(0);
+    if (world) {
+      const GL = gridLand({ lng0: -180, lng1: 180, lat0: -56, lat1: 80 }, 1, LAND_S);
+      world.particlesData([GL]).particleLat(d => d[0]).particleLng(d => d[1]).particleAltitude(0.006)
+        .particlesColor(() => '#a1a1aa').particlesSizeAttenuation(false).particlesSize(3.4 * (devicePixelRatio || 1));
+    }
   } catch (e) { console.warn('land data unavailable, using fallback dots', e); }
   window.__landReady = true;
 }
@@ -525,7 +545,7 @@ function setMode(m, id) {
 function onScroll() {
   const vh = innerHeight; let act = secs[0];
   for (const s of secs) if (s.getBoundingClientRect().top <= vh * 0.5) act = s;
-  setMode(act.dataset.mode, act.id);
+  setMode(act.dataset.mode, act.id); document.body.classList.toggle('inhero', mode === 'hero');
   document.body.classList.toggle('scrolled', scrollY > 20);
   heroFade = clamp(scrollY / (gEl.clientHeight * 0.62), 0, 1);
   if (world) {
@@ -547,7 +567,7 @@ function globeFrame() {
   else { G.cx = rc.left + rc.width / 2; G.cy = rc.top + rc.height / 2; G.R = Math.min(rc.width * 0.42, rc.height * 0.43); G.lo0 = (14 - (RM ? 0 : t * 0.08)) * D2R; G.la0 = 30 * D2R; }
 }
 function heroPos(p) {
-  if (G.ok) { const s = world.getScreenCoords(p.lat, p.lng, 0.01); return [s.x + G.left, s.y + G.top, p.ux * G.vx + p.uy * G.vy + p.uz * G.vz > G.th]; }
+  if (G.ok) { const s = world.getScreenCoords(p.lat, p.lng, 0.006); return [s.x + G.left, s.y + G.top, p.ux * G.vx + p.uy * G.vy + p.uz * G.vz > G.th]; }
   const la = p.lat * D2R, dl = p.lng * D2R - G.lo0, cosc = Math.sin(G.la0) * Math.sin(la) + Math.cos(G.la0) * Math.cos(la) * Math.cos(dl);
   return [G.cx + G.R * Math.cos(la) * Math.sin(dl), G.cy - G.R * (Math.cos(G.la0) * Math.sin(la) - Math.sin(G.la0) * Math.cos(la) * Math.cos(dl)), cosc > 0.05];
 }
@@ -619,24 +639,36 @@ const FONT = '"Geist Mono", ui-monospace, monospace';
 function txt(s, x, y, o = {}) { ctx.font = o.font || `500 11px ${FONT}`; ctx.fillStyle = o.color || '#52525b'; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle'; ctx.fillText(s, x, y); }
 function chip(s, x, y, o = {}) { ctx.font = o.font || `600 11px ${FONT}`; const w = ctx.measureText(s).width + 14, h = 20; let bx = o.align === 'left' ? x : o.align === 'right' ? x - w : x - w / 2; ctx.fillStyle = o.bg || 'rgba(255,255,255,.88)'; ctx.strokeStyle = o.border || '#e4e4e7'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, y - h / 2, w, h, 6) : ctx.rect(bx, y - h / 2, w, h); ctx.fill(); ctx.stroke(); txt(s, bx + w / 2, y + 0.5, { font: o.font || `600 11px ${FONT}`, color: o.color || '#18181b' }); }
 let heroCount = N;
+const RKEYS = Object.keys(RAD), RIDX = {}; RKEYS.forEach((k, i) => RIDX[k] = i);
+let SPR = {};
+function sprite(c, ri) {
+  const key = c * 16 + ri; if (SPR[key]) return SPR[key];
+  const r = RAD[RKEYS[ri]] * (SM ? 0.82 : 1), half = r + 1, px = Math.ceil(half * 2 * DPR), s = document.createElement('canvas');
+  s.width = s.height = px; const g = s.getContext('2d'); g.fillStyle = CL[c]; g.beginPath(); g.arc(px / 2, px / 2, r * DPR, 0, TAU); g.fill();
+  s.half = px / DPR / 2; return SPR[key] = s;
+}
 function frame() {
   requestAnimationFrame(frame);
   t++; const tm = RM ? 0 : t;
   if (t % 15 === 0) onScroll();
   if (heroCount > 0) globeFrame();
   ctx.clearRect(0, 0, W, H);
-  const buckets = new Array(CL.length * 4);
-  const rs = SM ? 0.82 : 1;
+  // bucket dots by colour, alpha step and size, then blit one pre-rendered sprite per bucket
+  const buckets = new Map();
   let hc = 0;
   for (const p of P) {
     step(p, tm);
     if (p.md === 'hero') hc++;
     if (p.al < 0.03 || p.x < -6 || p.y < -6 || p.x > W + 6 || p.y > H + 6) continue;
-    const c = colorOf(p), q = Math.min(3, Math.floor(p.al * 4)), key = c * 4 + q, r = RAD[p.md] * rs;
-    const g = buckets[key] || (buckets[key] = new Path2D()); g.moveTo(p.x + r, p.y); g.arc(p.x, p.y, r, 0, TAU);
+    const key = (colorOf(p) * 4 + Math.min(3, Math.floor(p.al * 4))) * 16 + RIDX[p.md];
+    let b = buckets.get(key); if (!b) buckets.set(key, b = []); b.push(p.x, p.y);
   }
   heroCount = hc;
-  for (let key = 0; key < buckets.length; key++) if (buckets[key]) { ctx.globalAlpha = (key % 4 + 1) / 4; ctx.fillStyle = CL[key >> 2]; ctx.fill(buckets[key]); }
+  for (const [key, b] of buckets) {
+    const ri = key % 16, cq = key >> 4, spr = sprite(cq >> 2, ri), h = spr.half, d = h * 2;
+    ctx.globalAlpha = ((cq & 3) + 1) / 4;
+    for (let k = 0; k < b.length; k += 2) ctx.drawImage(spr, b[k] - h, b[k + 1] - h, d, d);
+  }
   ctx.globalAlpha = 1;
   // labels fade in once the formation has mostly settled
   if (mode !== 'hero') lA = RM ? 1 : Math.min(1, lA + (t - modeT > 40 ? 0.05 : 0));
@@ -664,7 +696,7 @@ function labels(tm) {
     txt('LIVE · TRADES LANDING NOW', MAPW.ox, MAPW.oy - 22, { align: 'left', color: ink, font: `600 11px ${FONT}` });
     txt(wide ? 'one dot = one patch of land · rings = heat-hit regions' : 'dot = land · ring = heat', MAPW.ox + (WB.lng1 - WB.lng0) * MAPW.sc, MAPW.oy - 22, { align: 'right', color: muted, font: `500 11px ${FONT}` });
     PROD.forEach(r => {
-      const [x, y] = projW(r.lat, r.lng), col = riskHex(r.risk), ph = (tm * 0.03 + r.lat) % 1;
+      const [x, y] = projW(r.lat, r.lng), col = riskHex(r.risk), ph = ((tm * 0.012 + r.lng * 0.37) % 1 + 1) % 1;
       ctx.globalAlpha = lA * (1 - ph) * 0.8; ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(x, y, 3 + ph * (wide ? 12 : 8), 0, TAU); ctx.stroke();
       ctx.globalAlpha = lA; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, wide ? 3.2 : 2.4, 0, TAU); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
       hits.push({ x, y, r: 12, kind: 'r', id: r.id });
@@ -707,8 +739,8 @@ function labels(tm) {
       txt(R.a.brier.toFixed(3), R.x0 + R.len + 8, R.y, { align: 'left', color: R.beat ? '#15803d' : muted, font: `600 11px ${FONT}` });
       hits.push({ x: R.x0 + R.len / 2, y: R.y, r: Math.max(18, R.len / 2), kind: 'a', id: R.a.id });
     });
-    txt('SEALED', SEAL.x, SEAL.y - (wide ? 5 : 3), { color: ink, font: `700 ${wide ? 11 : 8.5}px ${FONT}` });
-    txt(wide ? 'slot ' + BT.solana.sealSlot.toLocaleString('en-US') : 'devnet', SEAL.x, SEAL.y + (wide ? 10 : 7), { color: muted, font: `500 ${wide ? 9.5 : 8}px ${FONT}` });
+    txt(wide ? 'SEALED' : '✓', SEAL.x, SEAL.y - (wide ? 6 : 0), { color: ink, font: `700 ${wide ? 12 : 12}px ${FONT}` });
+    if (wide) { txt('on devnet', SEAL.x, SEAL.y + 9, { color: muted, font: `500 10px ${FONT}` }); txt('slot ' + BT.solana.sealSlot.toLocaleString('en-US'), SEAL.x, SEAL.y + SEAL.R + 16, { color: muted, font: `500 10.5px ${FONT}` }); }
     txt(wide ? 'lower Brier is better · ' + BT.holdoutQuestions + ' sealed holdout questions' : 'lower Brier is better', Z.x + 4, ROWS[0].y - 44, { align: 'left', color: muted, font: `500 11px ${FONT}` });
     hits.push({ x: SEAL.x, y: SEAL.y, r: SEAL.R, kind: 'seal' });
   } else if (mode === 'fund') {
@@ -780,7 +812,7 @@ function onBet(b) {
     comet(n.x, n.y, to.x, to.y, col, 8, () => { to.pulse = 1; to.pcol = b.side === 'YES' ? '#dc2626' : '#16a34a'; pulse(to.x, to.y, col, 30); kickNear(to.x, to.y, to.r + 20, 2.6); });
   } else if (mode === 'odds') {
     const j = COLS.findIndex(c => c.m.id === b.marketId);
-    if (j >= 0 && !RM) { const c = COLS[j]; c.kick = 1; P.forEach(p => { if (p.md === 'odds' && p.oc === j) { p.vy -= 1.5 + Math.random() * 4.5; p.vx += (Math.random() - .5) * 1.5; } }); pulse(c.x, c.top - 40, col, 18); bubs.push({ x: c.x, y: c.top - 34, t: 0, col, mode: 'odds', text: `${b.side} ${crk(b.stake)}` }); }
+    if (j >= 0 && !RM) { const c = COLS[j]; c.kick = 1; P.forEach(p => { if (p.md === 'odds' && p.oc === j) { p.vy -= 1.5 + Math.random() * 4.5; p.vx += (Math.random() - .5) * 1.5; } }); for (let i = bubs.length - 1; i >= 0; i--) if (bubs[i].cj === j) bubs.splice(i, 1); if (wide) bubs.push({ x: c.x, y: c.top - 34, t: 0, col, cj: j, mode: 'odds', text: `${b.side} ${crk(b.stake)}` }); }
     if (b.marketId === FEAT.id) layout();
   } else if (mode === 'fund') {
     const q = POOLS[wpick(POOLS.map(x => x.r.fund), Math.random())];

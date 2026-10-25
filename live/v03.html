@@ -31,7 +31,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .counters .v{font-size:28px;font-weight:200;letter-spacing:-.01em;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(124,242,255,.35)}
 .counters .v.fund{color:var(--gold);text-shadow:0 0 24px rgba(255,210,122,.35)}
 /* agents legend */
-.agents{position:fixed;left:24px;top:50%;transform:translateY(-46%);z-index:5;width:244px;padding:12px 10px}
+.agents{position:fixed;left:24px;top:50%;transform:translateY(-46%);z-index:5;width:272px;padding:12px 10px}
 .agents h3,.odds h3{margin:0 6px 8px;font:600 10.5px var(--mono);letter-spacing:.18em;color:var(--muted);text-transform:uppercase;display:flex}
 .agents h3 span,.odds h3 span{margin-left:auto;color:var(--dim)}
 .ag{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:10px;cursor:pointer;transition:background .2s}
@@ -62,6 +62,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .caption .why{font-size:13px;color:var(--muted);font-style:italic;margin-top:6px}
 .caption.glow .what{animation:capglow 1.2s ease-out}
 @keyframes capglow{0%{text-shadow:0 0 30px rgba(124,242,255,.9)}100%{text-shadow:0 2px 20px rgba(0,0,0,.8)}}
+body.dopen .caption,body.dopen .timeline{left:calc(50% - 222px)}
+@media (max-width:1100px){body.dopen .caption,body.dopen .timeline{left:50%}}
+.caption,.timeline{transition:left .45s cubic-bezier(.2,.8,.2,1)}
 /* timeline */
 .timeline{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;width:min(760px,calc(100vw - 32px));height:36px;display:flex;align-items:flex-end;gap:3px;padding:6px 10px;overflow:hidden}
 .timeline i{flex:1 0 6px;max-width:9px;border-radius:2px 2px 0 0;cursor:pointer;opacity:.75;transition:opacity .2s}
@@ -95,7 +98,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .db p{margin:0;font-size:13.5px;line-height:1.6;color:#c7d2e8}
 .db h5{margin:4px 0 -4px;font:600 10px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stats div{border:1px solid var(--edge);border-radius:12px;padding:9px 10px;background:rgba(255,255,255,.02)}
+.stats>div{border:1px solid var(--edge);border-radius:12px;padding:9px 10px;background:rgba(255,255,255,.02)}
 .stats .k{font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
 .stats .v{font-size:18px;font-weight:300;margin-top:3px;font-variant-numeric:tabular-nums}
 .list{display:flex;flex-direction:column;border:1px solid var(--edge);border-radius:12px;overflow:hidden}
@@ -172,9 +175,10 @@ const mkIcon = m => m.type === 'hard' ? M.commodities[m.commodity].emoji : '🏛
 /* ---------- actors in space ---------- */
 const C = { lat: 46, lng: 16 };
 const beacons = M.agents.map((a, i) => {
-  const th = (i / M.agents.length) * Math.PI * 2 + .35;
-  return { kind: 'agent', id: a.id, a, lat: C.lat + 25 * Math.sin(th), lng: C.lng + 40 * Math.cos(th) };
+  const th = (i / M.agents.length) * Math.PI * 2 + Math.PI / 8;
+  return { kind: 'agent', id: a.id, a, lat: C.lat + 19 * Math.sin(th), lng: C.lng + 44 * Math.cos(th) };
 });
+const SHORT = { climate_pessimist: 'Pessimist', em_skeptic: 'Skeptic', geo_hawk: 'Hawk', adapt_optimist: 'Optimist', macro_dollar: 'Macro', land_grab: 'Land-Grab', agronomist: 'Agronomist', crowd_follower: 'Crowd' };
 const beaconById = Object.fromEntries(beacons.map(b => [b.id, b]));
 const humanCities = [[51.5, -.1], [40.7, -74], [-23.5, -46.6], [6.5, 3.4], [-1.3, 36.8], [19.1, 72.9], [1.35, 103.8], [35.7, 139.7], [-33.9, 151.2], [41.9, -87.6], [-34.6, -58.4], [-26.2, 28], [52.5, 13.4], [48.9, 2.35], [59.3, 18.1], [25.2, 55.3]];
 const botDCs = [[50.1, 8.7], [39, -77.5], [1.3, 103.8], [35.6, 139.8], [53.3, -6.3]];
@@ -182,10 +186,10 @@ const botDCs = [[50.1, 8.7], [39, -77.5], [1.3, 103.8], [35.6, 139.8], [53.3, -6
 /* ---------- globe ---------- */
 let arcs = [], rings = [], html = [];
 const staticArcs = [];
-M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => { const t = M.getRegion(f.regionId); staticArcs.push({ static: true, startLat: r.lat, startLng: r.lng, endLat: t.lat, endLng: t.lng, color: ['rgba(255,210,122,.05)', 'rgba(255,210,122,.75)'], stroke: .25 + f.usd / 1.2e8, dash: .06, gap: .04, time: 4000, from: r, to: t, usd: f.usd }); }));
+M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => { const t = M.getRegion(f.regionId); staticArcs.push({ static: true, startLat: r.lat, startLng: r.lng, endLat: t.lat, endLng: t.lng, color: ['rgba(255,210,122,.1)', 'rgba(255,210,122,.8)'], stroke: .12 + f.usd / 4e8, dash: .02, gap: .015, time: 5000, from: r, to: t, usd: f.usd }); }));
 const prod = M.regions.filter(r => r.kind === 'production');
 const riskRings = prod.filter(r => r.risk >= .62).map(r => ({ lat: r.lat, lng: r.lng, risk: true, r, max: 2 + r.risk * 4, speed: 1.2 + r.risk, period: 2600 - r.risk * 1500, col: riskRGB(r.risk) }));
-const labels = prod.filter(r => r.lng > -15 && r.lng < 45 && r.lat > 30).map(r => ({ kind: 'label', r, lat: r.lat, lng: r.lng, alt: .02 + r.risk * .16 }))
+const labels = prod.filter(r => r.id !== 'ebro' && r.lng > -15 && r.lng < 45 && r.lat > 30).map(r => ({ kind: 'label', r, lat: r.lat, lng: r.lng, alt: .012 + r.risk * .07 }))
   .concat(M.regions.filter(r => r.kind === 'capital_origin').map(r => ({ kind: 'label', r, lat: r.lat, lng: r.lng, alt: .01 })));
 html = beacons.concat(labels);
 
@@ -195,7 +199,7 @@ function htmlFor(d) {
   const e = document.createElement('div');
   if (d.kind === 'agent') {
     e.className = 'beacon'; e.style.color = d.a.color; e.dataset.id = d.id;
-    e.innerHTML = `<div class="core">${d.a.emoji}</div><div class="tag">${esc(d.a.name)}</div>`;
+    e.innerHTML = `<div class="core">${d.a.emoji}</div><div class="tag">${esc(SHORT[d.id])}</div>`;
     e.onclick = () => openAgent(d.id);
   } else if (d.kind === 'label') {
     e.className = 'rlabel'; e.textContent = d.r.name; e.style.color = d.r.kind === 'capital_origin' ? 'var(--gold)' : '';
@@ -210,7 +214,7 @@ function initGlobe() {
     .width(innerWidth).height(innerHeight)
     .globeImageUrl(IMG + 'earth-night.jpg').bumpImageUrl(IMG + 'earth-topology.png').backgroundImageUrl(IMG + 'night-sky.png')
     .showAtmosphere(true).atmosphereColor('#6fb6ff').atmosphereAltitude(.22)
-    .pointsData(prod).pointLat('lat').pointLng('lng').pointAltitude(r => .02 + r.risk * .16).pointRadius(r => .28 + r.risk * .35).pointColor(r => riskCol(r.risk, .9)).pointsMerge(false)
+    .pointsData(prod).pointLat('lat').pointLng('lng').pointAltitude(r => .01 + r.risk * .07).pointRadius(r => .14 + r.risk * .16).pointColor(r => riskCol(r.risk, .9)).pointsMerge(false)
     .pointLabel(r => `<div class="gtip"><b>${esc(r.name)}, ${esc(r.country)}</b>${esc(r.crop)}<br><span>Risk ${Math.round(r.risk * 100)} · Fund ${F.usd(r.fund)}</span><br><span>Click for details</span></div>`)
     .onPointClick(r => openRegion(r.id))
     .arcsData(staticArcs).arcColor('color').arcStroke('stroke').arcDashLength('dash').arcDashGap('gap').arcDashInitialGap(d => d.initGap || 0).arcDashAnimateTime('time').arcAltitudeAutoScale(.42)
@@ -267,7 +271,7 @@ function onBet(b) {
   const o = originOf(b);
   const sideCol = b.side === 'YES' ? '60,240,160' : '255,85,119';
   const actorCol = b.actorType === 'agent' ? b.actorColor : b.actorType === 'human' ? '#cfe3ff' : '#9aa8c4';
-  const arc = { bet: b, startLat: o.lat, startLng: o.lng, endLat: r.lat, endLng: r.lng, stroke: Math.max(.35, Math.min(1.3, Math.log10(b.stake) * .32)), dash: .45, gap: 2, initGap: 1, time: 1700 };
+  const arc = { bet: b, startLat: o.lat, startLng: o.lng, endLat: r.lat, endLng: r.lng, stroke: Math.max(.45, Math.min(1.6, Math.log10(b.stake) * .4)), dash: .6, gap: 2, initGap: 1, time: 1600 };
   arc.baseColor = [actorCol, `rgba(${sideCol},1)`]; arc.color = arc.baseColor;
   arcs.push(arc); refreshArcs();
   setTimeout(() => { arcs = arcs.filter(a => a !== arc); refreshArcs(); }, 3400);
@@ -318,11 +322,11 @@ $('#caption').onclick = () => { const id = $('#caption').dataset.b; if (id) open
 function openDrawer(head, body, pov) {
   $('#dh').innerHTML = head + '<button class="x" aria-label="Close">✕</button>';
   $('#db').innerHTML = body; $('#dh .x').onclick = closeDrawer;
-  $('#drawer').classList.add('on');
+  $('#drawer').classList.add('on'); document.body.classList.add('dopen');
   $('#db').querySelectorAll('[data-open]').forEach(e => e.onclick = () => { const [k, id] = e.dataset.open.split(':'); ({ m: openMarket, a: openAgent, r: openRegion, b: openBet })[k](id); });
   if (pov && world) { lastTouch = Date.now(); world.pointOfView(Object.assign({ altitude: mobile ? 2.4 : 1.35 }, pov, { lng: pov.lng + (mobile ? 0 : 14) }), 1600); }
 }
-function closeDrawer() { $('#drawer').classList.remove('on'); }
+function closeDrawer() { $('#drawer').classList.remove('on'); document.body.classList.remove('dopen'); }
 addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 const head = (k, t, av, col) => `<div class="av" style="color:${col || 'var(--accent)'}">${av}</div><div><div class="k">${k}</div><h4>${esc(t)}</h4></div>`;
 const chart = (vals, col) => { const w = 380, h = 90, lo = Math.min(...vals), hi = Math.max(...vals), sx = w / (vals.length - 1), sy = v => h - 6 - (v - lo) / ((hi - lo) || 1) * (h - 12); const d = vals.map((v, i) => (i ? 'L' : 'M') + (i * sx).toFixed(1) + ',' + sy(v).toFixed(1)).join(''); return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="g${col.slice(1)}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${d}L${w},${h}L0,${h}Z" fill="url(#g${col.slice(1)})"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px ${col})"/></svg>`; };
