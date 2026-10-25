@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HARVEST · Live v13</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafafa; --fg: #09090b; --fg2: #27272a; --muted: #71717a; --muted2: #a1a1aa; --border: #e4e4e7; --soft: #f4f4f5;
+  --yes: #16a34a; --yes-bg: #dcfce7; --no: #dc2626; --no-bg: #fee2e2;
+  --glass: rgba(255,255,255,.64); --glass-hi: rgba(255,255,255,.84); --gb: rgba(255,255,255,.9);
+  --shadow: 0 0 0 1px rgba(9,9,11,.05), 0 1px 2px rgba(9,9,11,.04), 0 12px 32px -8px rgba(9,9,11,.12);
+  --sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif; --mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  --r: 14px; --gut: 16px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font: 14px/1.45 var(--sans); color: var(--fg); background: var(--bg); overflow: hidden; -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(900px 640px at 12% 8%, rgba(187,247,208,.55), transparent 62%),
+    radial-gradient(760px 620px at 92% 92%, rgba(254,215,170,.45), transparent 60%),
+    radial-gradient(760px 560px at 55% 45%, rgba(224,231,255,.55), transparent 62%);
+  background-attachment: fixed;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.glass {
+  background: var(--glass); border: 1px solid var(--gb); border-radius: var(--r); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6);
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.y { color: var(--yes); } .n { color: var(--no); }
+
+/* stage */
+#stage { position: fixed; inset: 0; }
+#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
+#tip { position: absolute; pointer-events: none; padding: 6px 10px; font-size: 12px; border-radius: 10px; opacity: 0; transform: translate(-50%, calc(-100% - 14px)); transition: opacity .12s; white-space: nowrap; z-index: 5; background: var(--glass-hi); }
+#tip.on { opacity: 1; }
+#tip b { font-weight: 600; }
+#tip .sub { color: var(--muted); font-size: 11px; }
+
+/* nav */
+.nav { position: fixed; top: var(--gut); left: var(--gut); right: var(--gut); height: 56px; display: flex; align-items: center; gap: 18px; padding: 0 10px 0 16px; z-index: 20; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; letter-spacing: .06em; font-size: 15px; white-space: nowrap; }
+.logo { width: 22px; height: 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.logo i { border-radius: 50%; background: var(--fg); }
+.logo i:nth-child(2n) { background: #16a34a; } .logo i:nth-child(5) { background: #f59e0b; }
+.live { display: inline-flex; align-items: center; gap: 6px; font: 600 11px var(--sans); letter-spacing: .04em; color: var(--yes); background: var(--yes-bg); padding: 3px 8px; border-radius: 999px; text-transform: uppercase; }
+.live i { width: 6px; height: 6px; border-radius: 50%; background: var(--yes); box-shadow: 0 0 0 0 rgba(22,163,74,.5); animation: ping 1.6s infinite; }
+.live.paused { color: var(--muted); background: var(--soft); } .live.paused i { background: var(--muted2); animation: none; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,.55); } 80%, 100% { box-shadow: 0 0 0 7px rgba(22,163,74,0); } }
+.seg { position: relative; display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(244,244,245,.85); border: 1px solid var(--border); margin: 0 auto; }
+.seg button { position: relative; z-index: 1; border: 0; background: none; padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--muted); border-radius: 7px; white-space: nowrap; transition: color .2s; }
+.seg button.on { color: var(--fg); }
+.seg .thumb { position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; border-radius: 7px; background: #fff; box-shadow: 0 1px 2px rgba(9,9,11,.08), 0 0 0 1px rgba(9,9,11,.04); transition: transform .35s cubic-bezier(.3,1.3,.5,1), width .35s cubic-bezier(.3,1.3,.5,1); }
+.seg kbd { font: 500 10px var(--mono); color: var(--muted2); margin-left: 6px; }
+.stats { display: flex; gap: 20px; }
+.stat { display: flex; flex-direction: column; line-height: 1.15; }
+.stat span { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.stat b { font: 600 13.5px var(--mono); font-variant-numeric: tabular-nums; }
+.right { display: flex; align-items: center; gap: 10px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 500; color: #3f3f46; background: #fff; border: 1px solid var(--border); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+.badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; }
+.wallet { font: 600 12.5px var(--mono); padding: 6px 10px; border-radius: 8px; background: var(--fg); color: #fff; white-space: nowrap; }
+
+/* cards */
+.card { display: flex; flex-direction: column; min-height: 0; }
+.card h2 { font-size: 13px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+.card .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px 10px; border-bottom: 1px solid rgba(228,228,231,.7); }
+.sub { color: var(--muted); font-size: 12px; }
+.tabs { display: inline-flex; gap: 2px; background: rgba(244,244,245,.9); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+.tabs button { border: 0; background: none; font-size: 11.5px; padding: 3px 8px; border-radius: 6px; color: var(--muted); }
+.tabs button.on { background: #fff; color: var(--fg); box-shadow: 0 1px 2px rgba(9,9,11,.08); }
+.icon-btn { border: 1px solid var(--border); background: #fff; border-radius: 7px; width: 26px; height: 24px; display: inline-grid; place-items: center; font-size: 11px; color: var(--fg2); }
+
+#feed { position: fixed; left: var(--gut); top: 84px; bottom: var(--gut); width: 330px; z-index: 10; }
+#feedList { list-style: none; margin: 0; padding: 4px 6px 8px; overflow: auto; flex: 1; scrollbar-width: thin; }
+.row { display: grid; grid-template-columns: 30px 1fr auto; gap: 9px; align-items: center; padding: 7px 8px; border-radius: 10px; cursor: pointer; }
+.row:hover { background: rgba(244,244,245,.8); }
+.row.new { animation: slidein .5s cubic-bezier(.2,.9,.3,1.2); }
+.row.user { background: rgba(254,243,199,.6); }
+@keyframes slidein { from { opacity: 0; transform: translateY(-10px) scale(.98); background: rgba(220,252,231,.8); } }
+.av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; background: #fff; box-shadow: 0 0 0 2px var(--c, #e4e4e7), 0 1px 3px rgba(9,9,11,.1); }
+.av.sm { width: 24px; height: 24px; font-size: 12.5px; }
+.l1 { font-size: 12.5px; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.l1 b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 128px; }
+.l2 { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side { font: 600 10px var(--sans); padding: 1px 6px; border-radius: 5px; letter-spacing: .03em; }
+.side.yes { color: var(--yes); background: var(--yes-bg); } .side.no { color: var(--no); background: var(--no-bg); }
+.amt { font: 600 12px var(--mono); text-align: right; white-space: nowrap; }
+.amt small { display: block; font-weight: 400; color: var(--muted2); font-size: 10.5px; }
+
+#right { position: fixed; right: var(--gut); top: 84px; bottom: var(--gut); width: 340px; display: flex; flex-direction: column; gap: 12px; z-index: 10; overflow: auto; scrollbar-width: none; }
+#lbList, #hotList { list-style: none; margin: 0; padding: 4px 6px 8px; }
+.lb { display: grid; grid-template-columns: 16px 26px 1fr 54px 76px; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 10px; cursor: pointer; transition: background .2s; }
+.lb:hover, .lb.sel { background: rgba(244,244,245,.85); }
+.lb .rk { font: 500 11px var(--mono); color: var(--muted2); }
+.lb .nm { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb .nm small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+.lb .pn { font: 600 12px var(--mono); text-align: right; white-space: nowrap; transition: color .3s; }
+.lb .pn small { display: block; font-weight: 400; color: var(--muted); font-size: 10.5px; }
+.lb .pn.flash { animation: flash .9s; }
+@keyframes flash { 0% { background: rgba(254,240,138,.8); } 100% { background: transparent; } }
+.hot { display: grid; grid-template-columns: 1fr auto 44px; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 10px; cursor: pointer; }
+.hot:hover, .hot.sel { background: rgba(244,244,245,.85); }
+.hot .t { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hot .t small { display: block; color: var(--muted); font-size: 11px; }
+.pill { font: 600 11.5px var(--mono); padding: 3px 7px; border-radius: 7px; background: #fff; border: 1px solid var(--border); white-space: nowrap; }
+.chg { font: 500 11px var(--mono); text-align: right; }
+
+/* overlays on the stage */
+#bookbar { position: absolute; z-index: 6; display: none; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; border-radius: 12px; font-size: 12.5px; transform: translateX(-50%); max-width: calc(100vw - 32px); }
+#bookbar.on { display: flex; }
+#bookbar select { font: 500 12.5px var(--sans); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; background: #fff; max-width: 290px; color: var(--fg); }
+#bookbar .lbl { color: var(--muted); white-space: nowrap; }
+#hint { position: absolute; z-index: 6; transform: translateX(-50%); padding: 7px 14px; border-radius: 999px; font-size: 12px; color: var(--fg2); display: flex; gap: 12px; align-items: center; white-space: nowrap; }
+#hint i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+#hint .m { color: var(--muted); }
+
+/* drawer */
+#drawer { position: fixed; right: var(--gut); top: 84px; bottom: var(--gut); width: 384px; z-index: 30; transform: translateX(calc(100% + 40px)); transition: transform .45s cubic-bezier(.2,.9,.25,1); overflow: auto; background: rgba(255,255,255,.78); scrollbar-width: thin; }
+#drawer.on { transform: none; }
+#drawer .close { position: sticky; top: 10px; float: right; margin: 10px 10px 0 0; z-index: 2; }
+.dbody { padding: 18px 18px 22px; }
+.over { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+.dbody h3 { font-size: 19px; line-height: 1.25; margin: 6px 0 10px; letter-spacing: -.01em; }
+.dbody p { color: #3f3f46; font-size: 13px; margin: 8px 0; }
+.dbody h4 { font-size: 12px; font-weight: 600; margin: 18px 0 8px; color: var(--fg2); text-transform: uppercase; letter-spacing: .05em; }
+.kv { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.kv > div { background: rgba(255,255,255,.75); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 11.5px; color: var(--muted); }
+.kv b { display: block; font: 600 15px var(--mono); color: var(--fg); margin-top: 1px; }
+.big { display: flex; align-items: baseline; gap: 10px; margin: 4px 0 6px; }
+.big b { font: 600 34px var(--mono); letter-spacing: -.02em; }
+.meter { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; border: 1px solid var(--border); }
+.meter i { display: block; height: 100%; border-radius: 99px; }
+.prow { display: grid; grid-template-columns: 24px 1fr auto 46px 72px; gap: 8px; align-items: center; padding: 6px 6px; border-radius: 9px; font-size: 12.5px; cursor: pointer; }
+.prow:hover { background: rgba(244,244,245,.9); }
+.prow .e { font: 500 11.5px var(--mono); color: var(--muted); text-align: right; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--border); background: #fff; border-radius: 999px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+.chip:hover { border-color: #a1a1aa; }
+.chip.on { background: var(--fg); color: #fff; border-color: var(--fg); }
+.betbox { margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.8); }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.btn { border: 0; border-radius: 9px; padding: 9px 10px; font-weight: 600; font-size: 13px; color: #fff; }
+.btn.yes { background: var(--yes); } .btn.no { background: var(--no); }
+.btn.ghost { background: #fff; color: var(--fg); border: 1px solid var(--border); font-weight: 500; }
+.btn:active { transform: translateY(1px); }
+.note { font-size: 11px; color: var(--muted); margin-top: 8px; }
+.lnk { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.quote { border-left: 2px solid var(--border); padding-left: 10px; color: var(--fg2); font-size: 13.5px; }
+
+@media (max-width: 1279px) { .nav .stats { display: none; } }
+@media (max-width: 1100px) { #feed { width: 290px; } #right { width: 300px; } .lb { grid-template-columns: 16px 26px 1fr 76px; } .lb svg { display: none; } }
+
+/* ---------- mobile ---------- */
+@media (max-width: 959px) {
+  body { overflow: auto; }
+  .nav { position: relative; top: 0; left: 0; right: 0; height: auto; flex-wrap: wrap; padding: 10px 12px; gap: 8px 10px; border-radius: 0 0 16px 16px; border-top: 0; }
+  .brand { order: 1; }
+  .right { order: 2; margin-left: auto; }
+  .wallet { display: none; }
+  .seg { order: 3; width: 100%; margin: 0; }
+  .seg button { flex: 1; padding: 6px 4px; font-size: 12.5px; }
+  .seg kbd { display: none; }
+  .nav .stats { display: flex; order: 4; width: 100%; justify-content: space-between; gap: 6px; }
+  .stat b { font-size: 12.5px; }
+  #stage { position: relative; inset: auto; height: 540px; margin-top: 4px; }
+  #feed, #right, #drawer { position: static; width: auto; }
+  #feed { margin: 12px var(--gut) 0; height: 420px; }
+  #right { margin: 12px var(--gut) 24px; overflow: visible; }
+  #drawer { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: 82vh; border-radius: 18px 18px 0 0; transform: translateY(105%); }
+  #drawer.on { transform: none; }
+  #hint { font-size: 11px; padding: 6px 12px; gap: 8px; max-width: calc(100vw - 32px); white-space: normal; justify-content: center; text-align: center; }
+  #hint .m { display: none; }
+  .lb { grid-template-columns: 16px 26px 1fr 54px 76px; } .lb svg { display: block; }
+}
+@media (max-width: 380px) { .badge { font-size: 10.5px; padding: 3px 7px; } }
+</style>
+</head>
+<body>
+<header class="nav glass">
+  <div class="brand"><span class="logo"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="bn">HARVEST</span><span class="live" id="live"><i></i>Live</span></div>
+  <div class="seg" id="seg" role="tablist" aria-label="View">
+    <span class="thumb"></span>
+    <button data-mode="map" class="on" role="tab">Map<kbd>1</kbd></button>
+    <button data-mode="net" role="tab">Agent network<kbd>2</kbd></button>
+    <button data-mode="book" role="tab">Order book<kbd>3</kbd></button>
+  </div>
+  <div class="stats">
+    <div class="stat"><span>Trades today</span><b id="stBets">0</b></div>
+    <div class="stat"><span>Volume 24h</span><b id="stVol">0</b></div>
+    <div class="stat"><span>Resilience Fund</span><b id="stFund">0</b></div>
+  </div>
+  <div class="right"><span class="badge">Play credits · no real money</span><span class="wallet" id="wallet">You · 1,000 cr</span></div>
+</header>
+
+<div id="stage">
+  <canvas id="cv" aria-label="Live world view: agents trading across regions"></canvas>
+  <div id="bookbar" class="glass"><span class="lbl">Order book</span><select id="bookSel" aria-label="Market"></select><span id="bookPx" class="pill"></span></div>
+  <div id="hint" class="glass"></div>
+  <div id="tip" class="glass"></div>
+</div>
+
+
+<aside id="feed" class="glass card">
+  <div class="hd"><h2>Live trades <span class="sub" id="rate"></span></h2>
+    <div style="display:flex;gap:6px;align-items:center"><div class="tabs" id="feedTabs"><button data-f="all" class="on">All</button><button data-f="agent">Agents</button><button data-f="human">People</button></div><button class="icon-btn" id="pause" title="Pause feed" aria-label="Pause feed">❚❚</button></div>
+  </div>
+  <ul id="feedList"></ul>
+</aside>
+
+<div id="right">
+  <section id="lb" class="glass card">
+    <div class="hd"><h2>Leaderboard</h2><div class="tabs" id="lbTabs"><button data-t="agents" class="on">Agents</button><button data-t="people">People</button></div></div>
+    <ul id="lbList"></ul>
+  </section>
+  <section id="hot" class="glass card">
+    <div class="hd"><h2>Hot markets</h2><span class="sub">24h volume</span></div>
+    <ul id="hotList"></ul>
+  </section>
+</div>
+
+<aside id="drawer" class="glass" aria-live="polite"><button class="icon-btn close" id="dclose" aria-label="Close">✕</button><div class="dbody" id="dbody"></div></aside>
+
+<script src="../shared/mock-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-array@3.2.4/dist/d3-array.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-geo@3.1.1/dist/d3-geo.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+'use strict';
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$$('.bn').forEach(e => e.textContent = BRAND.name); document.title = BRAND.name + ' · Live v13';
+
+const TAU = Math.PI * 2, RAD = Math.PI / 180;
+const cr = n => Math.round(n).toLocaleString('en-US') + ' cr';
+const crs = n => (n < 0 ? '−' : '+') + Math.abs(Math.round(n)).toLocaleString('en-US') + ' cr';
+const crk = n => F.compact(n) + ' cr';
+const pp = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n).toFixed(1) + 'pp';
+const YES = '#16a34a', NO = '#dc2626';
+const AG = M.agents, aIdx = Object.fromEntries(AG.map((a, i) => [a.id, i]));
+const OPEN = M.markets.filter(m => m.status === 'open');
+const PROD = M.regions.filter(r => r.kind === 'production');
+const SHORT = { m01: 'Olive oil +15%', m02: 'Wheat >$280/t', m03: 'Maize >$240/t', m04: 'Arabica >400c', m05: 'Cocoa <$6k/t', m06: 'Sugar >22c', m07: 'Sunflower >$1.3k', m08: 'Rice >$550/t', m09: 'Wheat <$230/t', m10: 'EVOO <€3.5k/t', m11: 'EU maize >€220', s01: 'Italy drought', s02: 'EU land law', s03: 'Mercosur vote', s04: 'Black Sea halt', s05: 'India rice curbs', s06: 'Thessaly water', s07: 'Gulf 50k ha', s08: 'Cocoa farmgate', s09: 'Andalusia cut' };
+const short = id => SHORT[id] || M.getMarket(id).title;
+const mainRegion = m => M.getRegion(m.regions.find(r => M.getRegion(r).kind === 'production') || m.regions[0]);
+const CAP = { GB: [51.5, -0.1], DE: [52.5, 13.4], FR: [48.9, 2.35], IT: [41.9, 12.5], ES: [40.4, -3.7], NL: [52.37, 4.9], PL: [52.2, 21], US: [40.7, -74], IN: [28.6, 77.2], BR: [-23.5, -46.6], UA: [50.45, 30.5], SI: [46.05, 14.5], CH: [46.95, 7.45], SE: [59.3, 18.07], AE: [25.2, 55.3] };
+const EXT = [[53.35, -6.26], [50.1, 8.68], [60.17, 24.94]];
+const YOU = [52.2, 0.12];
+const userById = Object.fromEntries(M.users.map(u => [u.id, u]));
+const hash = s => { let h = 2166136261; for (const c of String(s)) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
+
+/* ---------- live state ---------- */
+const S = { mode: 'map', bets: 18342, vol: OPEN.reduce((s, m) => s + m.volume24h, 0), fund: M.fund.balance, wallet: 1000, paused: false, filter: 'all', lbTab: 'agents', bookId: 'm01', sel: null, hover: null, stake: 100 };
+const livePnl = AG.map(a => a.pnl);
+const recentTimes = [];
+
+/* ---------- canvas ---------- */
+const stage = $('#stage'), cv = $('#cv'), ctx = cv.getContext('2d');
+const MOB = () => innerWidth < 960;
+const N = innerWidth < 960 ? 1500 : 3000;
+let W = 0, H = 0, DPR = 1, Z = { x: 0, y: 0, w: 100, h: 100, cx: 50, cy: 50 }, G = { cx: 0, cy: 0, R: 100 };
+const rot = { lam: 14, phi: 36, lastDrag: -1e9 };
+let sinP0 = 0, cosP0 = 1, L0 = 0;
+
+// colour table: 0 grey land, 1-4 heat ramp, 5-12 agents, 13 yes, 14 no, 15 market node, 16 crowd
+const COL = ['#a1a1aa', '#fcd34d', '#f59e0b', '#f97316', '#ef4444', ...AG.map(a => a.color), YES, NO, '#52525b', '#94a3b8'];
+const ALPHA = [0.16, 0.38, 0.68, 1];
+const heatIdx = r => r >= 0.8 ? 4 : r >= 0.7 ? 3 : r >= 0.6 ? 2 : 1;
+
+/* particles */
+const P = [];
+for (let i = 0; i < N; i++) {
+  const a = Math.random() * TAU, rr = Math.sqrt(Math.random());
+  P.push({ x: innerWidth / 2 + Math.cos(a) * rr * 300, y: 300 + Math.sin(a) * rr * 300, vx: 0, vy: 0, r0: Math.random(), delay: 0, li: i, slotN: null, slotB: null, c: 0, al: 0 });
+}
+let LAND = [];   // {sp, cp, lng, heat, reg}
+const regParticles = {};
+
+function fibSphere(n) {
+  const out = [], ga = Math.PI * (3 - Math.sqrt(5));
+  for (let k = 0; k < n; k++) { const y = 1 - 2 * (k + 0.5) / n; out.push([Math.asin(y) / RAD, ((k * ga / RAD) % 360) - 180]); }
+  return out;
+}
+function setLand(isLand) {
+  const ratio = isLand ? 0.285 : 1;
+  const pts = fibSphere(Math.round(N / ratio)).filter(([la, ln]) => !isLand || isLand(la, ln));
+  LAND = pts.map(([la, ln]) => {
+    let best = null, bd = 1e9;
+    for (const r of PROD) { const dl = (ln - r.lng) * Math.cos(la * RAD), d = Math.hypot(la - r.lat, dl); if (d < bd) { bd = d; best = r; } }
+    const near = bd < 4.6;
+    return { sp: Math.sin(la * RAD), cp: Math.cos(la * RAD), lng: ln, heat: near ? heatIdx(best.risk) : 0, reg: near ? best.id : null };
+  });
+  for (const k in regParticles) delete regParticles[k];
+  P.forEach((p, i) => { p.li = i % LAND.length; const L = LAND[p.li]; if (L.reg) (regParticles[L.reg] = regParticles[L.reg] || []).push(p); });
+}
+setLand(null);
+(async function loadLand() {
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-110m.json');
+    const topo = await res.json();
+    const land = topojson.feature(topo, topo.objects.land);
+    const c = document.createElement('canvas'); c.width = 1440; c.height = 720;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    const pr = d3.geoEquirectangular().scale(1440 / TAU).translate([720, 360]);
+    g.fillStyle = '#000'; g.beginPath(); d3.geoPath(pr, g)(land); g.fill();
+    const data = g.getImageData(0, 0, 1440, 720).data;
+    setLand((la, ln) => { const x = Math.min(1439, Math.floor((ln + 180) / 360 * 1440)), y = Math.min(719, Math.floor((90 - la) / 180 * 720)); return data[(y * 1440 + x) * 4 + 3] > 100; });
+    if (S.mode === 'map') jump(0.6);
+  } catch (e) { console.warn('land mask unavailable, using full sphere', e); }
+})();
+
+/* projection */
+function setRot(time) {
+  const sway = time - rot.lastDrag > 6000 ? Math.sin(time * 0.00011) * 5 : 0;
+  L0 = rot.lam + sway; sinP0 = Math.sin(rot.phi * RAD); cosP0 = Math.cos(rot.phi * RAD);
+}
+function projSC(sp, cp, lng) {
+  const l = (lng - L0) * RAD, cl = Math.cos(l);
+  return [G.cx + cp * Math.sin(l) * G.R, G.cy - (cosP0 * sp - sinP0 * cp * cl) * G.R, sinP0 * sp + cosP0 * cp * cl];
+}
+const proj = (lat, lng) => projSC(Math.sin(lat * RAD), Math.cos(lat * RAD), lng);
+
+/* sphere helpers for travel */
+const toV = (la, ln) => [Math.cos(la * RAD) * Math.cos(ln * RAD), Math.cos(la * RAD) * Math.sin(ln * RAD), Math.sin(la * RAD)];
+const toLL = v => [Math.asin(Math.max(-1, Math.min(1, v[2]))) / RAD, Math.atan2(v[1], v[0]) / RAD];
+function slerp(a, b, t) {
+  const d = Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])));
+  if (d < 1e-6) return a; const s = Math.sin(d), k1 = Math.sin((1 - t) * d) / s, k2 = Math.sin(t * d) / s;
+  return [a[0] * k1 + b[0] * k2, a[1] * k1 + b[1] * k2, a[2] * k1 + b[2] * k2];
+}
+const ease = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+
+/* ---------- layouts ---------- */
+const NET = { agents: [], markets: [], crowd: null, edges: [] };
+const BOOK = { bins: [], x0: 0, x1: 0, base: 0, top: 0, mid: 50, av: [], bid: 0, ask: 0 };
+const mIdx = Object.fromEntries(OPEN.map((m, j) => [m.id, j]));
+
+function measure() {
+  const sr = stage.getBoundingClientRect(); W = sr.width; H = sr.height;
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (!MOB()) {
+    const fr = $('#feed').getBoundingClientRect(), rr = $('#right').getBoundingClientRect(), nv = $('.nav').getBoundingClientRect();
+    Z = { x: fr.right + 14, y: nv.bottom + 14, w: rr.left - fr.right - 28, h: H - nv.bottom - 14 - 62 };
+  } else Z = { x: 12, y: 58, w: W - 24, h: H - 58 - 62 };
+  Z.cx = Z.x + Z.w / 2; Z.cy = Z.y + Z.h / 2;
+  G = { cx: Z.cx, cy: Z.cy, R: Math.min(Z.w, Z.h) / 2 - 8 };
+  const hint = $('#hint'); hint.style.left = Z.cx + 'px'; hint.style.top = (Z.y + Z.h + 14) + 'px';
+  const bb = $('#bookbar'); bb.style.left = Z.cx + 'px'; bb.style.top = (MOB() ? 10 : Z.y) + 'px';
+  layoutNet(); layoutBook(); placeThumb();
+}
+
+function layoutNet() {
+  const mob = MOB(), R = Math.min(Z.w, Z.h) * (mob ? 0.39 : 0.4), sy = Math.min(1, Z.h / Z.w + 0.15);
+  const maxB = Math.max(...AG.map(a => a.bets)), maxV = Math.max(...OPEN.map(m => m.volume));
+  NET.agents = AG.map((a, i) => { const ang = i / 8 * TAU - Math.PI / 2 + Math.PI / 8; return { i, x: Z.cx + Math.cos(ang) * R, y: Z.cy + Math.sin(ang) * R * sy, r: (mob ? 11 : 20) + (mob ? 11 : 22) * Math.sqrt(a.bets / maxB), ang }; });
+  NET.markets = OPEN.map((m, j) => { const ang = j / OPEN.length * TAU - Math.PI / 2 + 0.08; const rr = R * (j % 2 ? 0.44 : 0.62); return { id: m.id, m, x: Z.cx + Math.cos(ang) * rr, y: Z.cy + Math.sin(ang) * rr * sy, r: (mob ? 4 : 6) + (mob ? 6 : 10) * Math.sqrt(m.volume / maxV), ang }; });
+  NET.crowd = { x: Z.cx, y: Z.cy, r: mob ? 16 : 26 };
+  NET.edges = [];
+  OPEN.forEach(m => [...m.positions].sort((a, b) => b.stake - a.stake).slice(0, 3).forEach(p => NET.edges.push({ ai: aIdx[p.agentId], mj: mIdx[m.id], side: p.side, stake: p.stake })));
+  // slots
+  const nDisc = Math.round(N * 0.44), nMk = Math.round(N * 0.18), nCrowd = Math.round(N * 0.07), nFlow = N - nDisc - nMk - nCrowd;
+  const slots = [];
+  const alloc = (n, ws) => { const s = ws.reduce((a, b) => a + b, 0); const c = ws.map(w => Math.floor(n * w / s)); let left = n - c.reduce((a, b) => a + b, 0); for (let k = 0; left > 0; k = (k + 1) % c.length, left--) c[k]++; return c; };
+  alloc(nDisc, AG.map(a => a.bets)).forEach((cnt, g) => { for (let k = 0; k < cnt; k++) slots.push({ t: 'disc', g, k, n: cnt }); });
+  alloc(nMk, OPEN.map(m => m.volume)).forEach((cnt, g) => { for (let k = 0; k < cnt; k++) slots.push({ t: 'mk', g, k, n: cnt }); });
+  for (let k = 0; k < nCrowd; k++) slots.push({ t: 'crowd', k, n: nCrowd });
+  alloc(nFlow, NET.edges.map(e => Math.sqrt(e.stake))).forEach((cnt, g) => { for (let k = 0; k < cnt; k++) slots.push({ t: 'flow', g, s0: (k + Math.random()) / cnt, j: Math.random() - .5 }); });
+  // seeded shuffle so particles gather from everywhere
+  let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [slots[i], slots[j]] = [slots[j], slots[i]]; }
+  P.forEach((p, i) => p.slotN = slots[i % slots.length]);
+}
+
+function bookDepth(m) {
+  const mid = Math.round(m.yes * 100), liq = m.liquidity, out = [];
+  for (let b = 0; b < 49; b++) {
+    const c = 2 + b * 2, h = 0.55 + 0.45 * hash(m.id + c);
+    let bid = 0, ask = 0;
+    if (c < mid) bid = liq * Math.exp(-(mid - c) / 11) * h * 0.18;
+    else if (c > mid + 1) ask = liq * Math.exp(-(c - mid) / 11) * h * 0.18;
+    out.push({ c, bid, ask });
+  }
+  m.positions.forEach(p => {
+    const e = Math.round(p.estimate * 100);
+    if (p.side === 'YES') { const c = Math.min(e, mid - 2); const b = out[Math.max(0, Math.min(48, Math.round((c - 2) / 2)))]; if (b.c < mid) b.bid += p.stake * 0.5; }
+    else { const c = Math.max(e, mid + 2); const b = out[Math.max(0, Math.min(48, Math.round((c - 2) / 2)))]; if (b.c > mid + 1) b.ask += p.stake * 0.5; }
+  });
+  return { mid, bins: out };
+}
+function layoutBook() {
+  const mob = MOB(), m = M.getMarket(S.bookId), { mid, bins } = bookDepth(m);
+  const pad = mob ? 14 : 30, x0 = Z.x + pad, x1 = Z.x + Z.w - pad, binW = (x1 - x0) / 49;
+  const base = Z.y + Z.h * (mob ? 0.8 : 0.8), maxH = Z.h * (mob ? 0.42 : 0.46), sp = mob ? 3.4 : 4.6;
+  const across = Math.max(1, Math.floor(binW * 0.86 / sp)), maxRows = Math.floor(maxH / sp);
+  const maxD = Math.max(...bins.map(b => b.bid + b.ask));
+  let counts = bins.map(b => Math.round((b.bid + b.ask) / maxD * maxRows * across));
+  const tot = counts.reduce((a, b) => a + b, 0), budget = Math.floor(N * 0.88);
+  if (tot > budget) counts = counts.map(c => Math.floor(c * budget / tot));
+  const slots = [];
+  bins.forEach((b, j) => { const cx = x0 + (j + .5) * binW; for (let k = 0; k < counts[j]; k++) { const gx = k % across, gy = Math.floor(k / across); slots.push({ x: cx + (gx - (across - 1) / 2) * sp, y: base - (gy + .5) * sp, c: b.bid > 0 ? 13 : 14, bin: j }); } });
+  const midX = x0 + (mid / 100) * (x1 - x0) - binW / 2 + binW / 2;
+  const rest = N - slots.length;
+  for (let k = 0; k < rest; k++) {
+    if (k % 3 === 2) { const u = (k / rest); slots.push({ x: midX + (hash(k) - .5) * 1.5, y: base - u * (maxH + 20), c: 0, line: 1 }); }
+    else { const u = (k / rest); slots.push({ x: x0 + u * (x1 - x0), y: base + 6 + (hash(k + 9) - .5) * 1.2, c: 0, line: 1 }); }
+  }
+  P.forEach((p, i) => p.slotB = slots[i]);
+  BOOK.bins = bins; BOOK.x0 = x0; BOOK.x1 = x1; BOOK.base = base; BOOK.top = base - maxH; BOOK.mid = mid; BOOK.midX = midX; BOOK.binW = binW;
+  BOOK.bid = bins.reduce((s, b) => s + b.bid, 0); BOOK.ask = bins.reduce((s, b) => s + b.ask, 0);
+  // agent markers above the book, stacked to avoid overlap
+  const items = m.positions.map(p => ({ i: aIdx[p.agentId], x: x0 + p.estimate * (x1 - x0), est: p.estimate, side: p.side, stake: p.stake })).sort((a, b) => a.x - b.x);
+  const rowsLast = [], gap = mob ? 22 : 30;
+  items.forEach(it => { let r = 0; while (rowsLast[r] != null && it.x - rowsLast[r] < gap) r++; rowsLast[r] = it.x; it.row = r; });
+  BOOK.av = items; BOOK.avY = BOOK.top - (mob ? 26 : 34);
+  const pxEl = $('#bookPx'); pxEl.innerHTML = `YES <span class="y">${Math.round(m.yes * 100)}¢</span> · NO <span class="n">${100 - Math.round(m.yes * 100)}¢</span>`;
+}
+
+/* ---------- avatars (agents travel between regions) ---------- */
+const AV = AG.map((a, i) => {
+  const ms = OPEN.filter(m => m.positions.some(p => p.agentId === a.id && p.stake > 0));
+  const top = [...ms].sort((x, y) => y.positions.find(p => p.agentId === a.id).stake - x.positions.find(p => p.agentId === a.id).stake)[0];
+  const reg = mainRegion(top);
+  return { a, i, v: toV(reg.lat, reg.lng), from: null, to: null, tt: 1, dur: 1, wait: 800 + i * 700, regs: [...new Set(ms.flatMap(m => m.regions).map(id => M.getRegion(id)).filter(r => r.kind === 'production').map(r => r.id))], x: Z.cx, y: Z.cy, al: 1, ox: Math.cos(i * TAU / 8) * 9, oy: Math.sin(i * TAU / 8) * 9 };
+});
+function travel(av, reg) {
+  av.from = av.v; av.to = toV(reg.lat, reg.lng);
+  const d = Math.acos(Math.max(-1, Math.min(1, av.from[0] * av.to[0] + av.from[1] * av.to[1] + av.from[2] * av.to[2])));
+  av.tt = 0; av.dur = 1400 + d * 2600; av.wait = 2200 + Math.random() * 4000;
+}
+function avTarget(av) {
+  if (S.mode === 'map') { const ll = toLL(av.v), p = proj(ll[0], ll[1]); return [p[0] + av.ox, p[1] + av.oy, p[2] > 0 ? 1 : 0.18]; }
+  if (S.mode === 'net') { const n = NET.agents[av.i]; return [n.x, n.y, 1]; }
+  const it = BOOK.av.find(q => q.i === av.i); return it ? [it.x, BOOK.avY - it.row * (MOB() ? 24 : 30), 1] : [Z.cx, Z.y, 0];
+}
+
+/* ---------- arcs, pulses ---------- */
+const arcs = [], pulses = [], floats = [];
+const regionHeat = {}, marketHeat = {};
+function originLL(b) {
+  if (b.actorType === 'agent') return toLL(AV[aIdx[b.actorId]].v);
+  if (b.actorId === 'you') return YOU;
+  if (b.actorType === 'external_agent') return EXT[Math.floor(hash(b.actorId) * EXT.length)];
+  const u = userById[b.actorId]; return (u && CAP[u.country]) || CAP.GB;
+}
+function ends(a) {
+  const mob = MOB();
+  if (S.mode === 'map') {
+    const f = proj(a.from[0], a.from[1]), t = proj(a.reg.lat, a.reg.lng);
+    if (a.b.actorType === 'agent') { const av = AV[aIdx[a.b.actorId]]; if (a.t < 0.05) a.fromScr = [av.x, av.y]; }
+    return { f: a.fromScr && a.b.actorType === 'agent' ? a.fromScr : [f[0], f[1]], t: [t[0], t[1]], vis: Math.min(f[2], t[2]) > -0.05, lift: 1 };
+  }
+  if (S.mode === 'net') {
+    const mk = NET.markets[mIdx[a.m.id]], src = a.b.actorType === 'agent' ? NET.agents[aIdx[a.b.actorId]] : NET.crowd;
+    return { f: [src.x, src.y], t: [mk.x, mk.y], vis: true, lift: 0.4 };
+  }
+  if (a.m.id !== S.bookId) return { vis: false };
+  const av = a.b.actorType === 'agent' ? AV[aIdx[a.b.actorId]] : null;
+  return { f: av ? [av.x, av.y] : [a.b.side === 'YES' ? BOOK.x0 : BOOK.x1, BOOK.top - 60], t: [BOOK.midX, BOOK.base - 6], vis: true, lift: 0.5 };
+}
+function ctrl(f, t, lift) {
+  const mx = (f[0] + t[0]) / 2, my = (f[1] + t[1]) / 2, d = Math.hypot(t[0] - f[0], t[1] - f[1]);
+  if (S.mode === 'map') { let ox = mx - G.cx, oy = my - G.cy; const L = Math.hypot(ox, oy) || 1; return [mx + ox / L * d * 0.35, my + oy / L * d * 0.35 - d * 0.12]; }
+  const nx = -(t[1] - f[1]) / (d || 1), ny = (t[0] - f[0]) / (d || 1); return [mx + nx * d * 0.22 * lift, my + ny * d * 0.22 * lift];
+}
+const qb = (f, c, t, u) => [(1 - u) ** 2 * f[0] + 2 * (1 - u) * u * c[0] + u * u * t[0], (1 - u) ** 2 * f[1] + 2 * (1 - u) * u * c[1] + u * u * t[1]];
+
+function land(a) {
+  const col = a.b.side === 'YES' ? YES : NO;
+  pulses.push({ a, life: 0, col });
+  floats.push({ a, life: 0, col, txt: `${a.b.side} ${cr(a.b.stake)}` });
+  if (S.mode === 'map') (regParticles[a.reg.id] || []).forEach(p => { p.vx += (Math.random() - .5) * 3; p.vy -= 1.5 + Math.random() * 3.5; });
+  if (S.mode === 'net') P.forEach(p => { if (p.slotN && p.slotN.t === 'mk' && p.slotN.g === mIdx[a.m.id]) { p.vx += (Math.random() - .5) * 4; p.vy -= Math.random() * 4; } });
+  if (a.m.id === S.bookId) { layoutBook(); if (S.mode === 'book') P.forEach(p => { if (p.slotB && p.slotB.bin != null && Math.abs(p.slotB.bin - (BOOK.mid / 2 - 1)) < 4) p.vy -= 1 + Math.random() * 2.5; }); }
+}
+
+/* ---------- physics + render ---------- */
+let t = 0, last = performance.now();
+const grp = new Map();
+function jump(s) { P.forEach(p => { p.delay = Math.floor(p.r0 * 26 * s); p.vy -= (1 + Math.random() * 5) * s; p.vx += (Math.random() - .5) * 5 * s; }); }
+
+function target(p) {
+  const mob = MOB();
+  if (S.mode === 'map') {
+    const L = LAND[p.li]; const q = projSC(L.sp, L.cp, L.lng); let z = q[2];
+    let x = q[0], y = q[1];
+    const lifted = (S.sel && S.sel.type === 'region' && S.sel.id === L.reg) || (S.hover && S.hover.type === 'region' && S.hover.id === L.reg);
+    if (lifted && z > 0) { const k = 1.035 + Math.sin(t * 0.08 + p.r0 * 6) * 0.008; x = G.cx + (x - G.cx) * k; y = G.cy + (y - G.cy) * k; }
+    p.c = L.heat; p.al = z <= 0.02 ? -1 : lifted ? 3 : z < 0.18 ? 1 : z < 0.45 ? 2 : 3;
+    if (L.heat === 0 && p.al === 3) p.al = 2;
+    return [x, y];
+  }
+  if (S.mode === 'net') {
+    const s = p.slotN, hl = S.sel && S.sel.type === 'agent' ? aIdx[S.sel.id] : -1;
+    if (s.t === 'disc') { const n = NET.agents[s.g], rr = n.r * Math.sqrt((s.k + .5) / s.n), an = s.k * 2.39996 + t * 0.003 * (s.g % 2 ? 1 : -1); p.c = 5 + s.g; p.al = hl >= 0 && hl !== s.g ? 1 : 3; return [n.x + Math.cos(an) * rr, n.y + Math.sin(an) * rr]; }
+    if (s.t === 'mk') { const n = NET.markets[s.g], rr = n.r * Math.sqrt((s.k + .5) / s.n), an = s.k * 2.39996; const hot = marketHeat[n.id] && performance.now() - marketHeat[n.id] < 1500; p.c = 15; p.al = hot ? 3 : 2; return [n.x + Math.cos(an) * rr, n.y + Math.sin(an) * rr]; }
+    if (s.t === 'crowd') { const n = NET.crowd, rr = n.r * Math.sqrt((s.k + .5) / s.n), an = s.k * 2.39996 - t * 0.002; p.c = 16; p.al = 2; return [n.x + Math.cos(an) * rr, n.y + Math.sin(an) * rr]; }
+    const e = NET.edges[s.g], A = NET.agents[e.ai], B = NET.markets[e.mj];
+    const u = (s.s0 + t * 0.0022) % 1; if (u < 0.004) { p.snap = 1; }
+    const c = [(A.x + B.x) / 2 + (Z.cx - (A.x + B.x) / 2) * 0.25, (A.y + B.y) / 2 + (Z.cy - (A.y + B.y) / 2) * 0.25];
+    const q = qb([A.x, A.y], c, [B.x, B.y], u); p.c = e.side === 'YES' ? 13 : 14; p.al = hl >= 0 && hl !== e.ai ? 0 : 2;
+    return [q[0] + s.j * 3, q[1] + s.j * 3];
+  }
+  const s = p.slotB; p.c = s.c; p.al = s.line ? 1 : 3; return [s.x, s.y];
+}
+
+function frame(now) {
+  const dt = Math.min(50, now - last); last = now; t++;
+  setRot(now);
+  ctx.clearRect(0, 0, W, H);
+  const mob = MOB();
+  // globe body
+  if (S.mode === 'map') {
+    const g = ctx.createRadialGradient(G.cx - G.R * .35, G.cy - G.R * .4, G.R * .1, G.cx, G.cy, G.R);
+    g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(1, 'rgba(244,244,245,.78)');
+    ctx.fillStyle = 'rgba(9,9,11,.035)'; ctx.beginPath(); ctx.ellipse(G.cx, G.cy + G.R + 14, G.R * .7, 10, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(G.cx, G.cy, G.R, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#e4e4e7'; ctx.lineWidth = 1; ctx.stroke();
+    // graticule (equator + tropics) as faint dotted lines
+    ctx.fillStyle = 'rgba(161,161,170,.35)';
+    for (const la of [0, 23.4, -23.4, 45]) for (let ln = -180; ln < 180; ln += 4) { const q = proj(la, ln); if (q[2] > 0) ctx.fillRect(q[0] - .5, q[1] - .5, 1, 1); }
+  }
+  // net edges
+  if (S.mode === 'net') {
+    const hl = S.sel && S.sel.type === 'agent' ? aIdx[S.sel.id] : -1;
+    NET.edges.forEach(e => { const A = NET.agents[e.ai], B = NET.markets[e.mj]; const c = [(A.x + B.x) / 2 + (Z.cx - (A.x + B.x) / 2) * 0.25, (A.y + B.y) / 2 + (Z.cy - (A.y + B.y) / 2) * 0.25];
+      ctx.strokeStyle = e.side === 'YES' ? YES : NO; ctx.globalAlpha = hl >= 0 ? (hl === e.ai ? .45 : .04) : .1; ctx.lineWidth = 0.6 + Math.sqrt(e.stake) / 40;
+      ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.quadraticCurveTo(c[0], c[1], B.x, B.y); ctx.stroke(); });
+    ctx.globalAlpha = 1;
+  }
+  // book scaffolding
+  if (S.mode === 'book') drawBookBack();
+  // particles
+  grp.forEach(g => g.length = 0);
+  const rad = S.mode === 'map' ? (mob ? 1.35 : 1.75) : S.mode === 'net' ? (mob ? 1.15 : 1.5) : (mob ? 1.2 : 1.65);
+  const K = S.mode === 'map' ? 0.07 : 0.055, D = 0.78;
+  for (const p of P) {
+    const tg = target(p);
+    if (p.snap) { p.x = tg[0]; p.y = tg[1]; p.vx = p.vy = 0; p.snap = 0; }
+    if (p.delay > 0) p.delay--; else { p.vx += (tg[0] - p.x) * K; p.vy += (tg[1] - p.y) * K; }
+    p.vx *= D; p.vy *= D; p.x += p.vx; p.y += p.vy;
+    if (p.al < 0) continue;
+    const key = p.c * 4 + p.al; let arr = grp.get(key); if (!arr) grp.set(key, arr = []); arr.push(p);
+  }
+  grp.forEach((arr, key) => {
+    if (!arr.length) return; const c = Math.floor(key / 4), al = key % 4;
+    ctx.fillStyle = COL[c]; ctx.globalAlpha = ALPHA[al]; ctx.beginPath();
+    for (const p of arr) { ctx.moveTo(p.x + rad, p.y); ctx.arc(p.x, p.y, rad, 0, TAU); }
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  if (S.mode === 'map') drawMapOver(now);
+  if (S.mode === 'net') drawNetOver(now);
+  if (S.mode === 'book') drawBookOver();
+  // avatars
+  for (const av of AV) {
+    if (av.to) { av.tt = Math.min(1, av.tt + dt / av.dur); av.v = slerp(av.from, av.to, ease(av.tt)); if (av.tt >= 1) { av.from = av.to = null; } }
+    else if (S.paused === false) { av.wait -= dt; if (av.wait <= 0 && av.regs.length) travel(av, M.getRegion(av.regs[Math.floor(Math.random() * av.regs.length)])); }
+    const tg = avTarget(av), k = S.mode === 'map' ? 0.3 : 0.14;
+    av.x += (tg[0] - av.x) * k; av.y += (tg[1] - av.y) * k; av.al += (tg[2] - av.al) * 0.15;
+  }
+  drawArcs(dt);
+  drawAvatars();
+  requestAnimationFrame(frame);
+}
+
+function label(s, x, y, o = {}) {
+  ctx.font = `${o.w || 500} ${o.size || 11}px Geist, Inter, sans-serif`; ctx.textAlign = o.align || 'center'; ctx.textBaseline = 'middle';
+  if (o.halo !== false) { ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineJoin = 'round'; ctx.strokeText(s, x, y); }
+  ctx.fillStyle = o.color || '#27272a'; ctx.fillText(s, x, y);
+}
+function pillLabel(s, x, y, col, bg) {
+  ctx.font = '600 11px "Geist Mono", monospace'; const w = ctx.measureText(s).width + 12;
+  ctx.fillStyle = bg || '#fff'; ctx.strokeStyle = 'rgba(9,9,11,.08)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - 10, w, 20, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, x, y + .5);
+}
+
+const hits = [];
+function drawMapOver(now) {
+  hits.length = 0;
+  const mob = MOB();
+  // capital flows (Gulf sovereign money into EU farmland)
+  ctx.setLineDash([2, 4]); ctx.lineWidth = 1;
+  M.regions.filter(r => r.flowsTo).forEach(r => {
+    const a = proj(r.lat, r.lng); if (a[2] <= 0) return;
+    ctx.fillStyle = '#71717a'; ctx.fillRect(a[0] - 3, a[1] - 3, 6, 6);
+    hits.push({ type: 'region', id: r.id, x: a[0], y: a[1], r: 10 });
+    r.flowsTo.forEach(f => { const g = M.getRegion(f.regionId), b = proj(g.lat, g.lng); if (b[2] <= 0) return; const c = ctrl([a[0], a[1]], [b[0], b[1]], 1);
+      ctx.strokeStyle = 'rgba(113,113,122,.35)'; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.quadraticCurveTo(c[0], c[1], b[0], b[1]); ctx.stroke(); });
+  });
+  ctx.setLineDash([]);
+  // region markers
+  for (const r of PROD) {
+    const q = proj(r.lat, r.lng); if (q[2] <= 0.01) continue;
+    const sel = (S.sel && S.sel.type === 'region' && S.sel.id === r.id), hov = S.hover && S.hover.type === 'region' && S.hover.id === r.id;
+    const rr = (mob ? 2.5 : 3.5) + r.risk * (mob ? 3 : 4.5), col = COL[heatIdx(r.risk)];
+    ctx.globalAlpha = 0.35 + 0.65 * Math.min(1, q[2] * 3);
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = col; ctx.lineWidth = sel || hov ? 2.5 : 1.6;
+    ctx.beginPath(); ctx.arc(q[0], q[1], rr + (sel || hov ? 2 : 0), 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(q[0], q[1], rr * 0.45, 0, TAU); ctx.fill();
+    if (sel) { ctx.strokeStyle = col; ctx.globalAlpha = 0.5; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(q[0], q[1], rr + 8 + Math.sin(t * .08) * 2, 0, TAU); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    hits.push({ type: 'region', id: r.id, x: q[0], y: q[1], r: rr + 8 });
+    const heat = regionHeat[r.id] ? 1 - (now - regionHeat[r.id]) / 3500 : 0;
+    if (sel || hov || heat > 0) { ctx.globalAlpha = sel || hov ? 1 : Math.min(1, heat * 2); label(r.name, q[0] + rr + 6, q[1] - 1, { align: 'left', size: mob ? 10.5 : 11.5, w: 600 }); ctx.globalAlpha = 1; }
+  }
+}
+function drawNetOver(now) {
+  hits.length = 0;
+  const mob = MOB(), hl = S.sel && S.sel.type === 'agent' ? aIdx[S.sel.id] : -1;
+  NET.markets.forEach((n, j) => {
+    hits.push({ type: 'market', id: n.id, x: n.x, y: n.y, r: n.r + 6 });
+    const heat = marketHeat[n.id] ? 1 - (now - marketHeat[n.id]) / 3000 : 0, sel = S.sel && S.sel.type === 'market' && S.sel.id === n.id, hov = S.hover && S.hover.type === 'market' && S.hover.id === n.id;
+    if (sel || hov) { ctx.strokeStyle = '#09090b'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 5, 0, TAU); ctx.stroke(); }
+    const showStatic = !mob && j < 20 && (j % 2 === 0);
+    if (sel || hov || heat > 0 || showStatic) {
+      ctx.globalAlpha = sel || hov ? 1 : Math.max(showStatic ? .75 : 0, Math.min(1, heat * 2));
+      const out = j % 2 ? -1 : 1, lx = n.x + Math.cos(n.ang) * (n.r + 10) * out, ly = n.y + Math.sin(n.ang) * (n.r + 10) * out;
+      label(short(n.id), lx, ly, { size: mob ? 9.5 : 10.5, color: '#3f3f46', align: Math.cos(n.ang) * out > 0.3 ? 'left' : Math.cos(n.ang) * out < -0.3 ? 'right' : 'center' });
+      ctx.globalAlpha = 1;
+    }
+  });
+  hits.push({ type: 'crowd', id: 'crowd', x: NET.crowd.x, y: NET.crowd.y, r: NET.crowd.r + 4 });
+  label('People + ext. agents', NET.crowd.x, NET.crowd.y + NET.crowd.r + 12, { size: mob ? 9.5 : 10.5, color: '#71717a' });
+  NET.agents.forEach((n, i) => {
+    const a = AG[i]; ctx.globalAlpha = hl >= 0 && hl !== i ? 0.35 : 1;
+    const below = n.y >= Z.cy - 5, ly = below ? n.y + n.r + 14 : n.y - n.r - 22;
+    label(mob ? a.name.split(' ')[0].replace('Efficient-Market', 'EM') : a.name, n.x, ly, { size: mob ? 10 : 12, w: 600 });
+    label(crs(livePnl[i]), n.x, ly + (mob ? 12 : 14), { size: mob ? 9.5 : 10.5, color: livePnl[i] >= 0 ? YES : NO, w: 500 });
+    ctx.globalAlpha = 1;
+  });
+}
+function drawBookBack() {
+  const mob = MOB();
+  ctx.strokeStyle = '#e4e4e7'; ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
+  for (let k = 1; k <= 3; k++) { const y = BOOK.base - (BOOK.base - BOOK.top) * k / 3; ctx.beginPath(); ctx.moveTo(BOOK.x0, y); ctx.lineTo(BOOK.x1, y); ctx.stroke(); }
+  ctx.setLineDash([]);
+  for (let c = 0; c <= 100; c += mob ? 25 : 10) { const x = BOOK.x0 + c / 100 * (BOOK.x1 - BOOK.x0); label(c + '¢', x, BOOK.base + 22, { size: mob ? 9.5 : 10.5, color: '#a1a1aa', halo: false }); }
+}
+function drawBookOver() {
+  hits.length = 0;
+  const mob = MOB(), m = M.getMarket(S.bookId);
+  // mid label
+  pillLabel(`last ${Math.round(m.yes * 100)}¢`, BOOK.midX, BOOK.top - 4, '#09090b');
+  label(`YES bids · ${crk(BOOK.bid)}`, BOOK.x0, BOOK.base + 42, { align: 'left', size: mob ? 10.5 : 12, w: 600, color: YES });
+  label(`NO bids · ${crk(BOOK.ask)}`, BOOK.x1, BOOK.base + 42, { align: 'right', size: mob ? 10.5 : 12, w: 600, color: NO });
+  // consensus marker
+  const cx = BOOK.x0 + m.agentEstimate * (BOOK.x1 - BOOK.x0);
+  ctx.fillStyle = '#09090b'; ctx.beginPath(); ctx.moveTo(cx, BOOK.base + 4); ctx.lineTo(cx + 5, BOOK.base + 10); ctx.lineTo(cx - 5, BOOK.base + 10); ctx.closePath(); ctx.fill();
+  if (!mob) label(`agent consensus ${Math.round(m.agentEstimate * 100)}%`, cx, BOOK.base + 60, { size: 10.5, color: '#3f3f46' });
+  // estimate ticks from avatars
+  BOOK.av.forEach(it => { const av = AV[it.i]; ctx.strokeStyle = AG[it.i].color; ctx.globalAlpha = .45; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(av.x, av.y + 12); ctx.lineTo(it.x, BOOK.top + 8); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; });
+  hits.push({ type: 'market', id: m.id, rect: [BOOK.x0, BOOK.top, BOOK.x1 - BOOK.x0, BOOK.base - BOOK.top + 10] });
+}
+function drawArcs(dt) {
+  for (let i = arcs.length - 1; i >= 0; i--) {
+    const a = arcs[i]; a.t += dt / 1000;
+    const e = ends(a); if (!e.vis) { if (a.t >= 1 && !a.landed) { a.landed = 1; land(a); } if (a.t > 1.4) arcs.splice(i, 1); continue; }
+    const c = ctrl(e.f, e.t, e.lift), col = a.b.side === 'YES' ? YES : NO;
+    const head = Math.min(1, a.t), tail = Math.max(0, Math.min(1, a.t - 0.38));
+    ctx.strokeStyle = col; ctx.lineCap = 'round';
+    const segs = 14; let prev = qb(e.f, c, e.t, tail);
+    for (let k = 1; k <= segs; k++) { const u = tail + (head - tail) * k / segs, q = qb(e.f, c, e.t, u); ctx.globalAlpha = (k / segs) * (a.t > 1 ? Math.max(0, 1 - (a.t - 1) / .38) : 1) * .9; ctx.lineWidth = 1 + 1.8 * k / segs; ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); prev = q; }
+    if (a.t < 1) { const h = qb(e.f, c, e.t, head); ctx.globalAlpha = 1; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(h[0], h[1], 3, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    if (a.t >= 1 && !a.landed) { a.landed = 1; land(a); }
+    if (a.t > 1.4) arcs.splice(i, 1);
+  }
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i]; p.life += dt / 900; const e = ends(p.a); if (p.life >= 1) { pulses.splice(i, 1); continue; } if (!e.vis) continue;
+    ctx.strokeStyle = p.col; ctx.globalAlpha = 1 - p.life; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.t[0], e.t[1], 4 + p.life * 22, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  for (let i = floats.length - 1; i >= 0; i--) {
+    const f = floats[i]; f.life += dt / 1500; const e = ends(f.a); if (f.life >= 1) { floats.splice(i, 1); continue; } if (!e.vis) continue;
+    ctx.globalAlpha = f.life < .15 ? f.life / .15 : 1 - Math.max(0, f.life - .6) / .4;
+    label(f.txt, e.t[0], e.t[1] - 16 - f.life * 18, { size: 11, w: 600, color: f.col });
+    ctx.globalAlpha = 1;
+  }
+}
+function drawAvatars() {
+  const mob = MOB(), r = mob ? 10 : 13;
+  const order = [...AV].sort((a, b) => a.y - b.y);
+  for (const av of order) {
+    if (av.al < 0.03) continue;
+    const sel = S.sel && S.sel.type === 'agent' && S.sel.id === av.a.id, hov = S.hover && S.hover.type === 'agent' && S.hover.id === av.a.id;
+    ctx.globalAlpha = av.al;
+    ctx.fillStyle = 'rgba(9,9,11,.10)'; ctx.beginPath(); ctx.arc(av.x, av.y + 1.5, r + 1.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(av.x, av.y, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = av.a.color; ctx.lineWidth = sel || hov ? 3 : 2; ctx.stroke();
+    if (sel) { ctx.globalAlpha = av.al * .4; ctx.beginPath(); ctx.arc(av.x, av.y, r + 6 + Math.sin(t * .1) * 1.5, 0, TAU); ctx.stroke(); ctx.globalAlpha = av.al; }
+    ctx.font = `${mob ? 11 : 14}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000';
+    ctx.fillText(av.a.emoji, av.x, av.y + 1);
+    if ((sel || hov) && S.mode === 'map') label(av.a.name, av.x, av.y - r - 10, { size: 11, w: 600 });
+    ctx.globalAlpha = 1;
+    if (av.al > .5) hits.push({ type: 'agent', id: av.a.id, x: av.x, y: av.y, r: r + 4, top: 1 });
+  }
+}
+
+/* ---------- hit testing & pointer ---------- */
+function hitAt(x, y) {
+  let best = null;
+  for (const h of hits) {
+    if (h.rect) { if (x >= h.rect[0] && x <= h.rect[0] + h.rect[2] && y >= h.rect[1] && y <= h.rect[1] + h.rect[3]) best = best || h; continue; }
+    const d = Math.hypot(h.x - x, h.y - y); if (d < h.r && (!best || h.top || (best.d != null && d < best.d && !best.top))) best = { ...h, d };
+  }
+  return best;
+}
+const tip = $('#tip');
+function tipFor(h) {
+  if (h.type === 'agent') { const a = M.getAgent(h.id); return `<b>${a.emoji} ${esc(a.name)}</b><div class="sub">${crs(livePnl[aIdx[a.id]])} · Brier ${a.brier.toFixed(3)}</div>`; }
+  if (h.type === 'region') { const r = M.getRegion(h.id); return r.kind === 'production' ? `<b>${esc(r.name)}</b>, ${esc(r.country)}<div class="sub">${esc(r.crop)} · risk ${Math.round(r.risk * 100)}</div>` : `<b>${esc(r.name)}</b><div class="sub">Sovereign agri capital</div>`; }
+  if (h.type === 'market') { const m = M.getMarket(h.id); return `<b>${esc(m.title)}</b><div class="sub">YES ${Math.round(m.yes * 100)}¢ · vol ${crk(m.volume)}</div>`; }
+  return `<b>People + external agents</b><div class="sub">play-credit bettors from 15 countries</div>`;
+}
+let drag = null;
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (drag) { const dx = x - drag.x, dy = y - drag.y; if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true; rot.lam = drag.lam - dx * 0.28; rot.phi = Math.max(-20, Math.min(70, drag.phi + dy * 0.28)); rot.lastDrag = performance.now(); return; }
+  const h = hitAt(x, y); S.hover = h ? { type: h.type, id: h.id } : null;
+  cv.style.cursor = h ? 'pointer' : S.mode === 'map' ? 'grab' : 'default';
+  if (h && !h.rect) { tip.innerHTML = tipFor(h); tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.classList.add('on'); } else tip.classList.remove('on');
+});
+cv.addEventListener('pointerleave', () => { S.hover = null; tip.classList.remove('on'); drag = null; });
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const h = hitAt(x, y);
+  if (!h && S.mode === 'map' && Math.hypot(x - G.cx, y - G.cy) < G.R && e.pointerType === 'mouse') { drag = { x, y, lam: rot.lam, phi: rot.phi }; cv.setPointerCapture(e.pointerId); }
+});
+cv.addEventListener('pointerup', e => {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (drag) { const moved = drag.moved; drag = null; if (moved) return; }
+  const h = hitAt(x, y); if (!h) return;
+  if (h.type === 'agent') openAgent(h.id); else if (h.type === 'region') openRegion(h.id); else if (h.type === 'market') openMarket(h.id); else if (h.type === 'crowd') { setFilter('human'); }
+});
+
+/* ---------- mode switch ---------- */
+const HINTS = {
+  map: `<span><i style="background:${YES}"></i>YES</span><span><i style="background:${NO}"></i>NO</span><span><i style="background:#f97316"></i>climate risk</span><span class="m">drag to rotate · click a region, agent or market</span>`,
+  net: `<span><i style="background:${YES}"></i>YES stake</span><span><i style="background:${NO}"></i>NO stake</span><span class="m">agents outside · markets inside · click any node</span>`,
+  book: `<span><i style="background:${YES}"></i>YES bids</span><span><i style="background:${NO}"></i>NO bids</span><span class="m">resting liquidity per price · agents sit at their estimate</span>`,
+};
+function placeThumb() { const b = $('#seg button.on'), th = $('#seg .thumb'); if (!b) return; th.style.width = b.offsetWidth + 'px'; th.style.transform = `translateX(${b.offsetLeft}px)`; }
+function setMode(m) {
+  if (S.mode === m) return; S.mode = m;
+  $$('#seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m)); placeThumb();
+  $('#hint').innerHTML = HINTS[m]; $('#bookbar').classList.toggle('on', m === 'book');
+  tip.classList.remove('on'); jump(1);
+}
+$$('#seg button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+addEventListener('keydown', e => { if (e.target.closest('input,select,textarea')) return; if (e.key === '1') setMode('map'); if (e.key === '2') setMode('net'); if (e.key === '3') setMode('book'); if (e.key === 'Escape') closeDrawer(); });
+$('#hint').innerHTML = HINTS.map;
+const sel = $('#bookSel'); sel.innerHTML = OPEN.map(m => `<option value="${m.id}">${esc(m.title)}</option>`).join('');
+sel.value = S.bookId; sel.onchange = () => setBook(sel.value);
+function setBook(id) { S.bookId = id; sel.value = id; layoutBook(); if (S.mode === 'book') jump(0.7); renderHot(); }
+
+/* ---------- feed ---------- */
+const feedEl = $('#feedList');
+function ago(ts) { const s = Math.max(0, Math.round((Date.now() - ts) / 1000)); return s < 2 ? 'now' : s < 60 ? s + 's' : Math.floor(s / 60) + 'm'; }
+function feedRow(b, isNew) {
+  const li = document.createElement('li'); li.className = 'row' + (isNew ? ' new' : '') + (b.actorId === 'you' ? ' user' : ''); li.dataset.m = b.marketId; li.dataset.kind = b.actorType; li.dataset.ts = b.ts;
+  if (b.actorType === 'agent') li.dataset.a = b.actorId;
+  const col = b.actorType === 'agent' ? b.actorColor : b.actorId === 'you' ? '#f59e0b' : '#d4d4d8';
+  li.innerHTML = `<span class="av" style="--c:${col}">${b.actorEmoji}</span>
+    <div style="min-width:0"><div class="l1"><b>${esc(b.actorName)}</b><span class="side ${b.side === 'YES' ? 'yes' : 'no'}">${b.side}</span></div>
+    <div class="l2">${esc(short(b.marketId))} · ${Math.round(b.priceBefore * 100)}¢→${Math.round(b.priceAfter * 100)}¢</div></div>
+    <div class="amt">${cr(b.stake)}<small class="ago">${ago(b.ts)}</small></div>`;
+  li.style.display = visibleKind(b.actorType) ? '' : 'none';
+  return li;
+}
+const visibleKind = k => S.filter === 'all' || (S.filter === 'agent' ? k !== 'human' : k === 'human');
+function setFilter(f) { S.filter = f; $$('#feedTabs button').forEach(b => b.classList.toggle('on', b.dataset.f === f)); $$('#feedList .row').forEach(li => li.style.display = visibleKind(li.dataset.kind) || li.classList.contains('user') ? '' : 'none'); }
+$$('#feedTabs button').forEach(b => b.onclick = () => setFilter(b.dataset.f));
+feedEl.addEventListener('click', e => { const li = e.target.closest('.row'); if (!li) return; if (e.target.closest('b') && li.dataset.a) openAgent(li.dataset.a); else openMarket(li.dataset.m); });
+M.recentBets(28).forEach(b => feedEl.appendChild(feedRow(b, false)));
+setInterval(() => { $$('#feedList .row').slice(0, 30).forEach(li => { const a = li.querySelector('.ago'); if (a) a.textContent = ago(+li.dataset.ts); }); const now = Date.now(); while (recentTimes.length && now - recentTimes[0] > 60000) recentTimes.shift(); $('#rate').textContent = recentTimes.length > 3 ? `${recentTimes.length}/min` : ''; }, 2000);
+
+/* ---------- leaderboard + hot ---------- */
+function spark(vals, w, h, col, fill) {
+  const mn = Math.min(...vals), mx = Math.max(...vals), sx = w / (vals.length - 1), sy = v => h - 2 - (v - mn) / ((mx - mn) || 1) * (h - 4);
+  const d = vals.map((v, i) => (i ? 'L' : 'M') + (i * sx).toFixed(1) + ' ' + sy(v).toFixed(1)).join('');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${fill ? `<path d="${d}L${w} ${h}L0 ${h}Z" fill="${col}" opacity=".1"/>` : ''}<path d="${d}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+let lbPrev = {};
+function renderLB() {
+  const el = $('#lbList');
+  if (S.lbTab === 'agents') {
+    const rows = AG.map((a, i) => ({ a, i, p: livePnl[i] })).sort((x, y) => y.p - x.p);
+    el.innerHTML = rows.map((r, k) => { const changed = lbPrev[r.a.id] != null && Math.round(lbPrev[r.a.id]) !== Math.round(r.p); const s = S.sel && S.sel.type === 'agent' && S.sel.id === r.a.id;
+      return `<li class="lb${s ? ' sel' : ''}" data-a="${r.a.id}"><span class="rk">${k + 1}</span><span class="av sm" style="--c:${r.a.color}">${r.a.emoji}</span><span class="nm">${esc(r.a.name)}<small>Brier ${r.a.brier.toFixed(3)} · ${Math.round(r.a.winRate * 100)}% win</small></span>${spark([...r.a.pnlHistory.slice(0, -1), r.p], 54, 22, r.p >= 0 ? YES : NO)}<span class="pn ${r.p >= 0 ? 'y' : 'n'}${changed ? ' flash' : ''}">${crs(r.p)}<small>${r.a.bets.toLocaleString()} bets</small></span></li>`; }).join('');
+    rows.forEach(r => lbPrev[r.a.id] = r.p);
+  } else {
+    el.innerHTML = M.users.slice(0, 8).map(u => `<li class="lb"><span class="rk">${u.rank}</span><span class="av sm" style="--c:#d4d4d8">👤</span><span class="nm">${esc(u.nick)}<small>${u.country} · ${u.bets} bets · streak ${u.streak}</small></span><span></span><span class="pn ${u.pnl >= 0 ? 'y' : 'n'}">${crs(u.pnl)}<small>${Math.round(u.winRate * 100)}% win</small></span></li>`).join('');
+  }
+}
+$('#lbList').addEventListener('click', e => { const li = e.target.closest('[data-a]'); if (li) openAgent(li.dataset.a); });
+$$('#lbTabs button').forEach(b => b.onclick = () => { S.lbTab = b.dataset.t; $$('#lbTabs button').forEach(x => x.classList.toggle('on', x === b)); renderLB(); });
+function renderHot() {
+  const ms = [...OPEN].sort((a, b) => b.volume24h - a.volume24h).slice(0, 6);
+  $('#hotList').innerHTML = ms.map(m => `<li class="hot${S.bookId === m.id && S.mode === 'book' ? ' sel' : ''}" data-m="${m.id}"><span class="t">${esc(short(m.id))}<small>${esc(m.category)} · ${crk(m.volume24h)}</small></span><span class="pill">${Math.round(m.yes * 100)}¢</span><span class="chg ${m.change24h >= 0 ? 'y' : 'n'}">${pp(m.change24h)}</span></li>`).join('');
+}
+$('#hotList').addEventListener('click', e => { const li = e.target.closest('[data-m]'); if (li) { setBook(li.dataset.m); openMarket(li.dataset.m); } });
+
+function stats() { $('#stBets').textContent = S.bets.toLocaleString(); $('#stVol').textContent = crk(S.vol); $('#stFund').textContent = cr(S.fund); $('#wallet').textContent = 'You · ' + cr(S.wallet); }
+
+/* ---------- drawer ---------- */
+const drawer = $('#drawer'), dbody = $('#dbody');
+function openDrawer(html, selObj) { S.sel = selObj; dbody.innerHTML = html; drawer.classList.add('on'); drawer.scrollTop = 0; wire(); renderLB(); }
+function closeDrawer() { drawer.classList.remove('on'); S.sel = null; renderLB(); }
+$('#dclose').onclick = closeDrawer;
+function wire() {
+  $$('#dbody [data-m]').forEach(e => e.onclick = () => openMarket(e.dataset.m));
+  $$('#dbody [data-a]').forEach(e => e.onclick = () => openAgent(e.dataset.a));
+  $$('#dbody [data-r]').forEach(e => e.onclick = () => openRegion(e.dataset.r));
+  $$('#dbody [data-go]').forEach(e => e.onclick = () => { const [mode, id] = e.dataset.go.split(':'); if (mode === 'book' && id) setBook(id); setMode(mode); });
+  $$('#dbody [data-stake]').forEach(e => e.onclick = () => { S.stake = +e.dataset.stake; $$('#dbody [data-stake]').forEach(x => x.classList.toggle('on', x === e)); });
+  $$('#dbody [data-bet]').forEach(e => e.onclick = () => userBet(e.dataset.mk, e.dataset.bet));
+}
+const sidePill = s => `<span class="side ${s === 'YES' ? 'yes' : 'no'}">${s}</span>`;
+function openMarket(id) {
+  const m = M.getMarket(id), y = Math.round(m.yes * 100), cons = Math.round(m.agentEstimate * 100);
+  marketHeat[id] = performance.now();
+  const pos = [...m.positions].sort((a, b) => b.stake - a.stake);
+  openDrawer(`<div class="over">${esc(m.category)} · ${m.type === 'hard' ? 'Commodity price' : 'EU policy'}</div><h3>${esc(m.title)}</h3>
+    <div class="big"><b class="y">${y}¢</b><span class="sub">YES · <span class="${m.change24h >= 0 ? 'y' : 'n'}">${pp(m.change24h)} 24h</span> · NO ${100 - y}¢</span></div>
+    ${spark(m.probHistory.concat([m.yes]), 346, 64, '#09090b', true)}
+    <div class="kv" style="margin-top:10px"><div>Agent consensus<b>${cons}%</b></div><div>Edge vs market<b class="${cons - y >= 0 ? 'y' : 'n'}">${cons - y >= 0 ? '+' : '−'}${Math.abs(cons - y)}pp</b></div><div>Volume<b>${crk(m.volume)}</b></div><div>Traders<b>${m.traders.toLocaleString()}</b></div></div>
+    <div class="betbox"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">Place a play-credit bet</b><span class="sub">balance ${cr(S.wallet)}</span></div>
+      <div class="chips" style="margin-top:8px">${[50, 100, 250, 500].map(v => `<span class="chip${v === S.stake ? ' on' : ''}" data-stake="${v}">${v} cr</span>`).join('')}</div>
+      <div class="btns"><button class="btn yes" data-bet="YES" data-mk="${m.id}">Buy YES ${y}¢</button><button class="btn no" data-bet="NO" data-mk="${m.id}">Buy NO ${100 - y}¢</button></div>
+      <div class="note">Play credits only, no real money. 1% of every stake tops up the Resilience Fund.</div></div>
+    <h4>Agent positions</h4>
+    ${pos.map(p => { const a = M.getAgent(p.agentId); return `<div class="prow" data-a="${a.id}"><span class="av sm" style="--c:${a.color}">${a.emoji}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</span>${sidePill(p.side)}<span class="e">${Math.round(p.estimate * 100)}%</span><span class="amt">${cr(p.stake)}</span></div>`; }).join('')}
+    <h4>Regions</h4><div class="chips">${m.regions.map(r => `<span class="chip" data-r="${r}">${esc(M.getRegion(r).name)}</span>`).join('')}</div>
+    <h4>Resolution</h4><p>${esc(m.description)}</p><p class="sub">Source: ${esc(m.resolutionSource)} · ends ${m.endDate}</p>
+    <div class="lnk"><button class="btn ghost" data-go="book:${m.id}">Open order book</button><button class="btn ghost" data-go="net">See in network</button></div>`, { type: 'market', id });
+}
+function openAgent(id) {
+  const a = M.getAgent(id), i = aIdx[id];
+  const pos = OPEN.map(m => ({ m, p: m.positions.find(q => q.agentId === id) })).filter(x => x.p).sort((x, y) => y.p.stake - x.p.stake).slice(0, 7);
+  const bt = M.backtest.perAgent.find(q => q.agentId === id);
+  openDrawer(`<div style="display:flex;gap:12px;align-items:center"><span class="av" style="--c:${a.color};width:46px;height:46px;font-size:24px">${a.emoji}</span><div><div class="over">AI agent · world model</div><h3 style="margin:2px 0 0">${esc(a.name)}</h3></div></div>
+    <p class="quote" style="margin-top:14px">${esc(a.worldModel)}</p>
+    <div class="kv"><div>P&amp;L (live)<b class="${livePnl[i] >= 0 ? 'y' : 'n'}">${crs(livePnl[i])}</b></div><div>Brier (sealed holdout)<b>${(bt ? bt.brier : a.brier).toFixed(3)}</b></div><div>Win rate<b>${Math.round(a.winRate * 100)}%</b></div><div>Bets<b>${a.bets.toLocaleString()}</b></div></div>
+    <h4>P&amp;L by quarter</h4>${spark([...a.pnlHistory.slice(0, -1), livePnl[i]], 346, 60, livePnl[i] >= 0 ? YES : NO, true)}
+    <div style="display:flex;justify-content:space-between" class="sub"><span>${M.quarters[0]}</span><span>${M.quarters[M.quarters.length - 1]}</span></div>
+    <h4>Conviction</h4><p>${esc(a.conviction)}</p>
+    <h4>Largest open positions</h4>
+    ${pos.map(({ m, p }) => `<div class="prow" data-m="${m.id}" style="grid-template-columns:1fr auto 46px 72px"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(short(m.id))}</span>${sidePill(p.side)}<span class="e">${Math.round(p.estimate * 100)}%</span><span class="amt">${cr(p.stake)}</span></div>`).join('')}
+    <div class="lnk"><button class="btn ghost" data-go="net">Highlight in network</button><button class="btn ghost" data-go="map">Follow on map</button></div>`, { type: 'agent', id });
+}
+function openRegion(id) {
+  const r = M.getRegion(id);
+  if (r.kind !== 'production') {
+    openDrawer(`<div class="over">Capital origin · ${esc(r.country)}</div><h3>${esc(r.name)}</h3><p>${esc(r.note)}</p><h4>Tracked farmland flows</h4>
+      ${r.flowsTo.map(f => `<div class="prow" data-r="${f.regionId}" style="grid-template-columns:1fr auto"><span>${esc(M.getRegion(f.regionId).name)}</span><span class="amt">${F.compact(f.usd)} USD</span></div>`).join('')}
+      <p class="sub">Reported investment flows (real-world figures, not play credits). Markets: ${OPEN.filter(m => m.regions.includes(id)).map(m => `<a href="#" data-m="${m.id}" onclick="return false">${esc(short(m.id))}</a>`).join(', ')}</p>`, { type: 'region', id });
+    return;
+  }
+  const ms = OPEN.filter(m => m.regions.includes(id));
+  const exp = AG.map(a => ({ a, s: ms.reduce((s, m) => s + (m.positions.find(p => p.agentId === a.id) || { stake: 0 }).stake, 0) })).sort((x, y) => y.s - x.s).slice(0, 4);
+  const hc = COL[heatIdx(r.risk)];
+  openDrawer(`<div class="over">Region · ${esc(r.country)}</div><h3>${esc(r.name)}</h3><p class="sub" style="margin-top:-4px">${esc(r.crop)}</p>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:12px"><span>Climate-stress index</span><b class="mono">${Math.round(r.risk * 100)}/100</b></div>
+    <div class="meter" style="margin-top:6px"><i style="width:${r.risk * 100}%;background:linear-gradient(90deg,#fcd34d,${hc})"></i></div>
+    <p>${esc(r.note)}</p>
+    <div class="kv"><div>Resilience Fund allocation<b>${cr(r.fund)}</b></div><div>Open markets<b>${ms.length}</b></div></div>
+    <h4>Markets touching ${esc(r.name)}</h4>
+    ${ms.map(m => `<div class="prow" data-m="${m.id}" style="grid-template-columns:1fr auto 52px"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.title)}</span><span class="pill">${Math.round(m.yes * 100)}¢</span><span class="chg ${m.change24h >= 0 ? 'y' : 'n'}">${pp(m.change24h)}</span></div>`).join('') || '<p class="sub">No open markets.</p>'}
+    <h4>Most exposed agents</h4>
+    ${exp.map(x => `<div class="prow" data-a="${x.a.id}" style="grid-template-columns:24px 1fr 80px"><span class="av sm" style="--c:${x.a.color}">${x.a.emoji}</span><span>${esc(x.a.name)}</span><span class="amt">${cr(x.s)}</span></div>`).join('')}`, { type: 'region', id });
+}
+
+/* ---------- bets ---------- */
+function onBet(b) {
+  const m = M.getMarket(b.marketId); if (!m) return;
+  S.bets++; S.vol += b.stake; S.fund += b.stake * (M.fund.cutBps || 100) / 10000; recentTimes.push(Date.now()); stats();
+  // mark agent books to market: every position in this market moves with the price
+  const dp = b.priceAfter - b.priceBefore;
+  m.positions.forEach(p => { const k = aIdx[p.agentId]; livePnl[k] += (p.side === 'YES' ? 1 : -1) * dp * p.stake / Math.max(0.05, p.side === 'YES' ? (p.avgPrice || .5) : 1 - (p.avgPrice || .5)); });
+  lbDirty = true;
+  const li = feedRow(b, true); feedEl.prepend(li); while (feedEl.children.length > 40) feedEl.lastChild.remove();
+  const reg = mainRegion(m);
+  regionHeat[reg.id] = performance.now() + 900; marketHeat[m.id] = performance.now() + 900;
+  arcs.push({ b, m, reg, from: originLL(b), t: 0 });
+  if (b.actorType === 'agent') { const av = AV[aIdx[b.actorId]]; setTimeout(() => travel(av, reg), 400); }
+  if (S.sel && S.sel.type === 'market' && S.sel.id === m.id) { const big = $('#dbody .big b'); if (big) big.textContent = Math.round(m.yes * 100) + '¢'; }
+  if (m.id === S.bookId) layoutBook();
+}
+let lbDirty = false; setInterval(() => { if (lbDirty) { renderLB(); renderHot(); lbDirty = false; } }, 1500);
+function userBet(mid, side) {
+  const m = M.getMarket(mid), stake = Math.min(S.stake, S.wallet); if (stake <= 0) return;
+  S.wallet -= stake; const before = m.yes, imp = stake / (m.liquidity + stake) * 1.4 * before * (1 - before) * 4;
+  m.yes = Math.max(0.02, Math.min(0.98, before + (side === 'YES' ? imp : -imp)));
+  onBet({ id: 'u' + Date.now(), ts: Date.now(), actorType: 'human', actorId: 'you', actorName: 'You', actorColor: '#f59e0b', actorEmoji: '🙋', marketId: mid, marketTitle: m.title, side, stake, priceBefore: before, priceAfter: m.yes, priceImpact: (m.yes - before) * 100 });
+  $$('#dbody .betbox .sub')[0].textContent = 'balance ' + cr(S.wallet);
+}
+const stream = M.makeBetStream({ minMs: 650, maxMs: 1700 });
+stream.on(onBet);
+$('#pause').onclick = () => { S.paused = !S.paused; if (S.paused) stream.stop(); else stream.start(); $('#pause').textContent = S.paused ? '▶' : '❚❚'; $('#live').classList.toggle('paused', S.paused); $('#live').lastChild.textContent = S.paused ? 'Paused' : 'Live'; };
+
+/* ---------- boot ---------- */
+measure(); renderLB(); renderHot(); stats();
+addEventListener('resize', () => { measure(); });
+document.fonts && document.fonts.ready.then(placeThumb);
+requestAnimationFrame(t0 => { last = t0; requestAnimationFrame(frame); });
+setTimeout(() => { stream.next(); setTimeout(() => stream.next(), 300); setTimeout(() => stream.next(), 650); stream.start(); }, 500);
+const qs = new URLSearchParams(location.search);
+if (qs.get('mode')) setTimeout(() => setMode(qs.get('mode')), 50);
+if (qs.get('open')) setTimeout(() => { const [k, id] = qs.get('open').split(':'); ({ market: openMarket, agent: openAgent, region: openRegion })[k](id); }, 600);
+</script>
+</body>
+</html>

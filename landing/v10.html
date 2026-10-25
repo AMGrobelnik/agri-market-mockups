@@ -97,8 +97,9 @@ main .glass,main button,main a,main .clickable{pointer-events:auto}
 .feed-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .feed-h h3{font-size:14px;display:flex;align-items:center;gap:8px}
 .feed-h .mono{font-size:11px;color:var(--dim)}
-.bet{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer;transition:background .2s}
+.bet{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;cursor:pointer}
 .bet:hover{background:rgba(255,255,255,.07)}
+.bet.fresh{background:rgba(198,242,78,.2);box-shadow:inset 3px 0 0 var(--accent)}
 .av{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:15px;background:color-mix(in srgb,var(--c) 22%,transparent);border:1px solid color-mix(in srgb,var(--c) 60%,transparent)}
 .bet .who{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bet .what{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -382,7 +383,7 @@ function burst(b) {
 function onBet(b, animate = true) {
   const it = feedItem(b, animate);
   feedList.prepend(it);
-  if (animate && it.animate) it.animate([{ transform: 'translateY(-14px)', background: 'rgba(198,242,78,.22)' }, { transform: 'none', background: 'rgba(198,242,78,0)' }], { duration: 700, easing: 'ease-out' });
+  if (animate) { it.classList.add('fresh'); setTimeout(() => it.classList.remove('fresh'), 900); }
   while (feedList.children.length > 9) feedList.lastChild.remove();
   if (!animate) return;
   burst(b);

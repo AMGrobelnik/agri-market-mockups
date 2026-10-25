@@ -74,7 +74,7 @@ h1 span { color: var(--muted); font-weight: 500; }
 .tape { border-top: 1px dashed var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 7px; min-height: 104px; }
 .tape-h { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); font-weight: 500; }
 .trow { display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; animation: slidein .45s ease; }
-@keyframes slidein { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes slidein { from { background: rgba(217,249,157,.55); } to { background: rgba(217,249,157,0); } }
 .trow .em { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; flex: none; }
 .trow .who { font-weight: 600; white-space: nowrap; }
 .trow .what { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
@@ -449,8 +449,8 @@ function sparkSVG(m) {
 function consChip(m) {
   const d = Math.round((m.agentEstimate - m.yes) * 100);
   const cls = d >= 2 ? 'up' : d <= -2 ? 'dn' : 'fl';
-  const txt = d === 0 ? 'agrees' : (d > 0 ? '+' : '') + d + ' pts';
-  return `<span class="cons ${cls}" title="Stake-weighted agent consensus vs market price">Agents ${pctS(m.agentEstimate)} · ${txt}</span>`;
+  const txt = d === 0 ? '= mkt' : (d > 0 ? '+' : '−') + Math.abs(d) + ' pts';
+  return `<span class="cons ${cls}" title="Stake-weighted agent consensus vs market price">Agents ${pctS(m.agentEstimate)}<span style="opacity:.75;font-weight:500">${txt}</span></span>`;
 }
 function cardHTML(m) {
   const yesN = m.positions.filter(p => p.side === 'YES').length;
@@ -465,7 +465,7 @@ function cardHTML(m) {
     <div class="c-top"><div class="c-ic" aria-hidden="true">${icon(m)}</div><div class="c-meta"><span class="c-cat">${esc(catLabel(m))}</span><span class="c-reg">${esc(regs)}</span></div><span class="c-end">${resolved ? 'resolved ' + dShort(m.resolvedAt || m.endDate) : 'ends ' + dShort(m.endDate)}</span></div>
     <h3 class="c-q">${esc(m.title)}</h3>
     <div class="c-mid"><div class="c-pct"><b class="pct">${pctS(m.yes)}</b><small>${resolved ? `<span class="res-badge ${m.outcome === 'YES' ? 'y' : 'n'}">${m.outcome}</span>` : 'chance'} <span class="delta ${dcls}">${ch > 0 ? '▲' : ch < 0 ? '▼' : '•'} ${Math.abs(ch).toFixed(1)} 7d</span></small></div>${sparkSVG(m)}</div>
-    <div class="c-agents"><div class="adots" aria-label="${yesN} of 8 agents hold YES">${dots}</div><span class="lbl">${yesN}/8 YES</span>${consChip(m)}</div>
+    <div class="c-agents"><div class="adots" aria-label="${yesN} of 8 agents hold YES">${dots}</div>${consChip(m)}</div>
     ${btns}
     <div class="c-foot"><span><span class="mono vol">${cr(m.volume)}</span> vol</span><span><span class="mono">${m.traders.toLocaleString('en-GB')}</span> traders</span>${resolved ? '<span class="sp seal">Solana seal</span>' : `<span class="sp mono">${cr(m.liquidity)} liq</span>`}</div>
   </article>`;
@@ -597,7 +597,7 @@ const Dots = (() => {
   const ROWS = r1 - r0, COLS = MASK.cols;
   const land = [];
   for (let r = r0; r < r1; r++) { const hex = MASK.m[r]; for (let c = 0; c < COLS; c++) { const nib = parseInt(hex[c >> 2], 16); if ((nib >> (3 - (c & 3))) & 1) land.push([c, r - r0]); } }
-  let W = 0, H = 0, DPR = 1, cell = 4, ox = 0, oy = 0, mobile = false, t = 0;
+  let W = 0, H = 0, DPR = 1, cell = 4, ox = 0, oy = 0, offX = 0, mobile = false, t = 0, lastT = 0;
   let form = 'map', P = [], lit = [], hubs = [], bars = [], agentsN = [], pulses = [], sparks = [], hoverId = null, labelsHit = [];
   const N = innerWidth < 720 ? 620 : 1250;
   const rnd = (() => { let a = 7; return () => { a |= 0; a = a + 0x6d2b79f5 | 0; let x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; }; })();
@@ -605,18 +605,24 @@ const Dots = (() => {
   const proj = (lng, lat) => [ox + ((lng - MASK.L0) / MASK.DX) * cell, oy + ((LAT_TOP - lat) / MASK.DY) * cell];
   const cellXY = l => [ox + (l[0] + .5) * cell, oy + (l[1] + .5) * cell];
   const heat = r => { const k = Math.max(0, Math.min(1, (r - .45) / .45)); const stops = [[253, 224, 71], [245, 158, 11], [239, 68, 68], [185, 28, 28]]; const f = k * 3, i = Math.min(2, Math.floor(f)), u = f - i; const c = stops[i].map((v, j) => Math.round(v + (stops[i + 1][j] - v) * u)); return `rgb(${c[0]},${c[1]},${c[2]})`; };
+  const OFF = RG.filter(r => r.lat > LAT_TOP || r.lat < LAT_BOT || r.lng < MASK.L0 || r.lng > MASK.L1).sort((a, b) => b.lat - a.lat || a.lng - b.lng).map(r => r.id);
   function regionPt(r) {
-    const [x, y] = proj(r.lng, r.lat), m = 12;
-    const cx = Math.max(ox + m, Math.min(ox + COLS * cell - m, x)), cy = Math.max(oy + m, Math.min(oy + ROWS * cell - m, y));
-    return { x: cx, y: cy, off: cx !== x || cy !== y, ax: x, ay: y };
+    const [x, y] = proj(r.lng, r.lat);
+    const k = OFF.indexOf(r.id);
+    if (k < 0) return { x, y, off: false, ax: x, ay: y };
+    // regions beyond the European frame sit in a 'beyond Europe' column on the right
+    const top = oy + 40, bot = oy + ROWS * cell - 18, step = (bot - top) / Math.max(1, OFF.length - 1);
+    return { x: offX, y: top + step * k, off: true, ax: x, ay: y };
   }
   function resize() {
     const box = cvs.getBoundingClientRect(); W = box.width; H = box.height; DPR = Math.min(devicePixelRatio || 1, 2);
     cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     mobile = W < 560;
     const padT = mobile ? 46 : 44, padB = mobile ? 34 : 34;
-    cell = Math.min((W - 24) / COLS, (H - padT - padB) / ROWS);
-    ox = (W - COLS * cell) / 2; oy = padT + (H - padT - padB - ROWS * cell) / 2;
+    const col = mobile ? 0 : 120;
+    cell = Math.min((W - 24 - col) / COLS, (H - padT - padB) / ROWS);
+    ox = Math.max(12, (W - col - COLS * cell) / 2); oy = padT + (H - padT - padB - ROWS * cell) / 2;
+    offX = mobile ? W - 22 : Math.min(W - 60, ox + COLS * cell + col / 2 + 6);
     build(true);
   }
   function setTargets() {
@@ -627,12 +633,12 @@ const Dots = (() => {
       lit = Object.keys(w).map(id => ({ r: regById[id], w: w[id], n: 0, pt: regionPt(regById[id]) })).sort((a, b) => b.w - a.w);
       const tot = lit.reduce((s, x) => s + Math.sqrt(x.w), 0), use = Math.min(N, Math.round(N * (0.25 + 0.6 * Math.min(1, lit.length / 6))));
       // per region candidate lattice points (land cells within a radius) for the dot-matrix look
-      lit.forEach(x => { x.n = Math.max(14, Math.round(use * Math.sqrt(x.w) / tot)); const rad = (mobile ? 2.2 : 2.6) + Math.sqrt(x.n) * 0.42; const pc = x.pt; x.cells = []; if (!pc.off) land.forEach(l => { const [cx, cy] = cellXY(l); const dd = Math.hypot(cx - pc.x, cy - pc.y) / cell; if (dd <= rad) x.cells.push([cx, cy, dd]); }); x.cells.sort((a, b) => a[2] - b[2]); x.rad = rad; });
+      lit.forEach(x => { x.n = Math.max(14, Math.round(use * Math.sqrt(x.w) / tot)); if (x.pt.off) x.n = Math.min(x.n, mobile ? 16 : 26); const rad = (mobile ? 2.2 : 2.6) + Math.sqrt(x.n) * 0.42; const pc = x.pt; x.cells = []; if (!pc.off) land.forEach(l => { const [cx, cy] = cellXY(l); const dd = Math.hypot(cx - pc.x, cy - pc.y) / cell; if (dd <= rad) x.cells.push([cx, cy, dd]); }); x.cells.sort((a, b) => a[2] - b[2]); x.rad = rad; });
       let i = 0;
       const order = P.map((p, k) => k).sort((a, b) => P[a].r - P[b].r);
       lit.forEach(x => { for (let k = 0; k < x.n && i < N; k++, i++) { const p = P[order[i]]; p.role = 'lit'; p.reg = x; p.col = heat(x.r.risk); p.alpha = .92; p.sz = mobile ? 1.35 : 1.6;
         if (x.cells.length) { const c = x.cells[k % x.cells.length]; const layer = Math.floor(k / x.cells.length); p.tx = c[0] + (layer ? (p.r - .5) * cell * .7 : 0); p.ty = c[1] + (layer ? (p.s - .5) * cell * .7 : 0); }
-        else { const ang = k * 2.39996, rr = Math.sqrt(k) * cell * 0.9; p.tx = x.pt.x + Math.cos(ang) * rr; p.ty = x.pt.y + Math.sin(ang) * rr; } } });
+        else { const ang = k * 2.39996, rr = Math.sqrt(k) * (mobile ? 1.7 : 2.1); p.tx = x.pt.x + Math.cos(ang) * rr; p.ty = x.pt.y + Math.sin(ang) * rr; } } });
       for (; i < N; i++) { const p = P[order[i]]; p.role = 'idle'; p.reg = null; const c = cellXY(p.l); p.tx = c[0]; p.ty = c[1]; p.col = '#a1a1aa'; p.alpha = .32; p.sz = 1; }
       $('#mapLegend').innerHTML = '<span>Climate risk</span><span class="ramp"></span><span>dots ∝ volume</span>';
       const names = lit.slice(0, 3).map(x => esc(x.r.name)).join(', ');
@@ -674,6 +680,16 @@ const Dots = (() => {
     P.forEach(p => { p.vy -= 1.5 + p.r * 3.2; p.vx += (p.s - .5) * 2.4; p.d = Math.floor(p.r * 22); });
     setTargets();
   }
+  function phys(p) {
+    if (p.role === 'flow') { p.s += 0.0035 + p.r * 0.004; if (p.s > 1) p.s -= 1; const f = flowPos(p); p.tx = f[0]; p.ty = f[1]; }
+    if (p.d > 0) { p.d--; p.vy += 0.22; p.vx *= 0.98; p.vy *= 0.98; }
+    else {
+      const k = p.role === 'flow' ? 0.09 : 0.055;
+      p.vx += (p.tx - p.x) * k; p.vy += (p.ty - p.y) * k; p.vx *= 0.8; p.vy *= 0.8;
+      if (p.role === 'lit') { p.vx += Math.cos(p.a0 + t * 0.03) * 0.05; p.vy += Math.sin(p.a0 + t * 0.027) * 0.05; }
+    }
+    p.x += p.vx; p.y += p.vy;
+  }
   function flowPos(p) {
     const A = agentsN[p.ag], Hh = hubs[p.mk] || hubs[0]; if (!A || !Hh) return [p.tx, p.ty];
     const s = p.s, mx = (A.x + Hh.x) / 2 + (A.y - Hh.y) * 0.18, my = (A.y + Hh.y) / 2 - (A.x - Hh.x) * 0.18;
@@ -691,13 +707,15 @@ const Dots = (() => {
     ctx.fillStyle = (opt && opt.color) || '#18181b'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, bx + w / 2 + .5, by + h / 2 + 1);
     return true;
   }
-  function frame() {
+  function frame(now) {
+    const steps = lastT ? Math.max(1, Math.min(4, Math.round((now - lastT) / 16.7))) : 1; lastT = now;
+    for (let k = 1; k < steps; k++) { t++; for (const p of P) phys(p); }
     t++;
     ctx.clearRect(0, 0, W, H);
     // base land lattice
     const baseA = form === 'map' ? 1 : 0.45;
-    ctx.fillStyle = `rgba(212,212,216,${baseA})`;
-    const br = Math.max(0.7, cell * 0.2);
+    ctx.fillStyle = `rgba(190,190,198,${baseA})`;
+    const br = Math.max(0.8, cell * 0.24);
     ctx.beginPath(); for (const l of land) { const x = ox + (l[0] + .5) * cell, y = oy + (l[1] + .5) * cell; ctx.moveTo(x + br, y); ctx.arc(x, y, br, 0, 6.283); } ctx.fill();
     // links in agents mode
     if (form === 'agents' && hubs.length) {
@@ -708,14 +726,7 @@ const Dots = (() => {
     const hov = hoverId ? MOCK.getMarket(hoverId) : null;
     const groups = new Map();
     for (const p of P) {
-      if (p.role === 'flow') { p.s += 0.0035 + p.r * 0.004; if (p.s > 1) p.s -= 1; const f = flowPos(p); p.tx = f[0]; p.ty = f[1]; }
-      if (p.d > 0) { p.d--; p.vy += 0.22; p.vx *= 0.98; p.vy *= 0.98; }
-      else {
-        const k = p.role === 'flow' ? 0.09 : 0.055;
-        p.vx += (p.tx - p.x) * k; p.vy += (p.ty - p.y) * k; p.vx *= 0.8; p.vy *= 0.8;
-        if (p.role === 'lit') { p.vx += Math.cos(p.a0 + t * 0.03) * 0.05; p.vy += Math.sin(p.a0 + t * 0.027) * 0.05; }
-      }
-      p.x += p.vx; p.y += p.vy;
+      phys(p);
       let a = p.alpha, sz = p.sz;
       if (hov) {
         if (p.role === 'lit') { if (hov.regions.includes(p.reg.r.id)) { sz *= 1.25; } else a *= 0.22; }
@@ -736,7 +747,9 @@ const Dots = (() => {
     labelsHit = [];
     if (form === 'map') {
       const want = hov ? lit.filter(x => hov.regions.includes(x.r.id)) : lit.slice(0, mobile ? 3 : 6);
-      want.forEach(x => { const lx = x.pt.x, ly = x.pt.y - (x.rad + 1.6) * cell - 6; const txt = (x.pt.off ? offArrow(x.pt) + ' ' : '') + x.r.name; pill(txt, lx, Math.max(14, ly)) || pill(txt, lx, x.pt.y + (x.rad + 1.6) * cell + 8); });
+      if (!mobile && lit.some(x => x.pt.off)) { ctx.font = '500 10px Geist, system-ui, sans-serif'; ctx.fillStyle = '#71717a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Beyond Europe', offX, oy + 16); }
+      want.filter(x => !x.pt.off).forEach(x => { const lx = x.pt.x, ly = x.pt.y - (x.rad + 1.6) * cell - 6; pill(x.r.name, lx, Math.max(14, ly)) || pill(x.r.name, lx, x.pt.y + (x.rad + 1.6) * cell + 8); });
+      if (!mobile) lit.filter(x => x.pt.off && (!hov || hov.regions.includes(x.r.id))).forEach(x => { ctx.font = '500 10.5px Geist, system-ui, sans-serif'; ctx.fillStyle = '#3f3f46'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(x.r.name.replace(" cocoa belt", '').replace('Ukraine black earth', 'Ukraine') , offX - 14, x.pt.y); });
     } else if (form === 'agents') {
       agentsN.forEach(A => { ctx.fillStyle = '#fff'; ctx.strokeStyle = A.a.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(A.x, A.y, mobile ? 10 : 12, 0, 6.283); ctx.fill(); ctx.stroke(); ctx.font = (mobile ? '11px' : '13px') + ' system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(A.a.emoji, A.x, A.y + 1); });
       if (!mobile) agentsN.forEach(A => pill(A.a.name.split(/[ /]/)[0], A.x, A.y + (A.y > H / 2 + 4 ? 24 : -24), { color: '#3f3f46' }));
