@@ -543,6 +543,8 @@ function openRegion(id) {
     ${ms.length ? ms.map(m => `<div class="pos clickable" style="cursor:pointer" data-m="${m.id}"><span>${m.title}</span><b class="mono" style="color:var(--yes)">${F.cents(m.yes)}</b></div>`).join('') : '<p>None yet.</p>'}`;
   dbody.querySelectorAll('[data-m]').forEach(d => d.onclick = () => openMarket(d.dataset.m));
   drawer.classList.add('open');
+  if (!mobile()) map.flyTo([r.lat, r.lng - 4], Math.max(map.getZoom(), 5), { duration: 1.2 });
+  current = null;
 }
 </script>
 </body>

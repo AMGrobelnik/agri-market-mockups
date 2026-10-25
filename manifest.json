@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T14:27:18+00:00",
+ "generated": "2026-10-25T14:36:29+00:00",
  "pages": {
   "landing": [
    {
@@ -75,8 +75,22 @@
     "shot": "_shots/landing-v12.png"
    }
   ],
-  "live": [],
-  "markets": [],
+  "live": [
+   {
+    "n": 1,
+    "id": "01",
+    "file": "live/v01.html",
+    "shot": "_shots/live-v01.png"
+   }
+  ],
+  "markets": [
+   {
+    "n": 1,
+    "id": "13",
+    "file": "markets/v13.html",
+    "shot": null
+   }
+  ],
   "detail": []
  }
 }

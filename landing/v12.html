@@ -539,7 +539,7 @@ function openAgent(id) {
 function openRegion(id) {
   const r = M.getRegion(id), ms = open.filter(m => m.regions.includes(id));
   show(`<div class="eyebrow">${r.country} · ${r.crop}</div><h3>${r.name}</h3>
-    <div class="kv"><div><b style="color:${heatCol(r.risk)}">${Math.round(r.risk * 100)}°</b><span>risk</span></div><div><b>${F.usd(r.fund)}</b><span>fund</span></div><div><b>${ms.length}</b><span>markets</span></div></div>
+    <div class="kv"><div><b style="color:${r.risk > .72 ? '#ff6a2a' : heatCol(r.risk)}">${Math.round(r.risk * 100)}°</b><span>risk</span></div><div><b>${F.usd(r.fund)}</b><span>fund</span></div><div><b>${ms.length}</b><span>markets</span></div></div>
     <div class="k">On the ground</div><p>${r.note}</p>
     <div class="k">Markets betting on it</div>${ms.map(m => `<div class="prow" data-m="${m.id}" style="cursor:pointer"><span>${m.title}</span><span class="s">${F.cents(m.yes)}</span></div>`).join('') || '<p>None open.</p>'}`);
 }
