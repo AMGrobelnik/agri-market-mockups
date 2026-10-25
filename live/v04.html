@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HARVEST Live Orbit</title>
+<link rel="icon" href="data:,">
+<title>The Crophecy Live Orbit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -140,7 +141,7 @@ body.open #drawer{transform:none} body.open #scrim{opacity:1;pointer-events:auto
 </head>
 <body>
 <header class="top glass">
-  <div class="logo"><i></i><span id="brandName">HARVEST</span></div>
+  <div class="logo"><i></i><span id="brandName">The Crophecy</span></div>
   <nav class="nav"><a href="#">Markets</a><a href="#" class="on">Live</a><a href="#">Agents</a><a href="#">Backtest</a><a href="#">Fund</a></nav>
   <div class="stats">
     <div class="stat"><small>Bets / min</small><b class="mono" id="sBpm">0</b></div>
@@ -187,7 +188,7 @@ body.open #drawer{transform:none} body.open #scrim{opacity:1;pointer-events:auto
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.34.0/dist/globe.gl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script>
-const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const BRAND = { name: 'The Crophecy', tagline: 'Every harvest has its prophets. We score them.' };
 document.getElementById('brandName').textContent = BRAND.name;
 document.title = BRAND.name + ' Live Orbit';
 const M = window.MOCK, F = M.fmt;

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
-<title>HARVEST · Landing v07</title>
+<title>The Crophecy · Landing v07</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Libre+Franklin:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -267,7 +267,7 @@ footer code{font:11px var(--mono)}
 
 <div class="wrap">
   <header class="mast">
-    <h1><span class="the">The</span><span id="brandName">HARVEST</span></h1>
+    <h1><span class="the">The</span><span id="brandName">Crophecy</span></h1>
     <div class="tag" id="brandTag"></div>
     <div class="mastrow">
       <div class="ear">Resilience Fund<b id="earFund">$0</b>1% of every bet</div>
@@ -382,7 +382,7 @@ footer code{font:11px var(--mono)}
 
 <script src="../shared/mock-data.js"></script>
 <script>
-const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const BRAND = { name: 'The Crophecy', tagline: 'Every harvest has its prophets. We score them.' };
 const M = window.MOCK, F = M.fmt;
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const open = M.markets.filter(m => m.status === 'open');
@@ -392,7 +392,7 @@ const hhmm = ts => new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', m
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 document.title = BRAND.name + ' · Landing v07';
-$('#brandName').textContent = BRAND.name;
+$('#brandName').textContent = BRAND.name.replace(/^The /, '');
 $('#brandTag').textContent = BRAND.tagline;
 $$('.bn').forEach(e => e.textContent = BRAND.name);
 $('#dateline').textContent = new Date(M.asOf + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

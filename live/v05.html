@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HARVEST Field Almanac</title>
+<link rel="icon" href="data:,">
+<title>The Crophecy Field Almanac</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=Work+Sans:wght@400;500;600&family=Caveat:wght@600&display=swap">
 <style>
@@ -140,7 +141,7 @@ body.open #page{transform:none} body.open #veil{opacity:1;pointer-events:auto}
 <body>
 <div class="app">
   <header>
-    <div class="brand"><span class="sheaf">🌾</span><span id="bName">HARVEST</span></div>
+    <div class="brand"><span class="sheaf">🌾</span><span id="bName">The Crophecy</span></div>
     <div class="tag" id="bTag"></div>
     <div class="season">
       <div><small>Sown today</small><b id="sVol">$0</b></div>
@@ -177,7 +178,7 @@ body.open #page{transform:none} body.open #veil{opacity:1;pointer-events:auto}
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script>
-const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const BRAND = { name: 'The Crophecy', tagline: 'Every harvest has its prophets. We score them.' };
 document.getElementById('bName').textContent = BRAND.name;
 document.getElementById('bTag').textContent = BRAND.tagline;
 document.title = BRAND.name + ' Field Almanac';

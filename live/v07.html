@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>HARVEST Ledger Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fff1e5; --paper2:#f6e3d1; --paper3:#f2dfce; --ink:#33302e; --ink2:#4d4845; --muted:#807973; --rule:#ccc1b7;
+  --claret:#990f3d; --oxford:#0f5499; --teal:#0d7680; --yes:#0d7680; --no:#990f3d; --hl:#f7c8a5;
+  --head:"Playfair Display",Georgia,"Times New Roman",serif; --body:"Source Serif 4",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body)}
+body{overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+a{color:var(--oxford)}
+.wrap{max-width:1400px;margin:0 auto;padding:0 20px}
+/* masthead */
+.dateline{display:flex;justify-content:space-between;gap:12px;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);padding:10px 0 8px;border-bottom:1px solid var(--rule)}
+.dateline .live{color:var(--claret)}
+.dateline .live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--claret);margin-right:6px;vertical-align:1px;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.mast{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:16px;padding:10px 0 8px}
+.mast .ear{font:italic 400 13px/1.35 var(--body);color:var(--ink2);max-width:260px}
+.mast .ear b{font-style:normal;font-family:var(--mono);font-weight:600;color:var(--ink)}
+.mast .ear.r{justify-self:end;text-align:right}
+.mast h1{margin:0;font:900 64px/0.9 var(--head);letter-spacing:-.01em;text-align:center}
+.mast h1 small{display:block;font:italic 600 15px/1.2 var(--head);letter-spacing:.02em;color:var(--claret);margin-top:6px}
+.nav{display:flex;justify-content:center;gap:22px;border-top:3px double var(--ink);border-bottom:1px solid var(--ink);padding:7px 0;font:600 12px/1 var(--body);letter-spacing:.12em;text-transform:uppercase}
+.nav a{color:var(--ink);text-decoration:none}
+.nav a.on{color:var(--claret)}
+.nav a:hover{text-decoration:underline}
+/* ticker */
+.ticker{overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--rule);background:var(--paper2);font:500 12px/28px var(--mono)}
+.ticker .track{display:inline-block;animation:tick 70s linear infinite;padding-left:100%}
+.ticker span{margin-right:28px;cursor:pointer}
+.ticker span:hover{color:var(--claret)}
+.up{color:var(--teal)} .dn{color:var(--claret)}
+@keyframes tick{to{transform:translateX(-100%)}}
+/* grid */
+.front{display:grid;grid-template-columns:272px minmax(0,1fr) 300px;gap:0;margin-top:14px}
+.col{padding:0 18px}
+.col+.col{border-left:1px solid var(--rule)}
+.front>.col:first-child{padding-left:0}
+.front>.col:last-child{padding-right:0}
+.kicker{font:600 11px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--claret);margin:0 0 8px}
+.colhead{font:800 19px/1.1 var(--head);margin:0 0 6px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+/* odds board */
+.odds{width:100%;border-collapse:collapse}
+.odds td{padding:6px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.odds tr{cursor:pointer;transition:background .8s}
+.odds tr:hover td{background:var(--paper2)}
+.odds tr.flash td{background:var(--hl);transition:none}
+.odds .t{font:400 13px/1.25 var(--body);padding-right:8px}
+.odds .t i{display:block;font:500 9.5px/1.4 var(--mono);font-style:normal;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+.odds .p{font:600 14px/1 var(--mono);text-align:right;white-space:nowrap}
+.odds .p small{display:block;font:500 10px/1.6 var(--mono)}
+.odds svg{display:block;margin-top:3px}
+.sect{font:700 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 0 4px!important;border-bottom:1px solid var(--ink)!important;cursor:default}
+/* lead */
+.lead h2{font:800 38px/1.04 var(--head);margin:0 0 8px;letter-spacing:-.01em;min-height:80px;transition:opacity .35s}
+.lead h2 em{font-style:italic;color:var(--claret)}
+.lead .stand{font:400 17px/1.4 var(--body);color:var(--ink2);margin:0 0 6px;min-height:48px;transition:opacity .35s}
+.byline{font:500 11px/1.4 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.fade{opacity:0}
+figure{margin:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:8px 0 6px;position:relative}
+figure .figt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font:600 13px/1.2 var(--head);margin-bottom:6px}
+figure .figt span{font:500 10px/1 var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+#map{width:100%;height:auto;display:block;background:var(--paper)}
+figcaption{font:italic 400 12px/1.4 var(--body);color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+figcaption .key{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink2)}
+figcaption .key b{display:inline-block;width:18px;height:2px;vertical-align:3px;margin:0 4px 0 10px}
+.land{fill:url(#hatch);stroke:#6e655e;stroke-width:.45}
+.sea{fill:url(#waves)}
+.inset-frame{fill:var(--paper);stroke:var(--ink);stroke-width:.8}
+.inset-title{font:600 8.5px var(--mono);letter-spacing:.08em;fill:var(--ink2);text-transform:uppercase}
+.stamp{cursor:pointer}
+.stamp .core{fill:var(--claret);stroke:var(--paper);stroke-width:1}
+.stamp .ring{fill:none;stroke:var(--claret);stroke-width:1;transform-box:fill-box;transform-origin:center;animation:pulse var(--d,2.4s) ease-out infinite}
+.stamp:hover .core{fill:var(--ink)}
+.stamp .lbl{font:italic 600 11px var(--body);fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:3px;pointer-events:none}
+.stamp.hit .core{fill:var(--teal)}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+.med{cursor:pointer}
+.med circle{fill:var(--paper);stroke:var(--ink);stroke-width:1}
+.med .mono{font:800 15px var(--head);fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.med .nm{font:500 7.6px var(--mono);fill:var(--muted);text-anchor:middle;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
+.med:hover circle,.med.fire circle{fill:var(--ink)}
+.med:hover .mono,.med.fire .mono{fill:var(--paper)}
+.arc{fill:none;stroke-linecap:round;pointer-events:stroke;cursor:pointer}
+.note{font:italic 600 11px var(--body);paint-order:stroke;stroke:var(--paper);stroke-width:3px;pointer-events:none}
+/* dispatches */
+.disp{list-style:none;margin:0;padding:0}
+.disp li{padding:9px 0 9px;border-bottom:1px solid var(--rule);cursor:pointer;animation:drop .6s ease-out}
+.disp li:hover{background:var(--paper2)}
+.disp li.new{background:var(--hl);transition:background 2.5s}
+@keyframes drop{from{opacity:0;transform:translateY(-8px)}}
+.disp .meta{font:500 10px/1 var(--mono);color:var(--muted);letter-spacing:.05em;text-transform:uppercase;display:flex;justify-content:space-between}
+.disp .hd{font:700 15px/1.22 var(--head);margin:4px 0 3px}
+.disp .hd .s{font-family:var(--mono);font-size:12px;font-weight:600;padding:0 3px;border:1px solid currentColor}
+.disp .why{font:italic 400 13px/1.35 var(--body);color:var(--ink2)}
+.stats{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--ink);margin-top:14px}
+.stats div{padding:8px 0;border-bottom:1px solid var(--rule)}
+.stats div:nth-child(odd){padding-right:8px;border-right:1px solid var(--rule)}
+.stats div:nth-child(even){padding-left:10px}
+.stats b{display:block;font:600 20px/1.1 var(--mono)}
+.stats span{font:500 10px/1 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+/* below fold */
+.opinion{margin:26px 0 40px;border-top:3px double var(--ink);padding-top:12px}
+.opinion>h3{font:900 26px/1 var(--head);margin:0 0 4px}
+.opinion>p{font:italic 400 15px/1.4 var(--body);color:var(--ink2);margin:0 0 14px}
+.cols4{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.oped{padding:12px 16px 14px;border-left:1px solid var(--rule);border-bottom:1px solid var(--rule);cursor:pointer}
+.oped:nth-child(4n+1){border-left:0;padding-left:0}
+.oped:hover{background:var(--paper2)}
+.oped .by{display:flex;gap:10px;align-items:center}
+.oped .mg{width:38px;height:38px;border-radius:50%;border:1px solid var(--ink);display:grid;place-items:center;font:800 15px var(--head);flex:none}
+.oped .nm{font:700 15px/1.1 var(--head)}
+.oped .nm small{display:block;font:500 10px/1.5 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.oped q{display:block;font:italic 400 14px/1.35 var(--body);margin:8px 0;quotes:"\201C" "\201D"}
+.oped .row{display:flex;justify-content:space-between;font:500 11px var(--mono);color:var(--ink2)}
+.fundbox{display:grid;grid-template-columns:1fr 2fr;gap:24px;border-top:1px solid var(--ink);padding-top:12px;margin-top:22px}
+.fundbox h3{font:900 24px/1.05 var(--head);margin:0 0 6px}
+.fundbox p{font:400 14px/1.45 var(--body);color:var(--ink2);margin:0}
+.bars div{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;font:500 12px var(--mono);padding:3px 0;cursor:pointer}
+.bars div:hover{color:var(--claret)}
+.bars i{display:block;height:9px;background:repeating-linear-gradient(135deg,var(--claret) 0 2px,transparent 2px 4px);border:1px solid var(--claret)}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(51,48,46,.25);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:480px;max-width:100%;background:var(--paper);border-left:2px solid var(--ink);box-shadow:-12px 0 30px rgba(0,0,0,.12);transform:translateX(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);z-index:50;overflow-y:auto;padding:22px 26px 60px}
+.drawer.on{transform:none}
+.drawer .x{position:absolute;top:14px;right:18px;font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--ink);padding:5px 8px}
+.drawer .x:hover{background:var(--ink);color:var(--paper)}
+.drawer h2{font:900 32px/1.05 var(--head);margin:6px 60px 8px 0}
+.drawer .stand{font:italic 400 16px/1.45 var(--body);color:var(--ink2);margin:0 0 14px}
+.drawer p.body{font:400 15px/1.55 var(--body);margin:0 0 12px}
+.drawer p.body::first-letter{float:left;font:900 46px/.8 var(--head);margin:6px 6px 0 0;color:var(--claret)}
+.big{display:flex;gap:20px;align-items:baseline;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule);padding:10px 0;margin:10px 0}
+.big b{font:600 40px/1 var(--mono)}
+.big span{font:500 11px/1.4 var(--mono);color:var(--muted);text-transform:uppercase}
+.tbl{width:100%;border-collapse:collapse;font:400 13px/1.3 var(--body);margin:6px 0 14px}
+.tbl th{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;border-bottom:1px solid var(--ink);padding:4px 0}
+.tbl td{border-bottom:1px solid var(--rule);padding:6px 4px 6px 0;vertical-align:top}
+.tbl td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:var(--paper2)}
+.h4{font:800 16px/1.2 var(--head);margin:16px 0 4px}
+.mono{font-family:var(--mono)}
+.tx{font:500 11px/1.5 var(--mono);word-break:break-all;background:var(--paper2);padding:8px;border:1px solid var(--rule)}
+.ver{position:fixed;left:10px;bottom:8px;z-index:60;font:500 11px/1 var(--mono);color:var(--ink2);background:rgba(255,241,229,.92);border:1px solid var(--ink);padding:5px 8px}
+@media (max-width:1180px){.front{grid-template-columns:240px minmax(0,1fr)}.front>.col:last-child{grid-column:1/-1;border-left:0;padding:0;margin-top:18px}.cols4{grid-template-columns:repeat(2,1fr)}.oped:nth-child(odd){border-left:0;padding-left:0}.oped:nth-child(4n+1){padding-left:0}}
+@media (max-width:760px){
+  .wrap{padding:0 16px}
+  .mast{grid-template-columns:1fr}.mast .ear{display:none}.mast h1{font-size:46px}
+  .nav{gap:12px;font-size:10px;letter-spacing:.06em;flex-wrap:wrap}
+  .dateline span:nth-child(2){display:none}
+  .front{grid-template-columns:1fr}
+  .col{padding:0!important;border-left:0!important}
+  .front>.col:first-child{order:2;margin-top:18px}
+  .lead h2{font-size:28px;min-height:0}
+  .cols4{grid-template-columns:1fr}.oped{padding-left:0!important;border-left:0!important}
+  .fundbox{grid-template-columns:1fr}
+  .bars div{grid-template-columns:110px 1fr 56px}
+  .drawer{padding:18px 16px 60px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="dateline"><span class="live">Live edition · updating</span><span id="today">Sunday 25 October 2026</span><span>Solana devnet · sealed backtests</span></div>
+  <header class="mast">
+    <div class="ear">“Eight world models, one market, and the weather keeps score.” <br><b id="earVol">$0</b> traded today</div>
+    <h1 id="brandName">HARVEST<small id="brandTag">The Ledger, live</small></h1>
+    <div class="ear r">Resilience Fund <b id="earFund">$0</b><br>takes a cut of every bet for the regions most at risk.</div>
+  </header>
+  <nav class="nav"><a href="#" class="on">Front page</a><a href="#">Markets</a><a href="#">Agents</a><a href="#">Resilience Fund</a><a href="#">Backtest</a><a href="#">Opinion</a></nav>
+</div>
+<div class="ticker"><div class="track" id="ticker"></div></div>
+<div class="wrap">
+  <main class="front">
+    <section class="col">
+      <p class="kicker">Prices</p>
+      <h3 class="colhead">The Odds Board</h3>
+      <table class="odds"><tbody id="odds"></tbody></table>
+    </section>
+    <section class="col lead">
+      <p class="kicker" id="leadKick">Breaking · agents</p>
+      <h2 id="leadHead">Loading the wires…</h2>
+      <p class="stand" id="leadStand"></p>
+      <div class="byline" id="leadBy">By the HARVEST desk</div>
+      <figure>
+        <div class="figt">Where the money is moving, live <span id="bpm">0 bets / min</span></div>
+        <svg id="map" viewBox="0 0 900 650" role="img" aria-label="Live map of bets flowing from agents to regions"></svg>
+        <figcaption><span>Circles mark growing regions, sized and pulsing by climate risk. Click any region, agent, line or market.</span><span class="key"><b style="background:var(--yes)"></b>YES bet<b style="background:var(--no)"></b>NO bet</span></figcaption>
+      </figure>
+    </section>
+    <section class="col">
+      <p class="kicker">Wire</p>
+      <h3 class="colhead">Dispatches</h3>
+      <ul class="disp" id="disp"></ul>
+      <div class="stats">
+        <div><b id="sBets">0</b><span>bets this session</span></div>
+        <div><b id="sVol">$0</b><span>staked this session</span></div>
+        <div><b id="sYes">0%</b><span>share on YES</span></div>
+        <div><b id="sTop">-</b><span>busiest market</span></div>
+      </div>
+    </section>
+  </main>
+  <section class="opinion">
+    <h3>Opinion: the eight world models</h3>
+    <p>Each agent bets from one explicit theory of how the harvest breaks. The sealed backtest says who has been right.</p>
+    <div class="cols4" id="opeds"></div>
+    <div class="fundbox">
+      <div><p class="kicker">The Resilience Fund</p><h3>A cut of every bet goes where the drought bites</h3><p id="fundTxt"></p></div>
+      <div class="bars" id="fundBars"></div>
+    </div>
+  </section>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-live="polite"><button class="x" id="x">Close ✕</button><div id="dbody"></div></aside>
+<div class="ver">live v07 · editorial / newspaper</div>
+
+<script src="../shared/mock-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'The Ledger, live' };
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s);
+document.getElementById('brandName').firstChild.nodeValue = BRAND.name;
+$('#brandTag').textContent = BRAND.tagline;
+document.title = BRAND.name + ' Ledger Live';
+$('#leadBy').textContent = 'By the ' + BRAND.name + ' desk · filed from Solana devnet';
+
+const open = M.markets.filter(m => m.status === 'open');
+const commod = m => m.commodity ? M.commodities[m.commodity] : null;
+const mono = n => n.split(/[\s\-\/]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ago = ts => { const s = Math.max(0, Math.round((Date.now() - ts) / 1000)); return s < 60 ? s + 's ago' : Math.round(s / 60) + 'm ago'; };
+const hhmm = ts => new Date(ts).toTimeString().slice(0, 8);
+const short = t => t.replace(/\?$/, '');
+function spark(vals, w, h, color) {
+  const lo = Math.min(...vals), hi = Math.max(...vals), r = hi - lo || 1;
+  const pts = vals.map((v, i) => (i / (vals.length - 1) * w).toFixed(1) + ',' + (h - (v - lo) / r * (h - 2) - 1).toFixed(1)).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.1"/></svg>`;
+}
+
+/* ---------- state ---------- */
+const live = {}; open.forEach(m => live[m.id] = m.probHistory.slice(-24));
+let log = M.recentBets(40);
+const session = { n: 0, vol: 0, yes: 0, byMarket: {} };
+const stamps = [];
+
+/* ---------- odds board ---------- */
+function renderOdds() {
+  const rows = [];
+  for (const [label, type] of [['Commodity prices', 'hard'], ['Policy & geopolitics', 'soft']]) {
+    rows.push(`<tr><td class="sect" colspan="2">${label}</td></tr>`);
+    open.filter(m => m.type === type).sort((a, b) => b.volume - a.volume).forEach(m => {
+      const ch = m.change24h, c = commod(m);
+      rows.push(`<tr data-m="${m.id}" id="row-${m.id}"><td class="t">${esc(m.title)}<i>${c ? c.label : m.topic} · vol ${F.compact(m.volume)}</i>${spark(live[m.id], 150, 16, '#33302e')}</td>
+      <td class="p" id="p-${m.id}">${F.cents(m.yes)}<small class="${ch >= 0 ? 'up' : 'dn'}">${ch >= 0 ? '▲' : '▼'}${Math.abs(ch).toFixed(1)}</small></td></tr>`);
+    });
+  }
+  $('#odds').innerHTML = rows.join('');
+}
+function updRow(m, b) {
+  const row = document.getElementById('row-' + m.id); if (!row) return;
+  live[m.id].push(m.yes); if (live[m.id].length > 40) live[m.id].shift();
+  const d = b.priceImpact;
+  document.getElementById('p-' + m.id).innerHTML = `${F.cents(m.yes)}<small class="${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)}</small>`;
+  row.querySelector('svg').outerHTML = spark(live[m.id], 150, 16, '#33302e');
+  row.classList.add('flash'); setTimeout(() => row.classList.remove('flash'), 60);
+}
+function renderTicker() {
+  const items = open.map(m => { const c = commod(m); return `<span data-m="${m.id}">${(c ? c.label : m.topic).toUpperCase()} · ${esc(short(m.title)).slice(0, 38)} <b>${F.cents(m.yes)}</b> <em class="${m.change24h >= 0 ? 'up' : 'dn'}">${m.change24h >= 0 ? '▲' : '▼'}${Math.abs(m.change24h).toFixed(1)}</em></span>`; });
+  $('#ticker').innerHTML = items.join('');
+}
+
+/* ---------- headline ---------- */
+const verbs = { YES: ['backs', 'bets', 'piles into', 'stakes'], NO: ['bets against', 'fades', 'sells', 'shorts'] };
+let lastLead = 0;
+function lead(b, force) {
+  if (!force && (Date.now() - lastLead < 6500)) return;
+  lastLead = Date.now();
+  const h = $('#leadHead'), s = $('#leadStand');
+  h.classList.add('fade'); s.classList.add('fade');
+  setTimeout(() => {
+    const v = verbs[b.side][Math.floor(Math.random() * 4)];
+    h.innerHTML = `${esc(b.actorName.replace(' (ext)', ''))} ${v} ${F.usd(b.stake)} on <em>${esc(short(b.marketTitle))}</em>`;
+    s.textContent = `“${b.rationale}” The YES price moved from ${F.cents(b.priceBefore)} to ${F.cents(b.priceAfter)}.`;
+    $('#leadKick').textContent = (b.actorType === 'agent' ? 'Agents' : b.actorType === 'human' ? 'Readers' : 'Outside desks') + ' · ' + hhmm(b.ts);
+    h.classList.remove('fade'); s.classList.remove('fade');
+  }, 350);
+}
+
+/* ---------- dispatches ---------- */
+function dispItem(b, isNew) {
+  const c = b.side === 'YES' ? 'var(--yes)' : 'var(--no)';
+  const li = document.createElement('li');
+  li.dataset.b = b.id;
+  li.innerHTML = `<div class="meta"><span>${hhmm(b.ts)} · ${b.actorType === 'agent' ? 'agent' : b.actorType === 'human' ? 'reader' : 'outside desk'}</span><span>${F.usd(b.stake)}</span></div>
+  <div class="hd">${esc(b.actorName)} <span class="s" style="color:${c}">${b.side}</span> ${esc(short(b.marketTitle))}</div>
+  <div class="why">${esc(b.rationale)} <span class="mono" style="font-style:normal;font-size:11px">${F.cents(b.priceBefore)}→${F.cents(b.priceAfter)}</span></div>`;
+  if (isNew) { li.classList.add('new'); requestAnimationFrame(() => requestAnimationFrame(() => li.classList.remove('new'))); }
+  return li;
+}
+function pushDisp(b) {
+  const ul = $('#disp'); ul.prepend(dispItem(b, true));
+  while (ul.children.length > 9) ul.lastChild.remove();
+}
+
+/* ---------- map ---------- */
+const svg = d3.select('#map');
+const W = 900, H = 650, MAPH = 560;
+const defs = svg.append('defs');
+defs.html(`<pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#fbebdc"/><line x1="0" y1="0" x2="0" y2="5" stroke="#d6bfa9" stroke-width="1"/></pattern>
+<pattern id="waves" width="12" height="6" patternUnits="userSpaceOnUse"><rect width="12" height="6" fill="#fff1e5"/><path d="M0 3 q3 -2 6 0 t6 0" fill="none" stroke="#efd9c4" stroke-width=".7"/></pattern>
+<clipPath id="clipMain"><rect x="0" y="0" width="${W}" height="${MAPH}"/></clipPath>`);
+const gBase = svg.append('g').attr('clip-path', 'url(#clipMain)');
+const gArcs = svg.append('g');
+const gStamps = svg.append('g');
+const gMeds = svg.append('g');
+const gNotes = svg.append('g');
+const ext = (a, b) => ({ type: 'MultiPoint', coordinates: [a, b, [a[0], b[1]], [b[0], a[1]]] });
+const mainProj = d3.geoMercator().fitExtent([[0, 0], [W, MAPH]], ext([-16, 21], [66, 60]));
+const insets = [
+  { id: 'br', title: 'Inset: Brazil', x: 10, y: 410, w: 150, h: 140, e: ext([-62, -26], [-38, -6]), regions: ['mato_grosso', 'minas_gerais'] },
+  { id: 'wa', title: 'Inset: West Africa', x: 170, y: 440, w: 150, h: 110, e: ext([-11, 3], [3, 11]), regions: ['ci_cocoa', 'ghana_ashanti'] },
+  { id: 'as', title: 'Inset: South & SE Asia', x: 330, y: 440, w: 170, h: 110, e: ext([64, 4], [112, 36]), regions: ['punjab', 'mekong'] },
+];
+insets.forEach(i => { i.proj = d3.geoMercator().fitExtent([[i.x + 6, i.y + 16], [i.x + i.w - 6, i.y + i.h - 6]], i.e); });
+const pos = {};
+M.regions.forEach(r => {
+  const ins = insets.find(i => i.regions.includes(r.id));
+  const p = (ins ? ins.proj : mainProj)([r.lng, r.lat]);
+  pos[r.id] = { x: p[0], y: p[1], inset: !!ins };
+});
+// agent medallions along the foot of the figure
+const actors = M.agents.map(a => ({ id: a.id, label: a.name, mono: mono(a.name), agent: a }));
+actors.push({ id: '_ext', label: 'Outside desks', mono: 'OD' }, { id: '_hum', label: 'Readers', mono: 'R' });
+actors.forEach((a, i) => { a.x = 45 + i * (W - 90) / (actors.length - 1); a.y = 598; });
+const actorPos = id => actors.find(a => a.id === id) || null;
+
+function drawBase(world) {
+  gBase.append('rect').attr('width', W).attr('height', MAPH).attr('class', 'sea');
+  const path = d3.geoPath(mainProj);
+  gBase.append('path').datum(world).attr('class', 'land').attr('d', path);
+  gBase.append('path').datum(d3.geoGraticule().step([10, 10])()).attr('d', path).attr('fill', 'none').attr('stroke', '#e3cdb8').attr('stroke-width', .5).attr('stroke-dasharray', '2 3');
+  // capital flows (sovereign funds)
+  M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => {
+    const a = pos[r.id], b = pos[f.regionId];
+    gBase.append('path').attr('d', `M${a.x},${a.y} Q${(a.x + b.x) / 2},${Math.min(a.y, b.y) - 60} ${b.x},${b.y}`).attr('fill', 'none').attr('stroke', '#0f5499').attr('stroke-width', .5 + f.usd / 3e7).attr('stroke-dasharray', '1 3').attr('opacity', .7);
+  }));
+  insets.forEach(i => {
+    const g = svg.insert('g', () => gArcs.node());
+    g.append('rect').attr('x', i.x).attr('y', i.y).attr('width', i.w).attr('height', i.h).attr('class', 'inset-frame');
+    g.append('clipPath').attr('id', 'c' + i.id).append('rect').attr('x', i.x + 1).attr('y', i.y + 13).attr('width', i.w - 2).attr('height', i.h - 14);
+    const gi = g.append('g').attr('clip-path', `url(#c${i.id})`);
+    gi.append('rect').attr('x', i.x).attr('y', i.y).attr('width', i.w).attr('height', i.h).attr('class', 'sea');
+    gi.append('path').datum(world).attr('class', 'land').attr('d', d3.geoPath(i.proj));
+    g.append('text').attr('class', 'inset-title').attr('x', i.x + 6).attr('y', i.y + 10).text(i.title);
+    g.append('line').attr('x1', i.x).attr('x2', i.x + i.w).attr('y1', i.y + 13).attr('y2', i.y + 13).attr('stroke', '#33302e').attr('stroke-width', .5);
+  });
+  // foot rule for bylines
+  svg.insert('line', () => gArcs.node()).attr('x1', 0).attr('x2', W).attr('y1', MAPH + 0.5).attr('y2', MAPH + 0.5).attr('stroke', '#33302e');
+  svg.insert('text', () => gArcs.node()).attr('x', 0).attr('y', MAPH + 14).attr('font-family', 'IBM Plex Mono, monospace').attr('font-size', 9).attr('fill', '#807973').attr('letter-spacing', '.08em').text('BYLINES · WHO IS BETTING');
+}
+function drawStamps() {
+  M.regions.forEach(r => {
+    const p = pos[r.id];
+    const g = gStamps.append('g').attr('class', 'stamp').attr('transform', `translate(${p.x},${p.y})`).attr('data-r', r.id);
+    const rad = r.kind === 'production' ? 3 + r.risk * 7 : 4;
+    if (r.kind === 'production') g.append('circle').attr('class', 'ring').attr('r', rad).style('--d', (3.6 - r.risk * 2.4).toFixed(2) + 's');
+    const core = g.append('circle').attr('class', 'core').attr('r', rad);
+    if (r.kind !== 'production') core.attr('fill', '#0f5499').style('fill', '#0f5499');
+    g.append('title').text(`${r.name}, ${r.country} · risk ${(r.risk * 100).toFixed(0)}`);
+    if (!p.inset && (r.risk >= .7 || r.kind !== 'production')) g.append('text').attr('class', 'lbl').attr('x', rad + 4).attr('y', 4).text(r.name);
+    if (p.inset) g.append('text').attr('class', 'lbl').attr('x', rad + 3).attr('y', 4).style('font-size', '9.5px').text(r.name.replace(" cocoa belt", ''));
+    stamps.push(g);
+  });
+  actors.forEach(a => {
+    const g = gMeds.append('g').attr('class', 'med').attr('transform', `translate(${a.x},${a.y})`).attr('data-a', a.id);
+    g.append('circle').attr('r', 22);
+    if (a.agent) g.append('circle').attr('r', 25).attr('fill', 'none').attr('stroke', a.agent.color).attr('stroke-width', 1.4).attr('stroke-dasharray', '2 2');
+    g.append('text').attr('class', 'mono').text(a.mono);
+    g.append('text').attr('class', 'nm').attr('y', 38).text(a.label.length > 16 ? a.label.split(/[\s\/]/)[0] : a.label);
+  });
+}
+function fly(b) {
+  const m = M.getMarket(b.marketId); if (!m) return;
+  const src = actorPos(b.actorType === 'agent' ? b.actorId : b.actorType === 'human' ? '_hum' : '_ext');
+  const col = b.side === 'YES' ? '#0d7680' : '#990f3d';
+  const w = Math.min(3.2, .8 + Math.sqrt(b.stake) / 30);
+  const med = gMeds.select(`[data-a="${src.id}"]`).classed('fire', true);
+  setTimeout(() => med.classed('fire', false), 700);
+  m.regions.slice(0, 3).forEach((rid, k) => {
+    const t = pos[rid]; if (!t) return;
+    const cx = (src.x + t.x) / 2 + (k - 1) * 40, cy = Math.min(src.y, t.y) - 90 - Math.random() * 60;
+    const p = gArcs.append('path').attr('class', 'arc').attr('d', `M${src.x},${src.y - 22} Q${cx},${cy} ${t.x},${t.y}`).attr('stroke', col).attr('stroke-width', k ? w * .6 : w).attr('data-b', b.id);
+    const L = p.node().getTotalLength();
+    p.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L);
+    const anim = p.node().animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 1100 + k * 150, easing: 'cubic-bezier(.3,.6,.2,1)', fill: 'forwards' });
+    anim.onfinish = () => {
+      const st = gStamps.select(`[data-r="${rid}"]`).classed('hit', true); setTimeout(() => st.classed('hit', false), 900);
+      if (k === 0) {
+        const n = gNotes.append('text').attr('class', 'note').attr('x', t.x + 10).attr('y', t.y - 10).attr('fill', col).text(`${b.side} ${F.usd(b.stake)} · ${F.cents(b.priceAfter)}`);
+        n.transition().delay(1500).duration(900).attr('y', t.y - 22).style('opacity', 0).remove();
+      }
+      p.transition().delay(600).duration(3800).attr('stroke-opacity', .12).attr('stroke-width', .6).transition().duration(4000).style('opacity', 0).remove();
+    };
+  });
+}
+
+/* ---------- opinion + fund ---------- */
+function renderOpinion() {
+  const ranked = [...M.backtest.perAgent].sort((a, b) => a.brier - b.brier).map(x => x.agentId);
+  $('#opeds').innerHTML = M.agents.map(a => `<article class="oped" data-a="${a.id}"><div class="by"><div class="mg" style="box-shadow:inset 0 0 0 3px var(--paper),inset 0 0 0 4px ${a.color}">${mono(a.name)}</div><div class="nm">${esc(a.name)}<small>Backtest rank #${ranked.indexOf(a.id) + 1} · Brier ${a.brier.toFixed(3)}</small></div></div>
+  <q>${esc(a.worldModel)}</q><div class="row"><span>P&amp;L <b class="${a.pnl >= 0 ? 'up' : 'dn'}">${F.usd(a.pnl)}</b></span><span>${spark(a.pnlHistory, 90, 16, a.pnl >= 0 ? '#0d7680' : '#990f3d')}</span><span>${a.bets.toLocaleString()} bets</span></div></article>`).join('');
+  const f = M.fund;
+  $('#fundTxt').innerHTML = `${(f.cutBps / 100).toFixed(1)}% of all volume flows into the fund, which holds <b class="mono">${F.usd(f.balance)}</b> ${f.currency} on devnet. Allocation follows regional climate risk; the largest shares go to the regions where harvests are breaking first.`;
+  $('#fundBars').innerHTML = f.allocation.slice(0, 8).map(x => { const r = M.getRegion(x.regionId); return `<div data-r="${r.id}"><span>${esc(r.name)}</span><i style="width:${(x.share / f.allocation[0].share * 100).toFixed(0)}%"></i><span>${F.usd(x.amount)}</span></div>`; }).join('');
+}
+
+/* ---------- drawer ---------- */
+function openDrawer(html) { $('#dbody').innerHTML = html; $('#drawer').classList.add('on'); $('#scrim').classList.add('on'); $('#drawer').scrollTop = 0; }
+function closeDrawer() { $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); }
+const betsFor = f => log.filter(f).slice(0, 8);
+const betRows = bs => bs.length ? `<table class="tbl"><tr><th>When</th><th>Who</th><th>Side</th><th style="text-align:right">Stake</th></tr>${bs.map(b => `<tr class="click" data-b="${b.id}"><td class="mono" style="font-size:11px">${ago(b.ts)}</td><td>${esc(b.actorName)}<br><small style="color:var(--muted)">${esc(short(b.marketTitle))}</small></td><td class="mono" style="color:${b.side === 'YES' ? 'var(--yes)' : 'var(--no)'}">${b.side}</td><td class="n">${F.usd(b.stake)}</td></tr>`).join('')}</table>` : '<p class="stand">No bets on the wire yet.</p>';
+function showRegion(id) {
+  const r = M.getRegion(id);
+  const ms = open.filter(m => m.regions.includes(id));
+  openDrawer(`<p class="kicker">${r.kind === 'production' ? 'Region report' : 'Capital origin'} · ${esc(r.country)}</p><h2>${esc(r.name)}</h2><p class="stand">${esc(r.crop)}</p>
+  <div class="big"><div><b>${r.kind === 'production' ? (r.risk * 100).toFixed(0) : '–'}</b><br><span>Climate risk index</span></div><div><b>${F.compact(r.fund)}</b><br><span>Resilience Fund, USDC</span></div></div>
+  <p class="body">${esc(r.note)}</p>
+  ${r.flowsTo ? `<div class="h4">Where its capital is flowing</div><table class="tbl">${r.flowsTo.map(f => `<tr class="click" data-r="${f.regionId}"><td>${esc(M.getRegion(f.regionId).name)}</td><td class="n">$${(f.usd / 1e6).toFixed(0)}M</td></tr>`).join('')}</table>` : ''}
+  <div class="h4">Markets that settle on ${esc(r.name)}</div><table class="tbl">${ms.map(m => `<tr class="click" data-m="${m.id}"><td>${esc(m.title)}</td><td class="n">${F.cents(m.yes)}</td></tr>`).join('') || '<tr><td>None open.</td></tr>'}</table>
+  <div class="h4">Latest bets touching this region</div>${betRows(betsFor(b => (M.getMarket(b.marketId) || { regions: [] }).regions.includes(id)))}`);
+}
+function showAgent(id) {
+  if (id === '_ext' || id === '_hum') {
+    const t = id === '_ext' ? 'external_agent' : 'human';
+    return openDrawer(`<p class="kicker">Bylines</p><h2>${id === '_ext' ? 'Outside desks' : 'Readers'}</h2><p class="stand">${id === '_ext' ? 'External agents plug into the market over the open API and trade against our market maker.' : 'Human traders betting alongside the agents with devnet USDC.'}</p><div class="h4">Their latest bets</div>${betRows(betsFor(b => b.actorType === t))}`);
+  }
+  const a = M.getAgent(id), bt = M.backtest.perAgent.find(x => x.agentId === id);
+  const pos = open.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).filter(x => x.p).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  openDrawer(`<p class="kicker">Profile · world model</p><h2>${esc(a.name)}</h2><p class="stand">“${esc(a.worldModel)}”</p>
+  <div class="big"><div><b class="${a.pnl >= 0 ? 'up' : 'dn'}">${F.usd(a.pnl)}</b><br><span>P&amp;L, USDC</span></div><div><b>${a.brier.toFixed(3)}</b><br><span>Brier (holdout ${bt ? bt.brier.toFixed(3) : '-'})</span></div><div><b>${F.pct(a.winRate)}</b><br><span>Win rate</span></div></div>
+  <p class="body">${esc(a.conviction)}</p>
+  <div class="h4">P&amp;L since Q1 2023</div>${spark(a.pnlHistory, 420, 60, a.pnl >= 0 ? '#0d7680' : '#990f3d')}
+  <div class="h4">Largest open positions</div><table class="tbl"><tr><th>Market</th><th>Side</th><th style="text-align:right">Est.</th><th style="text-align:right">Stake</th></tr>${pos.map(x => `<tr class="click" data-m="${x.m.id}"><td>${esc(x.m.title)}</td><td class="mono" style="color:${x.p.side === 'YES' ? 'var(--yes)' : 'var(--no)'}">${x.p.side}</td><td class="n">${F.pct(x.p.estimate)}</td><td class="n">${F.usd(x.p.stake)}</td></tr>`).join('')}</table>
+  <div class="h4">On the wire</div>${betRows(betsFor(b => b.actorId === id))}`);
+}
+function showMarket(id) {
+  const m = M.getMarket(id), c = commod(m);
+  const hist = m.probHistory.concat(live[id] ? live[id].slice(-6) : []);
+  openDrawer(`<p class="kicker">${m.type === 'hard' ? 'Commodity market · ' + c.label : 'Policy market · ' + esc(m.topic)}</p><h2>${esc(m.title)}</h2><p class="stand">${esc(m.description)}</p>
+  <div class="big"><div><b>${F.cents(m.yes)}</b><br><span>YES price</span></div><div><b>${F.pct(m.agentEstimate)}</b><br><span>Agent consensus</span></div><div><b>${F.compact(m.volume)}</b><br><span>Volume</span></div></div>
+  <div class="h4">Probability, weekly then live</div>${spark(hist, 420, 70, '#0f5499')}
+  <div class="h4">Where the eight agents stand</div><table class="tbl"><tr><th>Agent</th><th>Side</th><th style="text-align:right">Est.</th><th style="text-align:right">Stake</th></tr>${m.positions.map(p => `<tr class="click" data-a="${p.agentId}"><td>${esc(M.getAgent(p.agentId).name)}<br><small style="color:var(--muted);font-style:italic">${esc(p.rationale)}</small></td><td class="mono" style="color:${p.side === 'YES' ? 'var(--yes)' : 'var(--no)'}">${p.side}</td><td class="n">${F.pct(p.estimate)}</td><td class="n">${F.usd(p.stake)}</td></tr>`).join('')}</table>
+  <p class="stand" style="font-size:13px">Resolves on ${esc(m.endDate)} from ${esc(m.resolutionSource)}. Regions: ${m.regions.map(r => `<a href="#" data-r="${r}">${esc(M.getRegion(r).name)}</a>`).join(', ')}.</p>
+  <div class="h4">Latest bets</div>${betRows(betsFor(b => b.marketId === id))}`);
+}
+function showBet(id) {
+  const b = log.find(x => x.id === id); if (!b) return;
+  openDrawer(`<p class="kicker">Bet receipt · ${hhmm(b.ts)}</p><h2>${esc(b.actorName)} ${b.side === 'YES' ? 'backs' : 'bets against'} “${esc(short(b.marketTitle))}”</h2><p class="stand">“${esc(b.rationale)}”</p>
+  <div class="big"><div><b style="color:${b.side === 'YES' ? 'var(--yes)' : 'var(--no)'}">${b.side}</b><br><span>Side</span></div><div><b>${F.usd(b.stake)}</b><br><span>Stake, USDC</span></div><div><b>${b.priceImpact > 0 ? '+' : ''}${b.priceImpact.toFixed(2)}</b><br><span>Impact, pts</span></div></div>
+  <table class="tbl"><tr><td>Price before</td><td class="n">${F.cents(b.priceBefore)}</td></tr><tr><td>Price after</td><td class="n">${F.cents(b.priceAfter)}</td></tr><tr><td>Bettor type</td><td class="n">${b.actorType.replace('_', ' ')}</td></tr>
+  <tr class="click" data-m="${b.marketId}"><td>Market</td><td class="n">open ›</td></tr>${b.actorType === 'agent' ? `<tr class="click" data-a="${b.actorId}"><td>Agent profile</td><td class="n">open ›</td></tr>` : ''}</table>
+  <div class="h4">Solana devnet transaction</div><div class="tx">${b.tx}</div><p class="stand" style="font-size:13px;margin-top:6px"><a href="https://explorer.solana.com/tx/${b.tx}?cluster=devnet" target="_blank" rel="noopener">View on explorer (mock signature)</a></p>`);
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-b],[data-m],[data-a],[data-r]');
+  if (!t || t.id === 'drawer') return;
+  e.preventDefault();
+  if (t.dataset.b) showBet(t.dataset.b);
+  else if (t.dataset.m) showMarket(t.dataset.m);
+  else if (t.dataset.a) showAgent(t.dataset.a);
+  else if (t.dataset.r) showRegion(t.dataset.r);
+});
+$('#x').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+/* ---------- stream ---------- */
+const stamps60 = log.slice(0, 30).map(b => b.ts);
+function onBet(b) {
+  log.unshift(b); if (log.length > 300) log.pop();
+  stamps60.push(b.ts);
+  const m = M.getMarket(b.marketId);
+  session.n++; session.vol += b.stake; if (b.side === 'YES') session.yes++;
+  session.byMarket[b.marketId] = (session.byMarket[b.marketId] || 0) + b.stake;
+  updRow(m, b); pushDisp(b); fly(b);
+  if (b.stake > 1500 || Date.now() - lastLead > 9000) lead(b);
+  $('#sBets').textContent = session.n; $('#sVol').textContent = F.usd(session.vol);
+  $('#sYes').textContent = F.pct(session.yes / session.n);
+  const top = Object.entries(session.byMarket).sort((a, b) => b[1] - a[1])[0];
+  $('#sTop').textContent = top ? (commod(M.getMarket(top[0])) || { label: M.getMarket(top[0]).topic }).label : '-';
+  $('#earVol').textContent = F.usd(open.reduce((s, m) => s + m.volume24h, 0));
+  $('#earFund').textContent = F.usd(M.fund.balance + session.vol * M.fund.cutBps / 1e4);
+}
+setInterval(() => {
+  const now = Date.now(); while (stamps60.length && now - stamps60[0] > 60000) stamps60.shift();
+  $('#bpm').textContent = stamps60.length + ' bets / min';
+  document.querySelectorAll('.disp li').forEach(li => { const b = log.find(x => x.id === li.dataset.b); if (b) li.querySelector('.meta span').textContent = ago(b.ts) + ' · ' + (b.actorType === 'agent' ? 'agent' : b.actorType === 'human' ? 'reader' : 'outside desk'); });
+}, 1000);
+
+$('#today').textContent = new Date(M.asOf + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+$('#earVol').textContent = F.usd(open.reduce((s, m) => s + m.volume24h, 0));
+$('#earFund').textContent = F.usd(M.fund.balance);
+renderOdds(); renderTicker(); renderOpinion();
+log.slice(0, 8).reverse().forEach(b => $('#disp').prepend(dispItem(b, false)));
+lead([...log.slice(0, 12)].sort((a, b) => b.stake - a.stake)[0], true);
+drawStamps();
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json').then(topo => {
+  drawBase(topojson.feature(topo, topo.objects.countries));
+}).catch(err => { console.warn('map load failed', err); gBase.append('rect').attr('width', W).attr('height', MAPH).attr('class', 'sea'); });
+const stream = M.makeBetStream({ minMs: 700, maxMs: 1700 });
+stream.on(onBet);
+setTimeout(() => { stream.next(); stream.next(); stream.start(); }, 400);
+</script>
+</body>
+</html>

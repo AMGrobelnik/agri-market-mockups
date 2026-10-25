@@ -1,6 +1,6 @@
-# HARVEST mockup mock data
+# The Crophecy mockup mock data
 
-Placeholder brand "HARVEST". Fictional but plausible numbers; "now" is
+Placeholder brand "The Crophecy". Fictional but plausible numbers; "now" is
 `MOCK.asOf = '2026-10-25'`. Everything is deterministic (seeded) except
 `makeBetStream()`.
 

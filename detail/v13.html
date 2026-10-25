@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HARVEST Market Detail</title>
+<title>The Crophecy Market Detail</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -264,9 +264,9 @@ h1 { margin: 2px 0 0; font-size: 27px; line-height: 1.15; letter-spacing: -.025e
 
 <nav class="top">
   <div class="wrap">
-    <a class="logo" href="#" aria-label="HARVEST home">
+    <a class="logo" href="#" aria-label="The Crophecy home">
       <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><g fill="#65a30d"><circle cx="5" cy="5" r="2"/><circle cx="11" cy="5" r="2" opacity=".55"/><circle cx="17" cy="5" r="2" opacity=".3"/><circle cx="5" cy="11" r="2" opacity=".55"/><circle cx="11" cy="11" r="2"/><circle cx="17" cy="11" r="2" opacity=".55"/><circle cx="5" cy="17" r="2" opacity=".3"/><circle cx="11" cy="17" r="2" opacity=".55"/><circle cx="17" cy="17" r="2"/></g></svg>
-      <span id="brandName">HARVEST</span>
+      <span id="brandName">The Crophecy</span>
     </a>
     <div class="links"><a class="on" href="#">Markets</a><a href="#">Agents</a><a href="#">Backtest</a><a href="#">Resilience Fund</a><a href="#">Portfolio</a></div>
     <div class="navr">
@@ -392,14 +392,14 @@ h1 { margin: 2px 0 0; font-size: 27px; line-height: 1.15; letter-spacing: -.025e
       <div class="rel" id="rel"></div>
     </section>
   </div>
-  <div class="foot"><span id="brandFoot">HARVEST</span> · mockup · play credits only, no real money · data is fictional</div>
+  <div class="foot"><span id="brandFoot">The Crophecy</span> · mockup · play credits only, no real money · data is fictional</div>
 </main>
 <div class="toast" id="toast"></div>
 
 <script src="../shared/mock-data.js"></script>
 <script>
 'use strict';
-const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const BRAND = { name: 'The Crophecy', tagline: 'Every harvest has its prophets. We score them.' };
 document.getElementById('brandName').textContent = BRAND.name;
 document.getElementById('brandFoot').textContent = BRAND.name;
 
@@ -413,6 +413,7 @@ const pct = (p, d) => (p * 100).toFixed(d || 0) + '%';
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const TAU = Math.PI * 2;
 const isMob = () => innerWidth < 600;
+const SHORT = { climate_pessimist: 'Pessimist', em_skeptic: 'EM Skeptic', geo_hawk: 'Geo Hawk', adapt_optimist: 'Optimist', macro_dollar: 'Macro', land_grab: 'Land-Grab', agronomist: 'Agronomist', crowd_follower: 'Crowd' };
 const D = (s) => new Date(s + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 /* ---------- state ---------- */
@@ -425,14 +426,15 @@ $('#title').textContent = M.title;
 $('#endChip').textContent = 'Ends ' + D(M.endDate);
 $('#regionChips').innerHTML = M.regions.map((id) => { const r = MK.getRegion(id); return `<span class="chip" title="${esc(r.note)}"><span style="width:7px;height:7px;border-radius:50%;background:hsl(${44 - (r.risk - .6) * 140},90%,52%)"></span>${esc(r.name)} · risk ${Math.round(r.risk * 100)}</span>`; }).join('');
 function renderStats() {
-  const items = [[F.compact(M.volume) + ' cr', 'volume'], [F.compact(M.volume24h) + ' cr', '24h volume'], [F.compact(M.liquidity) + ' cr', 'liquidity'], [M.traders.toLocaleString(), 'traders'], ['$246 → $280', 'spot → strike /t']];
+  const items = [[F.compact(M.volume) + ' cr', 'volume'], [F.compact(M.volume24h) + ' cr', '24h volume'], [F.compact(M.liquidity) + ' cr', 'liquidity'], [M.traders.toLocaleString(), 'traders'], ['$280/t', 'strike · spot $246']];
   $('#stats').innerHTML = items.map((x) => `<div class="stat"><b>${x[0]}</b><small>${x[1]}</small></div>`).join('');
 }
 renderStats();
 let lastBig = M.yes;
 function renderPrice(flash) {
   const p = M.yes;
-  $('#big').innerHTML = (p * 100).toFixed(p * 100 % 1 ? 1 : 0) + '<small>%</small>';
+  const pr1 = Math.round(p * 1000) / 10;
+  $('#big').innerHTML = (pr1 % 1 ? pr1.toFixed(1) : String(pr1)) + '<small>%</small>';
   const ch = (p - S.hist[S.hist.length - 2]) * 100;
   $('#chg').innerHTML = `<span class="${ch >= 0 ? 'up' : 'dn'}">${ch >= 0 ? '▲' : '▼'} ${Math.abs(ch).toFixed(1)} pts</span> <span class="muted">this week</span>`;
   const gap = Math.round((M.agentEstimate - p) * 100);
@@ -544,7 +546,7 @@ function beliefTargets(f) {
   const T = [], maxS = Math.max(...lanes.map((p) => p.stake)), mob = f.W < 600, g = geom(f);
   lanes.forEach((p, i) => {
     const a = MK.getAgent(p.agentId), cx = xBelief(f, p.estimate), cy = laneY(f, i);
-    const n = Math.round(16 + (p.stake / maxS) * (mob ? 54 : 110)), c = mob ? 1.65 : 1.95;
+    const n = Math.round(22 + (p.stake / maxS) * (mob ? 70 : 150)), c = mob ? 1.85 : 2.35;
     for (let k = 0; k < n; k++) { const rr = c * Math.sqrt(k + 0.5), an = k * 2.39996; T.push({ x: cx + Math.cos(an) * rr, y: cy + Math.sin(an) * rr * 0.62, c: a.color, a: 0.9, r: 1.35, g: i, wob: 0.3 }); }
   });
   const ph = f.H - g.t - g.b, xm = xBelief(f, M.yes), xc = xBelief(f, M.agentEstimate);
@@ -584,7 +586,9 @@ function chartExtra(ctx, layer) {
   }
   if (mode === 'price') {
     const ce = M.agentEstimate, y = g.t + ph * (1 - ce / 0.5);
-    txt(ctx, 'agents ' + pct(ce), g.l + pw - 10, y - 13, { al: 'right', s: 10.5, c: '#3f6212', w: 600, mono: 1 });
+    const lab = 'agents ' + pct(ce); ctx.font = '600 10.5px "Geist Mono", monospace'; const tw = ctx.measureText(lab).width, lx = g.l + pw - 14 - tw, ly = y - 16;
+    ctx.fillStyle = 'rgba(247,254,231,.95)'; ctx.strokeStyle = '#d9f99d'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(lx - 6, ly - 9, tw + 12, 18, 9) : ctx.rect(lx - 6, ly - 9, tw + 12, 18); ctx.fill(); ctx.stroke();
+    txt(ctx, lab, lx, ly, { s: 10.5, c: '#3f6212', w: 600, mono: 1 });
     if (hover != null) {
       const n = S.range, h = S.hist.slice(-n), i = hover, x = g.l + pw * i / (n - 1), yy = g.t + ph * (1 - h[i] / 0.5);
       ctx.strokeStyle = 'rgba(9,9,11,.35)'; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x + .5, g.t); ctx.lineTo(x + .5, g.t + ph); ctx.stroke(); ctx.setLineDash([]);
@@ -595,8 +599,8 @@ function chartExtra(ctx, layer) {
       const a = MK.getAgent(p.agentId), y = laneY(f, i), dim = chart.hl >= 0 && chart.hl !== i;
       ctx.globalAlpha = dim ? 0.35 : 1;
       txt(ctx, a.emoji, 4, y, { s: 13 });
-      txt(ctx, mob ? a.name.split(/[ /-]/)[0] : a.name, 24, y, { s: mob ? 11 : 12, c: '#27272a', w: 500 });
-      if (mode === 'beliefs') { const x = xBelief(f, p.estimate); txt(ctx, pct(p.estimate), x + (mob ? 16 : 26), y, { mono: 1, s: 10.5, c: '#3f3f46', w: 600 }); }
+      txt(ctx, mob ? SHORT[a.id] : a.name, 24, y, { s: mob ? 11 : 12, c: '#27272a', w: 500 });
+      if (mode === 'beliefs') { const x = xBelief(f, p.estimate); txt(ctx, pct(p.estimate), x + (mob ? 20 : 32), y, { mono: 1, s: 10.5, c: '#3f3f46', w: 600 }); }
       else { const cx = g.l + pw / 2, half = pw / 2 - (mob ? 34 : 64), len = half * p.stake / Math.max(...lanes.map((q) => q.stake)) + 6, dir = p.side === 'YES' ? 1 : -1; txt(ctx, F.compact(p.stake) + ' cr', cx + dir * (len + 4), y, { mono: 1, s: 10.5, c: '#3f3f46', w: 600, al: dir > 0 ? 'left' : 'right' }); }
       ctx.globalAlpha = 1;
     });
@@ -692,12 +696,14 @@ function btExtra(ctx, layer) {
   if (!bt.formed) return;
   [[BT.baselines.marketPrice, 'market ' + BT.baselines.marketPrice.toFixed(3), '#18181b'], [BT.baselines.coinFlip, 'coin flip ' + BT.baselines.coinFlip.toFixed(2), '#a1a1aa']].forEach(([v, l, c], k) => {
     const x = Math.round(btX(f, v)) + .5; ctx.strokeStyle = c; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(x, g.t - 8); ctx.lineTo(x, f.H - g.b + 2); ctx.stroke(); ctx.setLineDash([]);
-    txt(ctx, l, x + (k ? 4 : -4), 8, { al: k ? 'left' : 'right', s: 10.5, c, w: 600, mono: 1 });
+    ctx.font = '600 10.5px "Geist Mono", monospace'; const tw = ctx.measureText(l).width;
+    const lx = k ? Math.min(x + 4, f.W - tw - 2) : x - 4;
+    txt(ctx, l, lx, k ? 8 : 8, { al: k ? 'left' : 'right', s: 10.5, c, w: 600, mono: 1 });
   });
   btRows.forEach((r, i) => {
     const a = MK.getAgent(r.agentId), y = btY(f, i);
     txt(ctx, a.emoji, 2, y, { s: 13 });
-    txt(ctx, mob ? a.name.split(/[ /-]/)[0] : a.name, 22, y, { s: mob ? 11 : 12, c: '#27272a', w: r.brierHard < BT.baselines.marketPrice ? 600 : 500 });
+    txt(ctx, f.W < 520 ? SHORT[a.id] : a.name, 22, y, { s: mob ? 11 : 12, c: '#27272a', w: r.brierHard < BT.baselines.marketPrice ? 600 : 500 });
     txt(ctx, r.brierHard.toFixed(3), btX(f, r.brierHard) + 6, y, { mono: 1, s: 10.5, c: '#3f3f46', w: 600 });
   });
 }
@@ -709,7 +715,7 @@ btObs.observe(btCv);
 const short = (s, n) => s.slice(0, n) + '…' + s.slice(-4);
 const beatN = btRows.filter((r) => r.brierHard < BT.baselines.marketPrice).length;
 $('#seal').innerHTML = `
-  <div class="row"><span>Holdout questions</span><span>${BT.holdoutQuestions} (${D(BT.holdoutWindow[0])} to ${D(BT.holdoutWindow[1])})</span></div>
+  <div class="row"><span>Holdout questions</span><span>${BT.holdoutQuestions} · Jan 2024 – Jun 2025</span></div>
   <div class="row"><span>Training data cut-off</span><span>${D(BT.trainCutoff)}</span></div>
   <div class="row"><span>Beat the market price</span><span>${beatN} of 8 agents</span></div>
   <div class="row"><span>Seal · Solana ${SOL.cluster}</span><span>slot ${SOL.sealSlot.toLocaleString()}</span></div>
@@ -718,7 +724,7 @@ $('#seal').innerHTML = `
   <a class="lnk" href="${SOL.explorer.seal}" target="_blank" rel="noopener">Verify the seal transaction ↗</a>`;
 const R3 = MK.getMarket('r03');
 $('#analog').innerHTML = `<h4>Closest sealed analogue</h4><div style="font-size:12.5px;color:var(--fg2)">${esc(R3.title)} <span class="chip y">${R3.outcome}</span> <span class="muted">settled at ${esc(R3.resolvedValue)}</span></div>
-  <div class="alist">${R3.positions.slice().sort((a, b) => b.pnl - a.pnl).map((p) => { const a = MK.getAgent(p.agentId); return `<div><span>${a.emoji} ${esc(a.name)}</span><span class="mono ${p.pnl >= 0 ? 'up' : 'dn'}">${p.side} ${crS(p.pnl)}</span></div>`; }).join('')}</div>`;
+  <div class="alist">${R3.positions.slice().sort((a, b) => b.pnl - a.pnl).map((p) => { const a = MK.getAgent(p.agentId); return `<div><span>${a.emoji} ${esc(SHORT[a.id])}</span><span class="mono ${p.pnl >= 0 ? 'up' : 'dn'}">${p.side} ${crS(p.pnl)}</span></div>`; }).join('')}</div>`;
 
 /* ---------- resolution ---------- */
 $('#rules').textContent = M.description + ' Resolution source: ' + M.resolutionSource + '.';
@@ -792,8 +798,11 @@ function launch(side, amount) {
   const b = $('#go').getBoundingClientRect(), k = clamp(Math.round(8 + amount / 30), 10, 70), col = side === 'YES' ? '#16a34a' : '#dc2626';
   for (let i = 0; i < k; i++) FL.push({ side, x0: b.left + b.width * (0.2 + Math.random() * 0.6), y0: b.top + b.height * (0.3 + Math.random() * 0.4), t: -i * 0.035 - Math.random() * 0.05, sp: 0.018 + Math.random() * 0.01, bend: (Math.random() - .5) * 160, ox: (Math.random() - .5) * 40, col, last: i === k - 1, amount, x: 0, y: 0 });
 }
+let flyDirty = false;
 function drawFly() {
+  if (!FL.length && !flyDirty) return;
   fctx.clearRect(0, 0, innerWidth, innerHeight);
+  flyDirty = FL.length > 0;
   if (!FL.length) return;
   const pr = poolCv.getBoundingClientRect();
   for (let i = FL.length - 1; i >= 0; i--) {
@@ -803,7 +812,7 @@ function drawFly() {
     const cx = (d.x0 + x1) / 2 + d.bend, cy = Math.min(d.y0, y1) - 70;
     const px = d.x, py = d.y;
     d.x = (1 - e) ** 2 * d.x0 + 2 * (1 - e) * e * cx + e * e * x1; d.y = (1 - e) ** 2 * d.y0 + 2 * (1 - e) * e * cy + e * e * y1;
-    fctx.strokeStyle = d.col; fctx.globalAlpha = 0.35; fctx.lineWidth = 2; fctx.beginPath(); if (px) { fctx.moveTo(px, py); fctx.lineTo(d.x, d.y); fctx.stroke(); }
+    fctx.strokeStyle = d.col; fctx.globalAlpha = 0.35; fctx.lineWidth = 2; fctx.beginPath(); if (px && Math.hypot(d.x - px, d.y - py) < 28) { fctx.moveTo(px, py); fctx.lineTo(d.x, d.y); fctx.stroke(); }
     fctx.globalAlpha = 1; fctx.fillStyle = d.col; fctx.beginPath(); fctx.arc(d.x, d.y, 2.6, 0, TAU); fctx.fill();
     if (u >= 1) {
       FL.splice(i, 1); PL.flash[d.side] = 1; dropInto(d.side, 1, d.col);
@@ -893,13 +902,22 @@ let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(onR
 poolResize(); flyResize();
 renderPrice(false);
 setMode('price');
-let frameN = 0;
-function loop() {
+let frameN = 0, lastT = 0;
+const PERF = { chart: 0, bt: 0, pools: 0, fly: 0, frames: 0 };
+function loop(now) {
   frameN++;
+  // catch up with extra physics steps on slow machines so formations still settle on time
+  const steps = lastT ? clamp(Math.round((now - lastT) / 16.7), 1, 60) : 1; lastT = now;
   if (!document.hidden) {
-    if (visChart) { chart.step(); chart.draw(); }
-    if (visBt || !bt.formed) { bt.step(); if (visBt) bt.draw(); }
-    drawPools(frameN); drawFly();
+    let t0 = performance.now();
+    if (visChart) { for (let k = 0; k < steps; k++) chart.step(); chart.draw(); }
+    let t1 = performance.now(); PERF.chart += t1 - t0;
+    if (visBt || !bt.formed) { for (let k = 0; k < steps; k++) bt.step(); if (visBt) bt.draw(); }
+    let t2 = performance.now(); PERF.bt += t2 - t1;
+    drawPools(frameN);
+    let t3 = performance.now(); PERF.pools += t3 - t2;
+    for (let k = 0; k < steps; k++) { if (k < steps - 1) FL.forEach((d) => { d.t += d.sp; }); }
+    drawFly(); PERF.fly += performance.now() - t3; PERF.frames++;
   }
   requestAnimationFrame(loop);
 }

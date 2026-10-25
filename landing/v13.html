@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HARVEST · Landing v13</title>
+<title>The Crophecy · Landing v13</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,7 +60,7 @@ h1{font:700 50px/1.04 var(--sans);letter-spacing:-.035em;margin:16px 0 14px}
 h1 .l2{display:block;color:var(--faint)}
 .lede{color:var(--muted);font-size:17px;line-height:1.5;max-width:600px;margin:0 auto}
 .ctas{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
-#globe{position:absolute;left:0;right:0;top:318px;bottom:0;z-index:2;transition:opacity .2s linear}
+#globe{position:absolute;left:0;right:0;top:338px;bottom:0;z-index:2;transition:opacity .2s linear}
 #globe canvas{outline:none}
 .hcard{position:absolute;z-index:4;top:336px;width:344px;padding:14px 14px 0;overflow:hidden}
 .hcard.l{left:32px}.hcard.r{right:32px}
@@ -205,7 +205,7 @@ body.inhero .rail{opacity:0;pointer-events:none}
 <canvas id="c" aria-hidden="true"></canvas>
 
 <nav class="top">
-  <a class="logo" href="#hero"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#18181b"><circle cx="12" cy="3.5" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="20.5" cy="12" r="1.6"/><circle cx="18" cy="18" r="1.6"/><circle cx="12" cy="20.5" r="1.6"/><circle cx="6" cy="18" r="1.6"/><circle cx="3.5" cy="12" r="1.6"/><circle cx="6" cy="6" r="1.6"/></g><circle cx="12" cy="12" r="2.6" fill="#16a34a"/></svg><span class="bn">HARVEST</span></a>
+  <a class="logo" href="#hero"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#18181b"><circle cx="12" cy="3.5" r="1.6"/><circle cx="18" cy="6" r="1.6"/><circle cx="20.5" cy="12" r="1.6"/><circle cx="18" cy="18" r="1.6"/><circle cx="12" cy="20.5" r="1.6"/><circle cx="6" cy="18" r="1.6"/><circle cx="3.5" cy="12" r="1.6"/><circle cx="6" cy="6" r="1.6"/></g><circle cx="12" cy="12" r="2.6" fill="#16a34a"/></svg><span class="bn">The Crophecy</span></a>
   <div class="links"><a href="#world">World</a><a href="#agents">Agents</a><a href="#odds">Odds</a><a href="#backtest">Backtest</a><a href="#fund">Fund</a></div>
   <span class="sp"></span>
   <span class="badge credits"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#a1a1aa" stroke-width="1.3"/><text x="8" y="10.6" text-anchor="middle" font-size="6.6" font-weight="700" font-family="Geist Mono,monospace" fill="#52525b">cr</text></svg>Play credits · no real money</span>
@@ -294,7 +294,7 @@ body.inhero .rail{opacity:0;pointer-events:none}
     </div>
   </div>
 </section>
-<footer><span>© 2026 <span class="bn">HARVEST</span> · Solana devnet · play credits, no real money</span><span id="prog"></span></footer>
+<footer><span>© 2026 <span class="bn">The Crophecy</span> · Solana devnet · play credits, no real money</span><span id="prog"></span></footer>
 
 <nav class="rail" id="rail" aria-label="Sections"></nav>
 <div class="toast glass" id="toast"><span class="lv">LIVE</span><span id="toastT"></span></div>
@@ -305,7 +305,7 @@ body.inhero .rail{opacity:0;pointer-events:none}
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.39.0/dist/globe.gl.min.js"></script>
 <script>
-const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const BRAND = { name: 'The Crophecy', tagline: 'Every harvest has its prophets. We score them.' };
 const M = window.MOCK;
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -372,7 +372,9 @@ function gridLand(b, kx, s) {
   for (let k = Math.max(0, Math.floor((90 - b.lat1) / s - 0.5)); ; k++) {
     const lat = 90 - (k + 0.5) * s; if (lat < b.lat0) break; if (lat > b.lat1) continue;
     const off = (k % 2 ? 0.5 : 0) + 0.25;
-    for (let j = Math.ceil((b.lng0 + 180) / sx - off); ; j++) { const lng = -180 + (j + off) * sx; if (lng > b.lng1) break; if (lng >= b.lng0 && onLand(lng, lat)) pts.push([lat, lng]); }
+    // g: kept on the 3D globe (thinned by cos(lat) so polar rows do not crowd into rings)
+    const cl = Math.cos(lat * D2R);
+    for (let j = Math.ceil((b.lng0 + 180) / sx - off); ; j++) { const lng = -180 + (j + off) * sx; if (lng > b.lng1) break; if (lng >= b.lng0 && onLand(lng, lat)) pts.push([lat, lng, Math.floor((j + 1) * cl) > Math.floor(j * cl)]); }
   }
   return pts;
 }
@@ -413,7 +415,7 @@ P.forEach(p => {
 });
 function assignLand() {
   P.forEach(p => {
-    const q = WL[p.i % WL.length]; p.lat = q[0]; p.lng = q[1];
+    const q = WL[p.i % WL.length]; p.lat = q[0]; p.lng = q[1]; p.gk = q[2] !== false;
     const la = q[0] * D2R, lo = q[1] * D2R; p.ux = Math.cos(la) * Math.sin(lo); p.uy = Math.sin(la); p.uz = Math.cos(la) * Math.cos(lo);
     p.eu = q[1] > -12 && q[1] < 45 && q[0] > 35 && q[0] < 71;
     p.hot = PROD.some(r => r.risk >= 0.66 && Math.abs(r.lat - q[0]) < 2.4 && Math.abs(r.lng - q[1]) < 3.2);
@@ -524,7 +526,7 @@ async function loadLand() {
     assignLand(); layout();
     if (world) {
       const GL = gridLand({ lng0: -180, lng1: 180, lat0: -56, lat1: 80 }, 1, LAND_S);
-      world.particlesData([GL]).particleLat(d => d[0]).particleLng(d => d[1]).particleAltitude(0.006)
+      world.particlesData([GL.filter(q => q[2])]).particleLat(d => d[0]).particleLng(d => d[1]).particleAltitude(0.006)
         .particlesColor(() => '#a1a1aa').particlesSizeAttenuation(false).particlesSize(3.4 * (devicePixelRatio || 1));
     }
   } catch (e) { console.warn('land data unavailable, using fallback dots', e); }
@@ -611,7 +613,7 @@ function step(p, tm) {
   if (p.md === 'hero') {
     const g = heroPos(p), k = RM ? 1 : 0.18;
     p.x += (g[0] - p.x) * k; p.y += (g[1] - p.y) * k; p.vx = p.vy = 0;
-    const ta = g[2] ? (G.ok ? heroFade : 1) : 0; p.al += (ta - p.al) * (RM ? 1 : 0.15);
+    const ta = g[2] && p.gk ? (G.ok ? heroFade : 1) : 0; p.al += (ta - p.al) * (RM ? 1 : 0.15);
     return;
   }
   p.al += (1 - p.al) * (RM ? 1 : 0.06);
@@ -637,7 +639,11 @@ function kickNear(x, y, rad, f) { if (RM) return; for (const p of P) { if (p.md 
 
 /* ---------- render loop ---------- */
 const FONT = '"Geist Mono", ui-monospace, monospace';
-function txt(s, x, y, o = {}) { ctx.font = o.font || `500 11px ${FONT}`; ctx.fillStyle = o.color || '#52525b'; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle'; ctx.fillText(s, x, y); }
+function txt(s, x, y, o = {}) {
+  ctx.font = o.font || `500 11px ${FONT}`; ctx.fillStyle = o.color || '#52525b'; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle';
+  if (ctx.textAlign === 'center') { const w = ctx.measureText(s).width / 2 + 4; x = clamp(x, w, W - w); }
+  ctx.fillText(s, x, y);
+}
 function chip(s, x, y, o = {}) { ctx.font = o.font || `600 11px ${FONT}`; const w = ctx.measureText(s).width + 14, h = 20; let bx = o.align === 'left' ? x : o.align === 'right' ? x - w : x - w / 2; ctx.fillStyle = o.bg || 'rgba(255,255,255,.88)'; ctx.strokeStyle = o.border || '#e4e4e7'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, y - h / 2, w, h, 6) : ctx.rect(bx, y - h / 2, w, h); ctx.fill(); ctx.stroke(); txt(s, bx + w / 2, y + 0.5, { font: o.font || `600 11px ${FONT}`, color: o.color || '#18181b' }); }
 let heroCount = N;
 const CLF = CL.map(h => { const v = parseInt(h.slice(1), 16); return [(v >> 16 & 255) / 255, (v >> 8 & 255) / 255, (v & 255) / 255]; });

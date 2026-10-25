@@ -1,4 +1,4 @@
-/* HARVEST mock data (placeholder brand). Exposes window.MOCK.
+/* The Crophecy mock data (placeholder brand). Exposes window.MOCK.
  * Deterministic (seeded) except makeBetStream(), which uses Math.random.
  * See README.md for the data shape. All numbers are fictional but plausible. */
 (function (global) {
@@ -26,8 +26,8 @@
 
   /* ---------- brand (swap freely; pages should keep their own BRAND const) ---------- */
   const brand = {
-    name: 'HARVEST',
-    tagline: 'Bet on the harvest. Price the climate.',
+    name: 'The Crophecy',
+    tagline: 'Every harvest has its prophets. We score them.',
     colors: { bg: '#0b0f0c', surface: '#141b16', ink: '#eef3ea', muted: '#8a9a8c', accent: '#c6f24e', accent2: '#ffb020', yes: '#2fd18b', no: '#ff5c6c' },
   };
 

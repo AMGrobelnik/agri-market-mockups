@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HARVEST · Landing v14</title>
+<title>The Crophecy · Landing v14</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,7 +179,9 @@ footer{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 32px
 @media (max-width:1080px){.links a:nth-child(n+4){display:none}}
 @media (max-width:959px){
   nav.top{top:8px;width:calc(100% - 16px);gap:10px;height:50px}
-  .links,nav .badge{display:none}
+  .links,nav .badge,#fchip{display:none}
+  .trow{grid-template-columns:30px 1fr auto 62px;gap:8px;padding:9px 12px}
+  .trow .amt{font-size:12px}
   .wrap{padding:0 16px}
   .sec{display:block;min-height:0;padding:0 0 56px}
   .col{width:100%}
@@ -211,7 +213,7 @@ footer{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 32px
 <div id="fchip" class="glass"><span class="dot"></span><span id="fchipT"></span></div>
 
 <nav class="top glass">
-  <a class="logo" href="#hero"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#18181b"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2" opacity=".35"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2" opacity=".35"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2" opacity=".35"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2" opacity=".35"/></g><circle cx="19" cy="19" r="2.2" fill="#16a34a"/></svg><span class="bn">HARVEST</span></a>
+  <a class="logo" href="#hero"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="#18181b"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2" opacity=".35"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2" opacity=".35"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2" opacity=".35"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2" opacity=".35"/></g><circle cx="19" cy="19" r="2.2" fill="#16a34a"/></svg><span class="bn">The Crophecy</span></a>
   <div class="links"><a href="#map">Live map</a><a href="#agents">Agents</a><a href="#odds">Markets</a><a href="#board">Leaderboard</a><a href="#fund">Fund</a></div>
   <span class="sp"></span>
   <span class="badge play"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5.5 8h5M8 5.5v5"/></svg>Play credits · no real money</span>
@@ -300,7 +302,7 @@ footer{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 32px
   </div></div>
 </section>
 </main>
-<footer><span>© 2026 <span class="bn">HARVEST</span> · mockup · play credits only, no real money</span><span id="prog"></span></footer>
+<footer><span>© 2026 <span class="bn">The Crophecy</span> · mockup · play credits only, no real money</span><span id="prog"></span></footer>
 
 <div class="rail" id="rail"></div>
 <div class="vlabel">landing v14 · dots all the way</div>
@@ -309,7 +311,7 @@ footer{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 32px
 <script>
 (function () {
 'use strict';
-const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const BRAND = { name: 'The Crophecy', tagline: 'Every harvest has its prophets. We score them.' };
 const M = window.MOCK, F = M.fmt, AG = M.agents, BT = M.backtest;
 const $ = (s, r) => (r || document).querySelector(s), $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -633,7 +635,7 @@ const ARCS = [];
 function vec(lat, lng) { const la = lat * D2R, lo = lng * D2R; return [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)]; }
 function addArc(from, to, side, big) {
   const a = vec(...from), b = vec(...to), om = Math.acos(clamp(a[0] * b[0] + a[1] * b[1] + a[2] * b[2], -1, 1)), so = Math.sin(om) || 1e-6, S = [];
-  for (let k = 0; k <= 32; k++) { const s = k / 32, f0 = Math.sin((1 - s) * om) / so, f1 = Math.sin(s * om) / so, v = [a[0] * f0 + b[0] * f1, a[1] * f0 + b[1] * f1, a[2] * f0 + b[2] * f1]; S.push([Math.asin(clamp(v[2], -1, 1)) / D2R, Math.atan2(v[1], v[0]) / D2R, 1 + Math.sin(Math.PI * s) * Math.min(.32, om * .22) + .005, s]); }
+  for (let k = 0; k <= 32; k++) { const s = k / 32, f0 = Math.sin((1 - s) * om) / so, f1 = Math.sin(s * om) / so, v = [a[0] * f0 + b[0] * f1, a[1] * f0 + b[1] * f1, a[2] * f0 + b[2] * f1]; S.push([Math.asin(clamp(v[2], -1, 1)) / D2R, Math.atan2(v[1], v[0]) / D2R, 1 + Math.sin(Math.PI * s) * Math.min(.2, om * .2) + .005, s]); }
   ARCS.push({ S, side, t0: performance.now(), to, hit: false, big }); if (ARCS.length > 16) ARCS.shift();
 }
 
@@ -665,7 +667,7 @@ function drawOver(now) {
       let pen = false, hx = 0, hy = 0, hv = false, lx = null;
       for (const [la, ln, alt, s] of a.S) {
         if (s < tail || s > head) continue; const p = geoPt(la, ln, alt); if (!p) continue;
-        const vis = p[2] > -.05 && (lx === null || Math.abs(p[0] - lx) < W * .4);
+        const vis = (p[2] > -.02 || geoKind(A) === 'm' && geoKind(B) === 'm') && (lx === null || Math.abs(p[0] - lx) < W * .4);
         if (!vis) { pen = false; lx = null; continue; }
         if (pen) ctx.lineTo(p[0], p[1]); else { ctx.moveTo(p[0], p[1]); pen = true; }
         lx = p[0]; hx = p[0]; hy = p[1]; hv = true;
@@ -703,7 +705,7 @@ function drawOver(now) {
   if (wl > 0) {
     const S = LBD.seal;
     lbl('SEALED', S.cx, S.cy + S.Rs + 14, { alpha: wl, font: '600 11px "Geist Mono", monospace', color: '#18181b' });
-    lbl('Solana devnet · slot ' + BT.solana.sealSlot.toLocaleString(), S.cx, S.cy + S.Rs + 29, { alpha: wl, font: '500 10.5px "Geist Mono", monospace', color: '#71717a' });
+    if (!MOB) lbl('Solana devnet · slot ' + BT.solana.sealSlot.toLocaleString(), S.cx, S.cy + S.Rs + 29, { alpha: wl, font: '500 10.5px "Geist Mono", monospace', color: '#71717a' });
     const xm = LBD.x0 + LBD.len(BT.baselines.marketPrice);
     lbl('market price ' + BT.baselines.marketPrice.toFixed(3), xm, LBD.ry0 + LBD.pitch * 8 + 6, { alpha: wl, font: '500 10.5px "Geist Mono", monospace', color: '#71717a' });
     LBD.rows.forEach((r, j) => {
