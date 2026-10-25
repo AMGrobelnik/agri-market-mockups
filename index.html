@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Agri Market — UI mockups (live)</title>
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --line:#2a313c; --ink:#e6edf3; --muted:#8b949e;
+  --accent:#58a6ff; --ok:#3fb950;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(13,17,23,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+h1{font-size:18px;margin:0;font-weight:650}
+.stamp{color:var(--muted);font-size:13px;margin-left:auto}
+.stamp b{color:var(--ink);font-weight:600}
+nav a{color:var(--muted);text-decoration:none;margin-right:14px;font-size:13px}
+nav a:hover{color:var(--accent)}
+main{max-width:1400px;margin:0 auto;padding:8px 20px 60px}
+section{margin-top:30px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+h2 .count{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+h2 .count.full{color:var(--ok);border-color:var(--ok)}
+.bar{height:3px;background:var(--line);border-radius:2px;margin:0 0 14px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;transition:transform .12s,border-color .12s}
+.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.thumb{position:relative;aspect-ratio:16/10;overflow:hidden;background:#0a0d12;border-bottom:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.thumb iframe{position:absolute;top:0;left:0;width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none;background:#fff}
+.meta{padding:9px 12px;display:flex;justify-content:space-between;font-size:13px}
+.meta span:last-child{color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;padding:14px;border:1px dashed var(--line);border-radius:10px}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Agri Market — UI mockups (live)</h1>
+  <nav id="nav"></nav>
+  <div class="stamp">last synced <b id="stamp">--:--</b> · refreshes every 60 s</div>
+</header>
+<main id="main"></main>
+<footer>Arrow-key viewer: open any card, then ← → variants, ↑ ↓ pages, Esc back.</footer>
+<script>
+const PAGES = [["landing","Landing"],["live","Live"],["markets","Markets"],["detail","Detail"]];
+const TOTAL = 12;
+const main = document.getElementById("main"), nav = document.getElementById("nav");
+let last = "";
+
+function hhmm(iso){
+  const d = iso ? new Date(iso) : null;
+  return d && !isNaN(d) ? d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",hour12:false}) : "--:--";
+}
+
+function card(page, v){
+  const a = document.createElement("a");
+  a.className = "card";
+  a.href = "view.html?p=" + page + "&v=" + v.n;
+  const t = document.createElement("div"); t.className = "thumb";
+  if (v.shot) {
+    const im = document.createElement("img");
+    im.loading = "lazy"; im.alt = page + " v" + v.id; im.src = v.shot;
+    t.appendChild(im);
+  } else {
+    const f = document.createElement("iframe");
+    f.loading = "lazy"; f.tabIndex = -1; f.setAttribute("aria-hidden","true");
+    f.setAttribute("scrolling","no"); f.src = v.file;
+    t.appendChild(f);
+    const fit = () => { f.style.transform = "scale(" + (t.clientWidth/1280) + ")"; };
+    new ResizeObserver(fit).observe(t); fit();
+  }
+  const m = document.createElement("div"); m.className = "meta";
+  m.innerHTML = "<span>" + page + " v" + v.id + "</span><span>open →</span>";
+  a.append(t, m);
+  return a;
+}
+
+function render(man){
+  const sig = JSON.stringify(man.pages);
+  document.getElementById("stamp").textContent = hhmm(man.generated);
+  if (sig === last) return;
+  last = sig;
+  main.textContent = ""; nav.textContent = "";
+  for (const [key, label] of PAGES) {
+    const list = (man.pages && man.pages[key]) || [];
+    const link = document.createElement("a"); link.href = "#" + key; link.textContent = label + " " + list.length + "/" + TOTAL; nav.appendChild(link);
+    const s = document.createElement("section"); s.id = key;
+    const h = document.createElement("h2");
+    h.innerHTML = label + ' <span class="count' + (list.length >= TOTAL ? " full" : "") + '">' + list.length + " of " + TOTAL + "</span>";
+    const bar = document.createElement("div"); bar.className = "bar";
+    bar.innerHTML = '<i style="width:' + Math.min(100, list.length/TOTAL*100) + '%"></i>';
+    s.append(h, bar);
+    if (!list.length) {
+      const e = document.createElement("div"); e.className = "empty"; e.textContent = "No variants yet — they appear here automatically."; s.appendChild(e);
+    } else {
+      const g = document.createElement("div"); g.className = "grid";
+      list.forEach(v => g.appendChild(card(key, v)));
+      s.appendChild(g);
+    }
+    main.appendChild(s);
+  }
+}
+
+async function load(){
+  try {
+    const r = await fetch("manifest.json?t=" + Date.now(), {cache:"no-store"});
+    if (!r.ok) throw new Error(r.status);
+    render(await r.json());
+  } catch (e) { console.warn("manifest load failed", e); }
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>

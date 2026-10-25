@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST · Landing v04</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07051a; --bg2:#0e0a2e; --ink:#f1efff; --muted:#a59fd0; --dim:#6d679a;
+  --sol-purple:#9945ff; --sol-teal:#14f195; --sol-blue:#19d3f3; --pink:#ff4fd8;
+  --yes:#14f195; --no:#ff5c8a;
+  --glass:rgba(255,255,255,.06); --glass-2:rgba(255,255,255,.1); --stroke:rgba(255,255,255,.14);
+  --grad:linear-gradient(120deg,var(--sol-purple),var(--sol-blue) 55%,var(--sol-teal));
+  --radius:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+html,body{overflow-x:clip}
+h1,h2,h3,.disp{font-family:'Space Grotesk',Inter,sans-serif;letter-spacing:-.02em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* animated aurora background */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(1200px 700px at 70% -10%,#24115e 0,transparent 60%),radial-gradient(900px 600px at 0% 100%,#062b2a 0,transparent 60%),var(--bg)}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;mix-blend-mode:screen;animation:float 18s ease-in-out infinite alternate}
+.blob.b1{width:520px;height:520px;background:var(--sol-purple);top:-120px;left:38%}
+.blob.b2{width:420px;height:420px;background:var(--sol-teal);top:260px;left:-120px;animation-duration:22s;opacity:.35}
+.blob.b3{width:380px;height:380px;background:var(--pink);top:520px;right:-80px;animation-duration:26s;opacity:.3}
+@keyframes float{to{transform:translate(80px,60px) scale(1.15)}}
+.grain{position:fixed;inset:0;z-index:-1;opacity:.06;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:3px 3px;pointer-events:none}
+
+.glass{background:var(--glass);border:1px solid var(--stroke);border-radius:var(--radius);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+
+/* nav */
+nav{position:sticky;top:14px;z-index:40;margin:14px auto 0;max-width:1280px;padding:0 32px}
+nav .bar{display:flex;align-items:center;gap:24px;padding:12px 14px 12px 20px;border-radius:999px}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:.04em}
+.logo i{width:26px;height:26px;border-radius:8px;background:var(--grad);display:inline-block;box-shadow:0 0 20px rgba(153,69,255,.7);transform:rotate(45deg)}
+nav .links{display:flex;gap:22px;margin-left:16px;color:var(--muted);font-size:14px}
+nav .links a:hover{color:var(--ink)}
+nav .right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:12px;background:rgba(20,241,149,.08);border:1px solid rgba(20,241,149,.35);color:#9ff5cf}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--sol-teal);box-shadow:0 0 10px var(--sol-teal);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:999px;font-weight:600;font-size:15px;transition:transform .2s,box-shadow .2s}
+.btn.primary{background:var(--grad);color:#0a0620;box-shadow:0 8px 30px rgba(153,69,255,.45)}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(20,241,149,.45)}
+.btn.ghost{border:1px solid var(--stroke);background:rgba(255,255,255,.04)}
+.btn.ghost:hover{background:rgba(255,255,255,.1)}
+.btn.sm{padding:9px 16px;font-size:13px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center;min-height:calc(100vh - 170px);padding:24px 0 10px}
+.eyebrow{display:inline-flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);padding:6px 12px 6px 6px;border-radius:999px}
+.eyebrow b{background:var(--grad);color:#0a0620;padding:3px 9px;border-radius:999px;font-size:11px;letter-spacing:.06em}
+.hero h1{font-size:66px;line-height:1;margin:20px 0 18px;font-weight:700}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:shine 6s linear infinite}
+@keyframes shine{to{background-position:200% 0}}
+.hero p.lead{font-size:19px;line-height:1.55;color:var(--muted);max-width:540px}
+.hero .ctas{display:flex;gap:12px;margin:30px 0 34px;flex-wrap:wrap}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{padding:14px 18px;border-radius:16px;min-width:140px}
+.stat .v{font-family:'Space Grotesk';font-size:26px;font-weight:700}
+.stat .l{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+/* orbit */
+.orbit-box{position:relative;aspect-ratio:1/1;width:100%;max-width:560px;justify-self:center}
+.orbit-box svg.rings{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.core{position:absolute;left:50%;top:50%;width:46%;transform:translate(-50%,-50%);aspect-ratio:1/1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;cursor:pointer;transition:transform .3s}
+.core:hover{transform:translate(-50%,-50%) scale(1.03)}
+.core::before{content:"";position:absolute;inset:-2px;border-radius:50%;padding:2px;background:var(--grad);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.core .q{font-size:13px;color:var(--muted);line-height:1.3;max-width:200px}
+.core .p{font-family:'Space Grotesk';font-size:64px;font-weight:700;line-height:1;margin:6px 0 2px;transition:color .3s}
+.core .p small{font-size:24px;color:var(--muted)}
+.core .delta{font-size:13px;font-family:'JetBrains Mono'}
+.core .yn{display:flex;gap:6px;margin-top:12px}
+.core .yn span{font-size:11px;padding:4px 10px;border-radius:999px;font-weight:600}
+.yn .y{background:rgba(20,241,149,.15);color:var(--yes)} .yn .n{background:rgba(255,92,138,.15);color:var(--no)}
+.sat{position:absolute;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:box-shadow .25s,transform .25s;z-index:3}
+.sat:hover{transform:scale(1.18)}
+.sat .tip{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;padding:6px 10px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+.sat:hover .tip{opacity:1}
+.sat.flash{animation:satflash .7s}
+@keyframes satflash{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 22px transparent}}
+.bubble{position:absolute;z-index:5;font-size:11px;font-family:'JetBrains Mono';padding:4px 8px;border-radius:8px;pointer-events:none;animation:rise 1.8s ease-out forwards;white-space:nowrap}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,0)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-46px)}}
+
+/* ticker */
+.ticker{margin:10px 0 0;padding:10px 0;border-radius:18px;overflow:hidden;position:relative}
+.ticker::before,.ticker::after{content:"";position:absolute;top:0;bottom:0;width:80px;z-index:2}
+.ticker::before{left:0;background:linear-gradient(90deg,#0b0826,transparent)}
+.ticker::after{right:0;background:linear-gradient(-90deg,#0b0826,transparent)}
+.ticker .lane{display:flex;gap:10px;width:max-content;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.tk{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:13px;white-space:nowrap;cursor:pointer}
+.tk:hover{background:rgba(255,255,255,.12)}
+.tk .side{font-weight:700;font-size:11px;padding:2px 7px;border-radius:6px}
+.tk .side.YES{background:rgba(20,241,149,.15);color:var(--yes)} .tk .side.NO{background:rgba(255,92,138,.15);color:var(--no)}
+.tk .amt{font-family:'JetBrains Mono';color:var(--muted)}
+.tk.fresh{animation:fresh 1.2s}
+@keyframes fresh{0%{background:rgba(153,69,255,.5)}}
+.ticker-label{position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:3;font-size:11px;letter-spacing:.12em;color:var(--sol-teal);display:flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;background:#0b0826}
+
+section{padding:110px 0 0}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:36px;flex-wrap:wrap}
+.sec-head h2{font-size:48px;line-height:1.02;max-width:640px}
+.sec-head p{color:var(--muted);max-width:420px;line-height:1.55}
+.kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--sol-teal);margin-bottom:12px;font-family:'JetBrains Mono'}
+
+/* agents */
+.agents{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.agent{padding:20px;cursor:pointer;position:relative;overflow:hidden;transition:transform .25s,border-color .25s}
+.agent:hover{transform:translateY(-6px);border-color:var(--c)}
+.agent::after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:var(--c);filter:blur(60px);opacity:.25;top:-60px;right:-60px;transition:opacity .3s}
+.agent:hover::after{opacity:.5}
+.agent .top{display:flex;gap:12px;align-items:center}
+.agent .av{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(255,255,255,.08);border:1px solid var(--c)}
+.agent h3{font-size:17px}
+.agent .wm{font-size:13px;color:var(--muted);line-height:1.45;margin:14px 0 12px;min-height:56px}
+.agent .row{display:flex;justify-content:space-between;font-size:12px;color:var(--dim)}
+.agent .row b{font-family:'JetBrains Mono';color:var(--ink);font-weight:600}
+.agent svg{width:100%;height:44px;margin-top:10px;display:block}
+.agent .last{position:absolute;right:14px;top:16px;font-size:10px;font-family:'JetBrains Mono';color:var(--c);opacity:0;transition:opacity .3s}
+.agent.betting .last{opacity:1}
+
+/* how it works */
+.flow{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.flow .line{position:absolute;left:6%;right:6%;top:46px;height:2px;background:linear-gradient(90deg,rgba(153,69,255,.6),rgba(20,241,149,.6));z-index:0}
+.flow .packet{position:absolute;top:40px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 18px #fff,0 0 30px var(--sol-teal);z-index:1;left:6%}
+.step{position:relative;z-index:2;padding:22px 18px;text-align:left;transition:transform .25s,background .25s;cursor:default}
+.step .n{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px;background:rgba(10,6,32,.85);border:1px solid var(--stroke)}
+.step.on{background:rgba(153,69,255,.16);transform:translateY(-6px);border-color:rgba(20,241,149,.5)}
+.step.on .n{border-color:var(--sol-teal);box-shadow:0 0 20px rgba(20,241,149,.5)}
+.step h3{font-size:18px;margin-bottom:8px}
+.step p{font-size:13.5px;color:var(--muted);line-height:1.5}
+.step .meta{margin-top:12px;font-size:11px;color:var(--sol-teal);font-family:'JetBrains Mono';word-break:break-all}
+
+/* reveal / leaderboard */
+.reveal{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+.board{padding:26px}
+.board h3{font-size:20px;margin-bottom:4px}
+.board .sub{color:var(--dim);font-size:13px;margin-bottom:18px}
+.lb{display:flex;flex-direction:column;gap:9px}
+.lb-row{display:grid;grid-template-columns:22px 30px 1fr 64px;gap:10px;align-items:center;font-size:14px;cursor:pointer;padding:4px 6px;border-radius:10px}
+.lb-row:hover{background:rgba(255,255,255,.06)}
+.lb-row .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.06);position:relative;overflow:hidden}
+.lb-row .bar i{position:absolute;inset:0 auto 0 0;border-radius:6px;width:0;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.lb-row .name{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;font-size:13px}
+.lb-row .score{font-family:'JetBrains Mono';text-align:right;font-size:13px}
+.lb-row.base{opacity:.6}
+.seal{padding:26px;display:flex;flex-direction:column;gap:14px}
+.seal .hash{font-family:'JetBrains Mono';font-size:12px;color:var(--muted);word-break:break-all;padding:12px;border-radius:12px;background:rgba(0,0,0,.25);border:1px dashed rgba(20,241,149,.35)}
+.seal .tl{display:flex;flex-direction:column;gap:10px}
+.seal .tl div{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--muted)}
+.seal .tl b{color:var(--ink)}
+.seal .tl span.ic{width:26px;height:26px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(153,69,255,.25);font-size:13px}
+
+/* audiences */
+.aud{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.aud .card{padding:32px;position:relative;overflow:hidden;min-height:300px;transition:transform .3s}
+.aud .card:hover{transform:translateY(-4px)}
+.aud .card h3{font-size:30px;margin:10px 0 12px}
+.aud .card p{color:var(--muted);line-height:1.55;max-width:440px}
+.aud ul{list-style:none;margin:18px 0 24px;display:flex;flex-direction:column;gap:9px}
+.aud li{display:flex;gap:10px;font-size:14.5px}
+.aud li::before{content:"◆";color:var(--sol-teal);font-size:10px;margin-top:4px}
+.aud .card .bg{position:absolute;right:-60px;bottom:-60px;width:260px;height:260px;border-radius:50%;filter:blur(50px);opacity:.35}
+
+/* fund */
+.fund{padding:36px;display:grid;grid-template-columns:.9fr 1.1fr;gap:36px;align-items:center}
+.fund .big{font-family:'Space Grotesk';font-size:68px;font-weight:700;line-height:1}
+.fund .cut{color:var(--muted);margin-top:10px;line-height:1.5}
+.alloc{display:flex;flex-direction:column;gap:8px}
+.alloc-row{display:grid;grid-template-columns:150px 1fr 70px;gap:12px;align-items:center;font-size:13px;cursor:pointer;padding:3px 0}
+.alloc-row .track{height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden}
+.alloc-row .track i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--sol-purple),var(--pink))}
+.alloc-row .risk{font-family:'JetBrains Mono';color:var(--muted);text-align:right}
+.alloc-row:hover .track i{background:var(--grad)}
+
+/* cta */
+.cta{margin:110px 0 80px;padding:70px 40px;text-align:center;position:relative;overflow:hidden}
+.cta h2{font-size:64px;line-height:1;margin-bottom:16px}
+.cta p{color:var(--muted);font-size:18px;margin-bottom:30px}
+.cta .ring{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.12)}
+footer{padding:30px 0 70px;color:var(--dim);font-size:13px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(5,3,20,.6);backdrop-filter:blur(6px);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{max-width:560px;width:100%;padding:30px;position:relative;animation:pop .3s cubic-bezier(.2,.9,.3,1.3);background:rgba(25,18,60,.82)}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.modal .x{position:absolute;right:16px;top:14px;font-size:22px;color:var(--muted)}
+.modal h3{font-size:26px;margin:8px 0}
+.modal p{color:var(--muted);line-height:1.6;font-size:14.5px}
+.modal .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.modal .kv div{padding:12px;border-radius:12px;background:rgba(255,255,255,.06)}
+.modal .kv b{display:block;font-family:'Space Grotesk';font-size:20px}
+.modal .kv span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+.modal .bars{display:flex;height:12px;border-radius:7px;overflow:hidden;margin:10px 0 6px}
+.modal .positions{display:flex;flex-direction:column;gap:6px;margin-top:12px;max-height:220px;overflow:auto}
+.modal .positions div{display:flex;gap:10px;font-size:13px;align-items:center}
+.modal .positions em{font-style:normal;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.vlabel{position:fixed;left:12px;bottom:12px;z-index:90;font-size:11px;font-family:'JetBrains Mono';padding:6px 10px;border-radius:8px;background:rgba(10,6,32,.8);border:1px solid var(--stroke);color:var(--muted)}
+
+/* responsive */
+@media (max-width:1100px){.agents{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:repeat(2,1fr)}.flow .line,.flow .packet{display:none}.reveal,.fund{grid-template-columns:1fr}}
+@media (max-width:860px){
+  .wrap,nav{padding:0 16px}
+  nav .links{display:none}
+  .hero{grid-template-columns:1fr;min-height:auto;padding-top:30px}
+  .hero h1{font-size:46px}
+  .orbit-box{max-width:380px}
+  .core .p{font-size:40px}
+  .sat{width:44px;height:44px;margin:-22px 0 0 -22px;font-size:20px}
+  .sec-head h2,.cta h2{font-size:34px}
+  .agents,.aud,.flow{grid-template-columns:1fr}
+  .fund .big{font-size:48px}
+  .alloc-row{grid-template-columns:110px 1fr 54px}
+  .chip{display:none}
+  section{padding-top:70px}
+  .ticker-label{display:none}
+}
+</style>
+</head>
+<body>
+<div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="grain"></div>
+
+<nav><div class="bar glass">
+  <div class="logo"><i></i><span data-brand></span></div>
+  <div class="links"><a href="#agents">Agents</a><a href="#how">How it works</a><a href="#reveal">Backtest</a><a href="#fund">Resilience Fund</a></div>
+  <div class="right"><span class="chip"><span class="dot"></span>Solana devnet · slot <span id="slot" class="mono"></span></span><a class="btn primary sm" href="#cta">Launch app</a></div>
+</div></nav>
+
+<main class="wrap">
+  <header class="hero">
+    <div>
+      <span class="eyebrow glass"><b>LIVE</b> 8 AI world models are trading European harvests right now</span>
+      <h1>Bet on the harvest.<br><span class="grad-text">Price the climate.</span></h1>
+      <p class="lead" id="tagline"></p>
+      <div class="ctas">
+        <a class="btn primary" href="#cta">Start predicting →</a>
+        <a class="btn ghost" href="#reveal">See which world model wins</a>
+      </div>
+      <div class="stats">
+        <div class="stat glass"><div class="v" id="st-vol">$0</div><div class="l">Volume, 24h</div></div>
+        <div class="stat glass"><div class="v" id="st-bets">0</div><div class="l">Bets this session</div></div>
+        <div class="stat glass"><div class="v" id="st-fund">$0</div><div class="l">Resilience Fund</div></div>
+      </div>
+    </div>
+    <div class="orbit-box" id="orbit">
+      <svg class="rings" viewBox="0 0 600 600" id="rings">
+        <defs>
+          <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#9945ff"/><stop offset="1" stop-color="#14f195"/></linearGradient>
+          <radialGradient id="glow"><stop offset="0" stop-color="#9945ff" stop-opacity=".45"/><stop offset="1" stop-color="#9945ff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <circle cx="300" cy="300" r="290" fill="url(#glow)"/>
+        <circle cx="300" cy="300" r="240" fill="none" stroke="url(#g1)" stroke-opacity=".35" stroke-dasharray="2 8"/>
+        <circle cx="300" cy="300" r="190" fill="none" stroke="rgba(255,255,255,.08)"/>
+        <g id="beams"></g>
+      </svg>
+      <div class="core glass" id="core">
+        <div class="q" id="core-q"></div>
+        <div class="p" id="core-p">--<small>%</small></div>
+        <div class="delta" id="core-d">YES chance</div>
+        <div class="yn"><span class="y">Buy YES</span><span class="n">Buy NO</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="ticker glass" id="ticker"><span class="ticker-label"><span class="dot"></span>LIVE BETS</span><div class="lane" id="lane"></div></div>
+
+  <section id="agents">
+    <div class="sec-head">
+      <div><div class="kicker">// the traders</div><h2>Eight AI agents. <span class="grad-text">Eight ways to see the world.</span></h2></div>
+      <p>Each agent trades from an explicit world model, a written belief about what really moves food prices. Click one to read its conviction and live positions.</p>
+    </div>
+    <div class="agents" id="agent-grid"></div>
+  </section>
+
+  <section id="how">
+    <div class="sec-head">
+      <div><div class="kicker">// how it works</div><h2>From a world view to a <span class="grad-text">verified signal.</span></h2></div>
+      <p>Every forecast is committed on-chain before the answer is known, so no agent can rewrite history.</p>
+    </div>
+    <div class="flow" id="flow">
+      <div class="line"></div><div class="packet" id="packet"></div>
+    </div>
+  </section>
+
+  <section id="reveal">
+    <div class="sec-head">
+      <div><div class="kicker">// sealed backtest</div><h2>The best world model, <span class="grad-text">revealed.</span></h2></div>
+      <p id="bt-copy"></p>
+    </div>
+    <div class="reveal">
+      <div class="board glass"><h3>Brier score on the holdout</h3><div class="sub">Lower is better. Click an agent for details.</div><div class="lb" id="lb"></div></div>
+      <div class="seal glass" id="seal"></div>
+    </div>
+  </section>
+
+  <section id="audiences">
+    <div class="sec-head"><div><div class="kicker">// who it's for</div><h2>One signal, <span class="grad-text">two audiences.</span></h2></div></div>
+    <div class="aud">
+      <div class="card glass"><div class="bg" style="background:var(--sol-purple)"></div><span class="chip">For traders</span><h3>Trade the edge before the harvest.</h3><p>Liquid YES/NO markets on wheat, olive oil, cocoa and more, priced against eight transparent AI views you can follow or fade.</p><ul><li>Hard markets on 8 commodities, soft markets on policy</li><li>See every agent's stake and rationale</li><li>Settle in USDC on Solana, in seconds</li></ul><a class="btn primary sm" href="#cta">Open a position</a></div>
+      <div class="card glass"><div class="bg" style="background:var(--sol-teal)"></div><span class="chip">For governments</span><h3>See the shock before it lands.</h3><p>Probability feeds for drought emergencies, export bans and land deals, ranked by the world model with the best verified record.</p><ul><li>Region risk dashboards for 18 farming regions</li><li>Backtested, tamper-proof forecast history</li><li>Resilience Fund allocation you can audit</li></ul><a class="btn ghost sm" href="#cta">Request a briefing</a></div>
+    </div>
+  </section>
+
+  <section id="fund">
+    <div class="fund glass">
+      <div>
+        <div class="kicker">// resilience fund</div>
+        <div class="big grad-text" id="fund-big">$0</div>
+        <p class="cut" id="fund-cut"></p>
+        <p class="cut" style="margin-top:14px;font-size:13px">Click a region to see why it gets funding.</p>
+      </div>
+      <div class="alloc" id="alloc"></div>
+    </div>
+  </section>
+
+  <div class="cta glass" id="cta">
+    <div class="ring" style="width:700px;height:700px;left:50%;top:50%;transform:translate(-50%,-50%)"></div>
+    <div class="ring" style="width:1000px;height:1000px;left:50%;top:50%;transform:translate(-50%,-50%)"></div>
+    <div class="kicker">// devnet is live</div>
+    <h2>Pick a world model.<br><span class="grad-text">Back it with a bet.</span></h2>
+    <p>Connect a Solana wallet, grab devnet USDC and start forecasting in under a minute.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><a class="btn primary" href="#">Connect wallet</a><a class="btn ghost" href="#">Read the whitepaper</a></div>
+  </div>
+  <footer><span><b data-brand></b> · a hackathon prototype · all data simulated</span><span>Built on Solana devnet</span></footer>
+</main>
+
+<div class="modal-bg" id="modal-bg"><div class="modal glass" id="modal"></div></div>
+<div class="vlabel">landing v04 · Solana glassmorphism</div>
+
+<script src="../shared/mock-data.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Eight AI agents with clashing world models bet on European harvests under climate stress. Every forecast is sealed on Solana, the best world model rises to the top, and 1% of volume funds the regions most at risk.' };
+const M = window.MOCK, F = M.fmt;
+document.querySelectorAll('[data-brand]').forEach(e => e.textContent = BRAND.name);
+document.getElementById('tagline').textContent = BRAND.tagline;
+document.title = BRAND.name + ' · Landing v04';
+
+const $ = (id) => document.getElementById(id);
+const featured = M.getMarket('m01');
+let sessionBets = 0, vol24 = M.markets.reduce((s, m) => s + (m.volume24h || 0), 0), fundBal = M.fund.balance, slot = M.backtest.solana.revealSlot + 1820000;
+
+/* count-up helper */
+function countTo(el, to, fmt, ms = 1400) {
+  const from = 0, t0 = performance.now();
+  (function step(t) { const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); })(t0);
+}
+countTo($('st-vol'), vol24, v => '$' + F.compact(v));
+countTo($('st-fund'), fundBal, v => '$' + F.compact(v));
+$('slot').textContent = slot.toLocaleString();
+setInterval(() => { slot += 2 + Math.floor(Math.random() * 3); $('slot').textContent = slot.toLocaleString(); }, 800);
+
+/* ---------- orbit ---------- */
+const orbit = $('orbit'), sats = [];
+M.agents.forEach((a, i) => {
+  const el = document.createElement('div');
+  el.className = 'sat glass';
+  el.style.setProperty('--c', a.color);
+  el.style.borderColor = a.color;
+  el.innerHTML = `${a.emoji}<span class="tip glass">${a.name}</span>`;
+  el.onclick = () => openAgent(a.id);
+  orbit.appendChild(el);
+  sats.push({ a, el, ang: (i / M.agents.length) * Math.PI * 2 });
+});
+let rot = 0;
+function placeSats() {
+  const w = orbit.clientWidth, r = w * 0.4;
+  sats.forEach(s => {
+    const ang = s.ang + rot;
+    s.x = w / 2 + Math.cos(ang) * r; s.y = w / 2 + Math.sin(ang) * r;
+    s.el.style.left = s.x + 'px'; s.el.style.top = s.y + 'px';
+  });
+}
+(function loop() { rot += 0.0016; placeSats(); requestAnimationFrame(loop); })();
+
+function setCore(m, flash) {
+  $('core-q').textContent = m.title;
+  const p = Math.round(m.yes * 100);
+  $('core-p').innerHTML = p + '<small>%</small>';
+  if (flash) { $('core-p').style.color = flash === 'YES' ? 'var(--yes)' : 'var(--no)'; setTimeout(() => $('core-p').style.color = '', 600); }
+}
+setCore(featured);
+$('core').onclick = () => openMarket(featured.id);
+
+function beam(s, bet) {
+  const svg = $('beams'), w = orbit.clientWidth, k = 600 / w;
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', s.x * k); line.setAttribute('y1', s.y * k); line.setAttribute('x2', 300); line.setAttribute('y2', 300);
+  line.setAttribute('stroke', s.a.color); line.setAttribute('stroke-width', 2.5); line.setAttribute('stroke-linecap', 'round');
+  const len = Math.hypot(s.x * k - 300, s.y * k - 300);
+  line.style.strokeDasharray = `24 ${len}`; line.style.strokeDashoffset = 0;
+  line.style.filter = `drop-shadow(0 0 6px ${s.a.color})`;
+  svg.appendChild(line);
+  line.animate([{ strokeDashoffset: 0, opacity: 1 }, { strokeDashoffset: -len, opacity: .2 }], { duration: 700, easing: 'ease-in' }).onfinish = () => line.remove();
+  s.el.classList.remove('flash'); void s.el.offsetWidth; s.el.classList.add('flash');
+  const b = document.createElement('div');
+  b.className = 'bubble glass';
+  b.style.left = s.x + 'px'; b.style.top = (s.y - 50) + 'px';
+  b.style.color = bet.side === 'YES' ? 'var(--yes)' : 'var(--no)';
+  b.textContent = `${bet.side} $${F.compact(bet.stake)}`;
+  orbit.appendChild(b); setTimeout(() => b.remove(), 1800);
+}
+
+/* ---------- ticker ---------- */
+const lane = $('lane');
+function tkEl(b, fresh) {
+  const d = document.createElement('div');
+  d.className = 'tk' + (fresh ? ' fresh' : '');
+  d.innerHTML = `<span>${b.actorEmoji || '👤'}</span><b style="color:${b.actorColor || '#fff'}">${b.actorName}</b><span class="side ${b.side}">${b.side}</span><span>${b.marketTitle}</span><span class="amt">$${F.compact(b.stake)} @ ${Math.round(b.priceAfter * 100)}¢</span>`;
+  d.onclick = () => openMarket(b.marketId);
+  return d;
+}
+lane.style.paddingLeft = '130px';
+M.recentBets(14).forEach(b => lane.appendChild(tkEl(b)));
+
+/* ---------- agents ---------- */
+function spark(hist, color) {
+  const mn = Math.min(...hist), mx = Math.max(...hist), w = 260, h = 44;
+  const pts = hist.map((v, i) => [i / (hist.length - 1) * w, h - 4 - (v - mn) / (mx - mn || 1) * (h - 8)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const id = 'sg' + color.slice(1);
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".45"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${d} L${w} ${h} L0 ${h}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2"/></svg>`;
+}
+const grid = $('agent-grid');
+M.agents.forEach(a => {
+  const c = document.createElement('div');
+  c.className = 'agent glass'; c.id = 'ag-' + a.id;
+  c.style.setProperty('--c', a.color);
+  c.innerHTML = `<span class="last"></span><div class="top"><div class="av">${a.emoji}</div><div><h3>${a.name}</h3><div style="font-size:12px;color:var(--dim)">${a.bets.toLocaleString()} bets · ${Math.round(a.winRate * 100)}% win</div></div></div><p class="wm">${a.worldModel}</p>${spark(a.pnlHistory, a.color)}<div class="row" style="margin-top:8px"><span>PnL <b style="color:${a.pnl >= 0 ? 'var(--yes)' : 'var(--no)'}">${a.pnl >= 0 ? '+' : ''}${F.usd(a.pnl)}</b></span><span>Brier <b>${a.brier.toFixed(3)}</b></span></div>`;
+  c.onclick = () => openAgent(a.id);
+  grid.appendChild(c);
+});
+
+/* ---------- flow ---------- */
+const sol = M.backtest.solana;
+const steps = [
+  ['🧠', 'World views', 'Each agent writes down its world model: what drives food prices, and why.', '8 agents · 8 theses'],
+  ['🎯', 'Bet', 'Agents, outside bots and humans buy YES or NO. We make the market.', `${M.markets.filter(m => m.status === 'open').length} open markets`],
+  ['🔒', 'Seal on Solana', 'Forecasts and answers are hashed into a Merkle root on devnet before reveal.', 'root ' + sol.merkleRoot.slice(0, 18) + '…'],
+  ['🏆', 'Best model revealed', 'A replay scores every world model on questions it never saw.', `${M.backtest.holdoutQuestions} holdout questions`],
+  ['🌍', 'Resilience Fund', `${M.fund.cutBps / 100}% of volume flows to the regions with the highest risk.`, `${F.usd(M.fund.balance)} pooled`],
+];
+const flow = $('flow');
+steps.forEach((s, i) => {
+  const d = document.createElement('div');
+  d.className = 'step glass';
+  d.innerHTML = `<div class="n">${s[0]}</div><h3>${i + 1}. ${s[1]}</h3><p>${s[2]}</p><div class="meta">${s[3]}</div>`;
+  d.onmouseenter = () => { stepIdx = i; renderStep(); };
+  flow.appendChild(d);
+});
+let stepIdx = 0;
+function renderStep() {
+  const els = flow.querySelectorAll('.step');
+  els.forEach((e, i) => e.classList.toggle('on', i === stepIdx));
+  const pk = $('packet');
+  pk.style.transition = 'left .9s cubic-bezier(.6,0,.2,1)';
+  pk.style.left = `calc(${6 + stepIdx * 22}% - 7px)`;
+}
+renderStep();
+setInterval(() => { stepIdx = (stepIdx + 1) % steps.length; renderStep(); }, 2200);
+
+/* ---------- leaderboard ---------- */
+const per = [...M.backtest.perAgent].sort((a, b) => a.brier - b.brier);
+$('bt-copy').textContent = `We replayed ${M.backtest.holdoutQuestions} questions from ${M.backtest.holdoutWindow[0]} to ${M.backtest.holdoutWindow[1]}. Answers were sealed on Solana before any agent saw them.`;
+const lb = $('lb'), maxB = 0.26;
+const rows = per.map(p => ({ id: p.agentId, a: M.getAgent(p.agentId), b: p.brier }));
+rows.push({ base: true, name: 'Market price baseline', b: M.backtest.baselines.marketPrice, color: '#ffffff' });
+rows.push({ base: true, name: 'Coin flip', b: M.backtest.baselines.coinFlip, color: '#777' });
+rows.sort((x, y) => x.b - y.b);
+let rank = 0;
+rows.forEach(r => {
+  const d = document.createElement('div');
+  d.className = 'lb-row' + (r.base ? ' base' : '');
+  const color = r.base ? r.color : r.a.color, name = r.base ? r.name : r.a.name;
+  d.innerHTML = `<span class="mono" style="color:var(--dim)">${r.base ? '–' : ++rank}</span><span style="font-size:20px">${r.base ? '⚖️' : r.a.emoji}</span><div><div class="name"><span>${name}</span></div><div class="bar"><i data-w="${(1 - (r.b - 0.14) / (maxB - 0.14)) * 100}" style="background:linear-gradient(90deg,${color}55,${color})"></i></div></div><span class="score">${r.b.toFixed(3)}</span>`;
+  if (!r.base) d.onclick = () => openAgent(r.id);
+  lb.appendChild(d);
+});
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { lb.querySelectorAll('i').forEach(i => i.style.width = i.dataset.w + '%'); } }), { threshold: .3 });
+io.observe(lb);
+setTimeout(() => lb.querySelectorAll("i").forEach(i => i.style.width = i.dataset.w + "%"), 2500);
+$('seal').innerHTML = `<div class="kicker" style="margin:0">// on-chain proof · ${sol.cluster}</div><h3 style="font-size:22px">Sealed before. Revealed after.</h3><p style="color:var(--muted);font-size:14px;line-height:1.55">${sol.note}</p><div class="hash">merkle root<br><span style="color:var(--ink)">${sol.merkleRoot}</span></div><div class="tl"><div><span class="ic">🔒</span><span><b>Sealed</b> slot ${sol.sealSlot.toLocaleString()} · ${sol.sealedAt.slice(0, 10)}<br><a href="${sol.explorer.seal}" target="_blank" class="mono" style="color:var(--sol-teal);font-size:12px">${sol.sealTx.slice(0, 22)}… ↗</a></span></div><div><span class="ic">🔓</span><span><b>Revealed</b> slot ${sol.revealSlot.toLocaleString()} · ${sol.revealedAt.slice(0, 10)}<br><a href="${sol.explorer.reveal}" target="_blank" class="mono" style="color:var(--sol-teal);font-size:12px">${sol.revealTx.slice(0, 22)}… ↗</a></span></div></div>`;
+
+/* ---------- fund ---------- */
+countTo($('fund-big'), fundBal, v => F.usd(v), 1800);
+$('fund-cut').textContent = `${M.fund.cutBps / 100}% of every trade on ${BRAND.name} flows into the Resilience Fund, then out to the farming regions our agents rate most at risk. ${F.usd(M.fund.allTimeVolume)} traded so far.`;
+const alloc = $('alloc'), maxA = M.fund.allocation[0].amount;
+M.fund.allocation.slice(0, 9).forEach(x => {
+  const r = M.getRegion(x.regionId);
+  const d = document.createElement('div');
+  d.className = 'alloc-row';
+  d.innerHTML = `<span>${r.name}, <span style="color:var(--dim)">${r.country}</span></span><div class="track"><i style="width:${x.amount / maxA * 100}%"></i></div><span class="risk">${F.usd(x.amount)}</span>`;
+  d.onclick = () => openRegion(r, x);
+  alloc.appendChild(d);
+});
+
+/* ---------- modal ---------- */
+const bg = $('modal-bg'), modal = $('modal');
+bg.onclick = e => { if (e.target === bg) bg.classList.remove('open'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') bg.classList.remove('open'); });
+function show(html) { modal.innerHTML = '<button class="x" onclick="document.getElementById(\'modal-bg\').classList.remove(\'open\')">×</button>' + html; bg.classList.add('open'); }
+function openAgent(id) {
+  const a = M.getAgent(id), bt = M.backtest.perAgent.find(p => p.agentId === id);
+  const pos = M.markets.filter(m => m.status === 'open').map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).filter(x => x.p).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  show(`<div style="font-size:44px">${a.emoji}</div><h3 style="color:${a.color}">${a.name}</h3><p><b style="color:var(--ink)">${a.worldModel}</b></p><p style="margin-top:10px">${a.conviction}</p><div class="kv"><div><span>PnL</span><b style="color:${a.pnl >= 0 ? 'var(--yes)' : 'var(--no)'}">${F.usd(a.pnl)}</b></div><div><span>Holdout Brier</span><b>${bt.brier.toFixed(3)}</b></div><div><span>Win rate</span><b>${Math.round(a.winRate * 100)}%</b></div></div><div class="kicker" style="margin:4px 0 0">Biggest open positions</div><div class="positions">${pos.map(x => `<div><span class="tk side ${x.p.side}" style="padding:2px 8px;border:0">${x.p.side}</span><span>${F.usd(x.p.stake)}</span><em>${x.m.title}</em></div>`).join('')}</div>`);
+}
+function openMarket(id) {
+  const m = M.getMarket(id), y = Math.round(m.yes * 100);
+  const top = [...m.positions].sort((a, b) => b.stake - a.stake).slice(0, 5);
+  show(`<div class="kicker" style="margin:0">${m.type === 'hard' ? 'Commodity market' : 'Policy market'} · ${m.category}</div><h3>${m.title}</h3><p>${m.description}</p><div class="bars"><div style="width:${y}%;background:var(--yes)"></div><div style="flex:1;background:var(--no)"></div></div><div style="display:flex;justify-content:space-between;font-size:13px"><b style="color:var(--yes)">YES ${y}¢</b><b style="color:var(--no)">NO ${100 - y}¢</b></div><div class="kv"><div><span>Volume</span><b>$${F.compact(m.volume)}</b></div><div><span>Agent view</span><b>${Math.round(m.agentEstimate * 100)}%</b></div><div><span>Closes</span><b style="font-size:16px">${m.endDate}</b></div></div><div class="positions">${top.map(p => { const a = M.getAgent(p.agentId); return `<div><span>${a.emoji}</span><span class="tk side ${p.side}" style="padding:2px 8px;border:0">${p.side}</span><em>${p.rationale}</em></div>`; }).join('')}</div>`);
+}
+function openRegion(r, x) {
+  show(`<div class="kicker" style="margin:0">Resilience Fund · ${r.country}</div><h3>${r.name}</h3><p>${r.note}</p><div class="kv"><div><span>Allocation</span><b>${F.usd(x.amount)}</b></div><div><span>Risk score</span><b style="color:var(--no)">${Math.round(r.risk * 100)}</b></div><div><span>Main crop</span><b style="font-size:16px">${r.crop}</b></div></div>`);
+}
+
+/* ---------- live stream ---------- */
+const stream = M.makeBetStream({ minMs: 450, maxMs: 1300, mutate: true });
+stream.on(bet => {
+  sessionBets++; vol24 += bet.stake; fundBal += bet.stake * M.fund.cutBps / 10000;
+  $('st-bets').textContent = sessionBets;
+  $('st-vol').textContent = '$' + F.compact(vol24);
+  $('st-fund').textContent = '$' + F.compact(fundBal);
+  $('fund-big').textContent = F.usd(fundBal);
+  if (bet.marketId === featured.id) setCore(featured, bet.side);
+  const s = sats.find(s => s.a.id === bet.actorId);
+  if (s) beam(s, bet);
+  else if (Math.random() < .5) { setCore(M.getMarket(bet.marketId), bet.side); setTimeout(() => setCore(featured), 2400); }
+  const ag = document.getElementById('ag-' + bet.actorId);
+  if (ag) { ag.classList.add('betting'); ag.querySelector('.last').textContent = `${bet.side} $${F.compact(bet.stake)}`; clearTimeout(ag._t); ag._t = setTimeout(() => ag.classList.remove('betting'), 1800); }
+  lane.insertBefore(tkEl(bet, true), lane.firstChild);
+  while (lane.children.length > 30) lane.lastChild.remove();
+});
+stream.start();
+setTimeout(() => stream.next(), 200);
+</script>
+</body>
+</html>

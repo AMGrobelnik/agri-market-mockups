@@ -1,0 +1,46 @@
+{
+ "generated": "2026-10-25T14:12:00+00:00",
+ "pages": {
+  "landing": [
+   {
+    "n": 1,
+    "id": "01",
+    "file": "landing/v01.html",
+    "shot": "_shots/landing-v01.png"
+   },
+   {
+    "n": 2,
+    "id": "02",
+    "file": "landing/v02.html",
+    "shot": "_shots/landing-v02.png"
+   },
+   {
+    "n": 3,
+    "id": "03",
+    "file": "landing/v03.html",
+    "shot": "_shots/landing-v03.png"
+   },
+   {
+    "n": 4,
+    "id": "04",
+    "file": "landing/v04.html",
+    "shot": "_shots/landing-v04.png"
+   },
+   {
+    "n": 5,
+    "id": "05",
+    "file": "landing/v05.html",
+    "shot": "_shots/landing-v05.png"
+   },
+   {
+    "n": 6,
+    "id": "06",
+    "file": "landing/v06.html",
+    "shot": "_shots/landing-v06.png"
+   }
+  ],
+  "live": [],
+  "markets": [],
+  "detail": []
+ }
+}
