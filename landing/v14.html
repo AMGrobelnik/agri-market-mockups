@@ -102,7 +102,7 @@ h2 span{color:var(--muted2)}
 .pill.n{color:var(--no);background:var(--no-bg);border-color:var(--no-bd)}
 .trow .amt{text-align:right;font-size:12.5px}
 .trow.in{animation:rowin .7s ease-out}
-.trow.in.y{--fl:rgba(22,163,74,.12)}.trow.in.n{--fl:rgba(220,38,38,.1)}
+.trow.fy{--fl:rgba(22,163,74,.12)}.trow.fn{--fl:rgba(220,38,38,.1)}
 @keyframes rowin{from{opacity:0;transform:translateY(-10px);background:var(--fl)}40%{background:var(--fl)}}
 
 .agrid{display:grid;grid-template-columns:1fr 1fr;gap:0}
@@ -128,8 +128,8 @@ h2 span{color:var(--muted2)}
 .seal svg{width:16px;height:16px;flex:none}
 .seal code{margin-left:auto;font:500 11.5px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 table.dt{width:100%;border-collapse:collapse;font-size:13px}
-.dt th{height:38px;padding:0 12px;text-align:left;font:500 12px var(--font);color:var(--muted);border-bottom:1px solid rgba(228,228,231,.9);white-space:nowrap}
-.dt td{padding:9px 12px;border-bottom:1px solid rgba(228,228,231,.6);vertical-align:middle}
+.dt th{height:38px;padding:0 10px;text-align:left;font:500 12px var(--font);color:var(--muted);border-bottom:1px solid rgba(228,228,231,.9);white-space:nowrap}
+.dt td{padding:8px 10px;border-bottom:1px solid rgba(228,228,231,.6);vertical-align:middle}
 .dt tbody tr{transition:background .15s}
 .dt tbody tr:hover,.dt tbody tr.on{background:rgba(244,244,245,.8)}
 .dt .r{text-align:right}
@@ -137,7 +137,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:13px}
 .dt .nm{display:flex;align-items:center;gap:9px;min-width:0}
 .dt .nm .e{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:#fff;border:1px solid var(--border);font-size:13px}
 .dt .nm b{display:block;font-weight:600;white-space:nowrap}
-.dt .nm small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.dt .nm small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
 .dt .num{font:500 12.5px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dt tr.win td:first-child{color:var(--yes)}
 .dt tfoot td{font-size:12px;color:var(--muted);border-bottom:0;padding-top:8px;padding-bottom:8px;background:rgba(250,250,250,.5)}
@@ -170,7 +170,7 @@ footer{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 32px
 .rail a{position:relative;width:8px;height:8px;border-radius:50%;background:#d4d4d8;transition:all .3s}
 .rail a.on{background:#18181b;transform:scale(1.35)}
 .rail a span{position:absolute;right:18px;top:50%;transform:translateY(-50%);font:500 11px var(--mono);color:var(--muted);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
-.rail a:hover span,.rail a.on span{opacity:1}
+.rail a:hover span{opacity:1}
 .vlabel{position:fixed;left:10px;bottom:6px;z-index:40;font:600 10.5px var(--mono);background:rgba(255,255,255,.9);border:1px solid var(--border);color:var(--fg2);padding:3px 8px;border-radius:7px;pointer-events:none}
 
 @media (max-width:1240px){.rail{display:none}}
@@ -324,6 +324,7 @@ document.title = BRAND.name + ' · Landing v14';
 const cr = n => Math.round(n).toLocaleString('en-US') + ' cr';
 const crS = n => (n >= 0 ? '+' : '−') + Math.abs(Math.round(n)).toLocaleString('en-US') + ' cr';
 const crC = n => F.compact(n) + ' cr';
+const crSC = n => (n >= 0 ? '+' : '−') + F.compact(Math.abs(n)) + ' cr';
 const pc = p => Math.round(p * 100) + '%';
 const clean = s => String(s).replace(/EUR\s?/g, '').replace(/[$€]/g, '');
 const SHORT = { m01: 'Olive oil +15%', m02: 'Wheat > 280/t', m03: 'Maize > 240/t', m04: 'Arabica > 400c', m05: 'Cocoa < 6k/t', m06: 'Sugar > 22c', m07: 'Sunflower > 1.3k', m08: 'Rice > 550/t', m09: 'Wheat < 230/t', m10: 'EVOO < 3.5k/t', m11: 'EU maize > 220', s01: 'Italy drought', s02: 'EU land law', s03: 'Mercosur vote', s04: 'Black Sea halt', s05: 'India rice ban', s06: 'Thessaly water', s07: 'Gulf 50k ha', s08: 'Cocoa farmgate', s09: 'Andalusia cut' };
@@ -404,7 +405,7 @@ function layout() {
   const contL = Math.max(MOB ? 16 : 32, (W - 1280) / 2 + 32);
   if (!MOB) { const colW = Math.min(520, W * .4); Z = zoneC({ x: contL + colW + 56, y: 86, w: 0, h: H - 86 - 84 }); Z.w = W - contL - Z.x; Z = zoneC(Z); ZH = zoneC({ x: Z.x, y: 80, w: Z.w, h: H - 80 - 76 }); }
   else { Z = zoneC({ x: 16, y: 72, w: W - 32, h: H * .52 - 72 }); ZH = zoneC({ x: 16, y: H * .6, w: W - 32, h: H * .4 - 80 }); }
-  const fc = $('#fchip'); fc.style.left = (Z.x + (MOB ? 0 : 0)) + 'px'; fc.style.top = (MOB ? Z.y - 2 : Z.y - 6) + 'px';
+  const fc = $('#fchip'); fc.style.left = (Z.x + (MOB ? 0 : 0)) + 'px'; fc.style.top = (MOB ? Z.y - 2 : 74) + 'px';
   // 1 world map (equirectangular crop)
   const L0 = MOB ? -62 : -98, L1 = MOB ? 112 : 142, B0 = -40, B1 = 70;
   const sc = Math.min(Z.w / (L1 - L0), Z.h / (B1 - B0));
@@ -450,11 +451,11 @@ function fillNet() {
 const FEAT = 'm01', BARS = ['m02', 's01', 'm05', 's04', 'm10'];
 function layoutOdds() {
   const fm = M.getMarket(FEAT), hist = fm.probHistory, C = hist.length;
-  const x0 = Z.x + (MOB ? 26 : 36), x1 = Z.x + Z.w - 6, y0 = Z.y + Z.h * (MOB ? .12 : .1), y1 = Z.y + Z.h * (MOB ? .5 : .47);
+  const x0 = Z.x + (MOB ? 26 : 36), x1 = Z.x + Z.w - 6, y0 = Z.y + Z.h * (MOB ? .14 : .14), y1 = Z.y + Z.h * (MOB ? .5 : .48);
   const ymax = Math.ceil(Math.max(...hist) * 10 + .5) / 10;
   const budget = Math.round(N * .3), sumP = hist.reduce((s, p) => s + p / ymax, 0), R = Math.max(6, Math.floor(budget / sumP));
   const sx = (x1 - x0) / (C - 1), sy = (y1 - y0) / R, slots = [];
-  hist.forEach((p, j) => { const n = Math.max(1, Math.round(p / ymax * R)); for (let r = 0; r < n; r++) { const top = r === n - 1, last = j === C - 1; slots.push({ x: x0 + j * sx, y: y1 - (r + .5) * sy, a: top ? 1 : .75 - .35 * (r / R), c: top ? (last ? C_G : C_Z9) : (last ? C_G : C_Z3), s: top ? (MOB ? 1.6 : 2) : (MOB ? 1 : 1.2), bar: -1 }); } });
+  hist.forEach((p, j) => { const n = Math.max(1, Math.round(p / ymax * R)); for (let r = 0; r < n; r++) { const top = r === n - 1, last = j === C - 1; slots.push({ x: x0 + j * sx, y: y1 - (r + .5) * sy, a: top ? 1 : .9 - .4 * (r / R), c: top ? (last ? C_G : C_Z9) : (last ? C_G : C_Z4), s: top ? (MOB ? 1.6 : 2) : (MOB ? 1 : 1.2), bar: -1 }); } });
   const by0 = Z.y + Z.h * (MOB ? .6 : .57), by1 = Z.y + Z.h * .99, P = (by1 - by0) / BARS.length, kr = MOB ? 3 : 5;
   const per = Math.floor((N - slots.length) / BARS.length), cols = Math.max(10, Math.floor(per / kr)), bsx = Z.w / (cols - 1), bsy = Math.min(MOB ? 5 : 6.5, (P - 26) / kr);
   ODD = { x0, x1, y0, y1, ymax, sx, fm, by0, P, cols, bsy, kr, ys: [] };
@@ -519,11 +520,11 @@ function fillFund() {
   }
 }
 function fillGlobe(k) {
-  const g = globeOf(k), rot = rotNow(), base = MOB ? 1 : 1.2;
+  const g = globeOf(k), rot = rotNow(), base = MOB ? 1.05 : 1.3;
   for (let i = 0; i < N; i++) {
     const [x, y, z] = gproj(pLat[i], pLng[i], rot, g.cx, g.cy, g.R);
     FX[k][i] = x; FY[k][i] = y;
-    if (z > 0) { FA[k][i] = (.28 + .72 * z) * g.am; FC[k][i] = z > .5 ? C_Z7 : z > .2 ? C_Z5 : C_Z4; FS[k][i] = base + .55 * z; }
+    if (z > 0) { FA[k][i] = (.28 + .72 * z) * g.am; FC[k][i] = z > .5 ? C_Z7 : z > .2 ? C_Z5 : C_Z4; FS[k][i] = base + .7 * z; }
     else { FA[k][i] = .1 * g.am; FC[k][i] = C_Z3; FS[k][i] = base * .8; }
   }
 }
@@ -560,7 +561,7 @@ function frame(now) {
   drawUnder();
   for (let c = 0; c < PAL.length; c++) for (let l = 0; l < ALV.length; l++) BUCK[c][l] = new Path2D();
   const XA = FX[A], YA = FY[A], XB = FX[B], YB = FY[B], AA = FA[A], AB = FA[B], CA = FC[A], CB = FC[B], SA = FS[A], SB = FS[B];
-  const same = A === B, hlK = hlAgent >= 0 && (dom === 2 || dom === 4);
+  const steps = Math.max(1, Math.min(4, Math.round(dt / 16.7))), same = A === B, hlK = hlAgent >= 0 && (dom === 2 || dom === 4);
   for (let i = 0; i < N; i++) {
     let tx, ty, al, sz, co;
     if (same) { tx = XA[i]; ty = YA[i]; al = AA[i]; sz = SA[i]; co = CA[i]; }
@@ -574,7 +575,7 @@ function frame(now) {
     else {
       if (same && A === 5 && fRole[i] && PS[i] < fPrev[i]) { X[i] = tx; Y[i] = ty; VX[i] = VY[i] = 0; }
       fPrev[i] = PS[i];
-      VX[i] = VX[i] * .74 + (tx - X[i]) * .1; VY[i] = VY[i] * .74 + (ty - Y[i]) * .1; X[i] += VX[i]; Y[i] += VY[i];
+      for (let st = 0; st < steps; st++) { VX[i] = VX[i] * .74 + (tx - X[i]) * .1; VY[i] = VY[i] * .74 + (ty - Y[i]) * .1; X[i] += VX[i]; Y[i] += VY[i]; }
     }
     if (hlK) { const ag = dom === 2 ? (nRole[i] >= 1 && nRole[i] <= 2 ? nNode[i] : -1) : lbAg[i]; if (ag !== hlAgent) al *= .22; }
     if (al < .04) continue;
@@ -585,6 +586,7 @@ function frame(now) {
   ctx.globalAlpha = 1;
   drawOver(now);
   tapeTick(dt);
+  frame.js = (frame.js || 0) * .9 + (performance.now() - now) * .1;
   requestAnimationFrame(frame);
 }
 
@@ -676,8 +678,8 @@ function drawOver(now) {
   if (wn > 0) {
     lbl('ORDER BOOK', NET.cx, NET.cy + NET.hubR + 12, { alpha: wn, font: '600 10px "Geist Mono", monospace', color: '#18181b' });
     NET.nodes.forEach((n, i) => {
-      const a = AG[i], dx = Math.cos(n.ang), dy = Math.sin(n.ang), d = n.r + (MOB ? 10 : 16), x = n.x + dx * d, y = n.y + dy * d;
-      const al = Math.abs(dx) < .3 ? 'center' : dx > 0 ? 'left' : 'right', yy = Math.abs(dx) < .3 ? y + dy * 8 : y;
+      const a = AG[i], dy = Math.sin(n.ang), up = dy < -.3, x = n.x, al = 'center';
+      const yy = up ? n.y - n.r - (MOB ? 12 : 22) : n.y + n.r + (MOB ? 12 : 21);
       const dim = hlAgent >= 0 && hlAgent !== i ? .3 : 1;
       if (nodePulse[i] > .05) { ctx.globalAlpha = nodePulse[i] * wn; ctx.strokeStyle = lastSide[i] === 'YES' ? '#16a34a' : '#ef4444'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 4 + (1 - nodePulse[i]) * 18, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1; }
       if (MOB) { lbl(a.emoji, x, yy, { align: al, alpha: wn * dim, font: '15px sans-serif' }); return; }
@@ -689,8 +691,8 @@ function drawOver(now) {
   const wo = lblA(3);
   if (wo > 0) {
     const fm = ODD.fm;
-    lbl(clean(fm.title), ODD.x0 - (MOB ? 24 : 34), Z.y + Z.h * (MOB ? .04 : .035), { align: 'left', alpha: wo, font: `600 ${MOB ? 12 : 13}px Geist, Inter, sans-serif`, color: '#18181b' });
-    lbl('YES ' + pc(fm.yes), Z.x + Z.w, Z.y + Z.h * (MOB ? .04 : .035), { align: 'right', alpha: wo, font: '600 12px "Geist Mono", monospace', color: '#16a34a' });
+    lbl(clean(fm.title), ODD.x0 - (MOB ? 24 : 34), Z.y + Z.h * (MOB ? .06 : .07), { align: 'left', alpha: wo, font: `600 ${MOB ? 12 : 13}px Geist, Inter, sans-serif`, color: '#18181b' });
+    lbl('YES ' + pc(fm.yes), Z.x + Z.w, Z.y + Z.h * (MOB ? .06 : .07), { align: 'right', alpha: wo, font: '600 12px "Geist Mono", monospace', color: '#16a34a' });
     [0, .5, 1].forEach(f => lbl(Math.round(ODD.ymax * f * 100) + '%', ODD.x0 - 8, ODD.y1 - f * (ODD.y1 - ODD.y0), { align: 'right', alpha: wo * .9, font: '500 10px "Geist Mono", monospace', color: '#a1a1aa' }));
     lbl('40 weeks', ODD.x1, ODD.y1 + 14, { align: 'right', alpha: wo * .9, font: '500 10px "Geist Mono", monospace', color: '#a1a1aa' });
     BARS.forEach((id, b) => { const m = M.getMarket(id), y = ODD.ys[b] - 12; lbl(short(m), Z.x, y, { align: 'left', alpha: wo, font: '500 12px Geist, Inter, sans-serif', color: '#27272a' }); lbl('YES ' + pc(m.yes), Z.x + Z.w - (MOB ? 54 : 64), y, { align: 'right', alpha: wo, font: '600 11px "Geist Mono", monospace', color: '#16a34a' }); lbl('NO ' + pc(1 - m.yes), Z.x + Z.w, y, { align: 'right', alpha: wo, font: '600 11px "Geist Mono", monospace', color: '#dc2626' }); });
@@ -744,10 +746,10 @@ function updMk(id) { const el = $(`.mk[data-m="${id}"]`); if (!el) return; const
 
 // leaderboard
 const S = BT.solana, best = M.getAgent(RANKED[0].agentId);
-$('#bP').innerHTML = `Before the replay, ${BT.holdoutQuestions} holdout answers and every agent's forecasts were hashed and committed on Solana. Nobody could peek. Then each world model was scored: the <b>${esc(best.name)}</b> beat the market price.`;
+$('#bP').innerHTML = `${BT.holdoutQuestions} holdout answers and every agent's forecasts were hashed on Solana before the replay, so nobody could peek. Scored after: the <b>${esc(best.name)}</b> beat the market price.`;
 $('#sealT').textContent = 'Sealed at slot ' + S.sealSlot.toLocaleString();
 $('#sealR').textContent = 'root ' + S.merkleRoot.slice(0, 18) + '…';
-$('#lb').innerHTML = RANKED.map((r, j) => { const a = M.getAgent(r.agentId), i = aIdx(a.id); return `<tr data-i="${i}" class="${j === 0 ? 'win' : ''}"><td class="rk">${j + 1}</td><td><div class="nm"><span class="e">${a.emoji}</span><span style="min-width:0"><b>${esc(a.name)}</b><small>${esc(a.worldModel)}</small></span></div></td><td class="r num ${a.pnl >= 0 ? 'y' : 'n'}">${crS(a.pnl)}</td><td class="r num">${r.brier.toFixed(3)}</td><td class="r num hide-m" id="lt-${i}">${a.bets.toLocaleString()}</td></tr>`; }).join('');
+$('#lb').innerHTML = RANKED.map((r, j) => { const a = M.getAgent(r.agentId), i = aIdx(a.id); return `<tr data-i="${i}" class="${j === 0 ? 'win' : ''}"><td class="rk">${j + 1}</td><td><div class="nm"><span class="e">${a.emoji}</span><span style="min-width:0"><b>${esc(a.name)}</b><small>${esc(a.worldModel)}</small></span></div></td><td class="r num ${a.pnl >= 0 ? 'y' : 'n'}">${crSC(a.pnl)}</td><td class="r num">${r.brier.toFixed(3)}</td><td class="r num hide-m" id="lt-${i}">${a.bets.toLocaleString()}</td></tr>`; }).join('');
 $('#lbf').innerHTML = `<tr><td></td><td>Baselines: market price · coin flip</td><td></td><td class="r num">${BT.baselines.marketPrice.toFixed(3)} · ${BT.baselines.coinFlip.toFixed(2)}</td><td class="hide-m"></td></tr>`;
 $$('#lb tr').forEach(el => { el.onmouseenter = () => { hlAgent = +el.dataset.i; el.classList.add('on'); }; el.onmouseleave = () => { hlAgent = -1; el.classList.remove('on'); }; });
 $('#prog').textContent = 'program ' + S.program.slice(0, 10) + '… · devnet';
@@ -760,7 +762,7 @@ const ago = ts => { const s = Math.max(0, Math.round((Date.now() - ts) / 1000));
 const actorEmoji = b => b.actorEmoji || (b.actorType === 'human' ? '👤' : '🤖');
 function tradeRow(b, fresh) {
   const m = M.getMarket(b.marketId), el = document.createElement('div');
-  el.className = 'trow' + (fresh ? ' in ' + (b.side === 'YES' ? 'y' : 'n') : ''); el.dataset.ts = b.ts;
+  el.className = 'trow' + (fresh ? ' in ' + (b.side === 'YES' ? 'fy' : 'fn') : ''); el.dataset.ts = b.ts;
   el.innerHTML = `<span class="tm mono">${ago(b.ts)}</span><span class="who"><b>${actorEmoji(b)} ${esc(b.actorName)}</b><small>${esc(m ? short(m) : clean(b.marketTitle))}${b.actorType === 'agent' ? '' : b.actorType === 'human' ? ' · human' : ' · external agent'}</small></span><span class="pill ${b.side === 'YES' ? 'y' : 'n'}">${b.side} ${pc(b.priceAfter)}</span><span class="amt mono">${cr(b.stake)}</span>`;
   return el;
 }
@@ -800,7 +802,7 @@ if (RM) { scrollState(); for (let i = 0; i < N; i++) { X[i] = FX[A][i]; Y[i] = F
 requestAnimationFrame(frame);
 stream.next(); stream.next();
 stream.start();
-window.__v14 = { N, frames: () => frame.n, dist() { let d = 0; for (let i = 0; i < N; i++) d += Math.abs(X[i] - FX[A][i]) + Math.abs(Y[i] - FY[A][i]); return d / N; }, get fps() { return Math.round(fps); }, get state() { return { A, B, FR }; } };
+window.__v14 = { N, frames: () => frame.n, js: () => frame.js, dist() { let d = 0; for (let i = 0; i < N; i++) d += Math.abs(X[i] - FX[A][i]) + Math.abs(Y[i] - FY[A][i]); return d / N; }, get fps() { return Math.round(fps); }, get state() { return { A, B, FR }; } };
 })();
 </script>
 </body>

@@ -127,7 +127,7 @@ body.open #drawer{transform:none} body.open #scrim{opacity:1;pointer-events:auto
 
 @media (max-width:900px){
   body{overflow-x:hidden;overflow-y:auto;display:flex;flex-direction:column}
-  .top{order:0}#stage{order:1;overflow:hidden}#right{order:2}#left{order:3}.dock{order:4}
+  body>*{flex-shrink:0}.top{order:0}#stage{order:1;overflow:hidden}#right{order:2}#left{order:3}.dock{order:4}
   .top{position:relative;top:0;left:0;right:0;margin:10px 16px 0;height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
   .nav,.stats .stat:nth-child(n+2){display:none}
   #stage{position:relative;left:0;right:0;top:0;bottom:auto;height:440px;margin:10px 0}

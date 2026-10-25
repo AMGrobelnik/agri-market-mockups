@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>HARVEST Orbit</title>
+<style>
+:root{
+  --bg:#02040a; --ink:#eaf2ff; --muted:#8b9bb8; --dim:#56647d; --glass:rgba(10,16,32,.55); --glass2:rgba(14,22,44,.72); --edge:rgba(140,180,255,.16);
+  --accent:#7cf2ff; --accent2:#b18cff; --yes:#3cf0a0; --no:#ff5577; --gold:#ffd27a;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--font);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+#globe{position:fixed;inset:0}
+.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(2,4,10,.55) 80%,rgba(2,4,10,.9) 100%);z-index:1}
+.glass{background:var(--glass);border:1px solid var(--edge);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border-radius:16px}
+/* top */
+.brand{position:fixed;left:28px;top:24px;z-index:5}
+.brand h1{margin:0;font-size:26px;letter-spacing:.42em;font-weight:300}
+.brand h1 b{font-weight:800;background:linear-gradient(90deg,#fff,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p{margin:6px 0 0;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font:600 11px var(--mono);letter-spacing:.12em;color:var(--accent);padding:5px 10px;border-radius:999px;border:1px solid rgba(124,242,255,.3);background:rgba(124,242,255,.06)}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.counters{position:fixed;right:28px;top:24px;z-index:5;display:flex;gap:28px;text-align:right}
+.counters .k{font:600 10.5px var(--mono);letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.counters .v{font-size:28px;font-weight:200;letter-spacing:-.01em;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(124,242,255,.35)}
+.counters .v.fund{color:var(--gold);text-shadow:0 0 24px rgba(255,210,122,.35)}
+/* agents legend */
+.agents{position:fixed;left:24px;top:50%;transform:translateY(-46%);z-index:5;width:244px;padding:12px 10px}
+.agents h3,.odds h3{margin:0 6px 8px;font:600 10.5px var(--mono);letter-spacing:.18em;color:var(--muted);text-transform:uppercase;display:flex}
+.agents h3 span,.odds h3 span{margin-left:auto;color:var(--dim)}
+.ag{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:10px;cursor:pointer;transition:background .2s}
+.ag:hover,.ag.on{background:rgba(124,180,255,.09)}
+.ag .orb{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 12px currentColor,0 0 2px #fff inset;background:currentColor}
+.ag .nm{font-size:13px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag .br{font:500 11px var(--mono);color:var(--muted)}
+.ag .ct{font:600 11px var(--mono);color:var(--accent);min-width:18px;text-align:right}
+.ag.ping .orb{animation:orbping .7s ease-out}
+@keyframes orbping{0%{box-shadow:0 0 0 6px rgba(255,255,255,.5),0 0 22px currentColor}100%{box-shadow:0 0 12px currentColor}}
+/* odds */
+.odds{position:fixed;right:24px;top:50%;transform:translateY(-44%);z-index:5;width:300px;padding:12px 10px}
+.od{padding:10px;border-radius:12px;cursor:pointer;transition:background .2s;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}
+.od:hover{background:rgba(124,180,255,.09)}
+.od .t{font-size:12.5px;line-height:1.3;color:#cfdaf0}
+.od .p{font-size:30px;font-weight:200;font-variant-numeric:tabular-nums;grid-row:1/3;grid-column:2;text-align:right;line-height:1}
+.od .p small{display:block;font:600 10.5px var(--mono);margin-top:3px}
+.od .bar{height:3px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;grid-column:1}
+.od .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));box-shadow:0 0 8px var(--accent);transition:width .6s}
+.od.tick-up .p{color:var(--yes);text-shadow:0 0 18px rgba(60,240,160,.6)}
+.od.tick-dn .p{color:var(--no);text-shadow:0 0 18px rgba(255,85,119,.6)}
+.up{color:var(--yes)}.dn{color:var(--no)}
+/* caption */
+.caption{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);z-index:5;width:min(760px,calc(100vw - 32px));text-align:center;cursor:pointer}
+.caption .who{font:600 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.caption .what{font-size:22px;font-weight:300;margin-top:6px;line-height:1.3;text-shadow:0 2px 20px rgba(0,0,0,.8)}
+.caption .what b{font-weight:700}
+.caption .why{font-size:13px;color:var(--muted);font-style:italic;margin-top:6px}
+.caption.glow .what{animation:capglow 1.2s ease-out}
+@keyframes capglow{0%{text-shadow:0 0 30px rgba(124,242,255,.9)}100%{text-shadow:0 2px 20px rgba(0,0,0,.8)}}
+/* timeline */
+.timeline{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;width:min(760px,calc(100vw - 32px));height:36px;display:flex;align-items:flex-end;gap:3px;padding:6px 10px;overflow:hidden}
+.timeline i{flex:1 0 6px;max-width:9px;border-radius:2px 2px 0 0;cursor:pointer;opacity:.75;transition:opacity .2s}
+.timeline i:hover{opacity:1;outline:1px solid #fff}
+.timeline .lbl{position:absolute;left:10px;top:-16px;font:600 10px var(--mono);letter-spacing:.16em;color:var(--dim)}
+/* globe html elements */
+.beacon{pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translate(-50%,-50%)}
+.beacon .core{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:17px;background:radial-gradient(circle,rgba(255,255,255,.25),rgba(10,16,32,.85) 70%);border:1.5px solid currentColor;box-shadow:0 0 18px currentColor,inset 0 0 10px currentColor;transition:transform .2s}
+.beacon:hover .core{transform:scale(1.18)}
+.beacon .tag{font:600 9.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 6px #000,0 0 2px #000}
+.beacon.fire .core{animation:fire .6s ease-out}
+@keyframes fire{0%{transform:scale(1.45);box-shadow:0 0 40px currentColor,0 0 0 8px rgba(255,255,255,.25)}100%{transform:scale(1)}}
+.rlabel{pointer-events:auto;cursor:pointer;font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:rgba(234,242,255,.82);text-shadow:0 0 6px #000,0 0 3px #000;white-space:nowrap;transform:translate(8px,-50%)}
+.rlabel:hover{color:#fff}
+.bub{font:700 12px var(--mono);white-space:nowrap;text-shadow:0 0 8px currentColor,0 0 3px #000;transform:translate(-50%,-140%);animation:rise 2.4s ease-out forwards}
+@keyframes rise{0%{transform:translate(-50%,-120%)}100%{transform:translate(-50%,-320%);opacity:.0}}
+/* tooltip (globe.gl label) */
+.gtip{font-family:var(--font);background:var(--glass2);border:1px solid var(--edge);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--ink);max-width:240px}
+.gtip b{display:block;font-size:13px;margin-bottom:2px}
+.gtip span{color:var(--muted)}
+/* drawer */
+.drawer{position:fixed;top:16px;right:16px;bottom:16px;width:420px;max-width:calc(100vw - 32px);z-index:20;transform:translateX(calc(100% + 24px));transition:transform .45s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;background:var(--glass2)}
+.drawer.on{transform:none}
+.dh{display:flex;gap:12px;align-items:center;padding:18px 18px 14px;border-bottom:1px solid var(--edge)}
+.dh .av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:22px;flex:none;border:1.5px solid currentColor;box-shadow:0 0 18px currentColor}
+.dh .k{font:600 10px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.dh h4{margin:3px 0 0;font-size:18px;font-weight:600;line-height:1.25}
+.dh .x{margin-left:auto;width:32px;height:32px;border-radius:50%;border:1px solid var(--edge);flex:none}
+.dh .x:hover{background:rgba(255,255,255,.08)}
+.db{padding:16px 18px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.db p{margin:0;font-size:13.5px;line-height:1.6;color:#c7d2e8}
+.db h5{margin:4px 0 -4px;font:600 10px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{border:1px solid var(--edge);border-radius:12px;padding:9px 10px;background:rgba(255,255,255,.02)}
+.stats .k{font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.stats .v{font-size:18px;font-weight:300;margin-top:3px;font-variant-numeric:tabular-nums}
+.list{display:flex;flex-direction:column;border:1px solid var(--edge);border-radius:12px;overflow:hidden}
+.list .r{display:flex;align-items:center;gap:10px;padding:9px 12px;font-size:12.5px;border-top:1px solid rgba(140,180,255,.08);cursor:pointer}
+.list .r:first-child{border-top:0}
+.list .r:hover{background:rgba(124,180,255,.08)}
+.list .r .g{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{font-size:44px;font-weight:200;line-height:1;color:var(--accent);text-shadow:0 0 24px rgba(124,242,255,.4)}
+.chart{display:block;width:100%;height:90px}
+.mono{font-family:var(--mono);font-size:11.5px;word-break:break-all;color:#9fb0cc}
+.cta{display:block;text-align:center;text-decoration:none;padding:10px;border-radius:12px;border:1px solid rgba(124,242,255,.35);color:var(--accent);font-weight:600;font-size:13px}
+.cta:hover{background:rgba(124,242,255,.08)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--edge);cursor:pointer}
+.chips span:hover{border-color:var(--accent);color:var(--accent)}
+.ver{position:fixed;left:10px;bottom:6px;z-index:30;font:600 10.5px var(--mono);color:var(--muted);background:rgba(10,16,32,.7);border:1px solid var(--edge);padding:3px 8px;border-radius:6px}
+.loading{position:fixed;inset:0;display:grid;place-items:center;z-index:2;font:600 12px var(--mono);letter-spacing:.2em;color:var(--muted);pointer-events:none}
+@media (max-width:1100px){
+  .agents,.odds{display:none}
+}
+@media (max-width:760px){
+  .brand{left:16px;top:16px}
+  .brand h1{font-size:19px;letter-spacing:.3em}
+  .brand p{display:none}
+  .counters{right:16px;top:16px;gap:14px}
+  .counters .c3{display:none}
+  .counters .v{font-size:19px}
+  .caption{bottom:72px}
+  .caption .what{font-size:16px}
+  .caption .why{font-size:12px}
+  .timeline{bottom:26px;height:30px}
+}
+</style>
+</head>
+<body>
+<div id="globe"></div>
+<div class="vignette"></div>
+<div class="loading" id="loading">ACQUIRING ORBIT…</div>
+
+<header class="brand">
+  <h1><b id="bname"></b></h1>
+  <p id="btag"></p>
+  <div class="live"><i></i>LIVE · SOLANA DEVNET</div>
+</header>
+<div class="counters">
+  <div><div class="k">Volume 24h</div><div class="v" id="cVol"></div></div>
+  <div><div class="k">Bets / min</div><div class="v" id="cBpm">0</div></div>
+  <div class="c3"><div class="k">Resilience fund</div><div class="v fund" id="cFund"></div></div>
+</div>
+
+<aside class="agents glass"><h3>World models <span>Brier</span></h3><div id="agents"></div></aside>
+<aside class="odds glass"><h3>Odds in motion <span>YES</span></h3><div id="odds"></div></aside>
+
+<div class="caption" id="caption"><div class="who" id="capWho">Waiting for the first bet</div><div class="what" id="capWhat">&nbsp;</div><div class="why" id="capWhy">&nbsp;</div></div>
+<div class="timeline glass" id="timeline"><span class="lbl">BET STREAM</span></div>
+
+<aside class="drawer glass" id="drawer"><div class="dh" id="dh"></div><div class="db" id="db"></div></aside>
+<div class="ver">live v03 · Cinematic 3D globe</div>
+
+<script src="../shared/mock-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.33.1/dist/globe.gl.min.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+$('#bname').textContent = BRAND.name; $('#btag').textContent = BRAND.tagline; document.title = BRAND.name + ' · Orbit';
+const IMG = 'https://cdn.jsdelivr.net/npm/three-globe@2.41.12/example/img/';
+const mobile = innerWidth < 760;
+const riskRGB = r => { const t = Math.max(0, Math.min(1, (r - .45) / .45)); return t < .5 ? [255, Math.round(214 - t * 2 * 90), Math.round(120 - t * 2 * 70)] : [255, Math.round(124 - (t - .5) * 2 * 80), Math.round(50 + (t - .5) * 2 * 40)]; };
+const riskCol = (r, a = 1) => `rgba(${riskRGB(r).join(',')},${a})`;
+const mkIcon = m => m.type === 'hard' ? M.commodities[m.commodity].emoji : '🏛️';
+
+/* ---------- actors in space ---------- */
+const C = { lat: 46, lng: 16 };
+const beacons = M.agents.map((a, i) => {
+  const th = (i / M.agents.length) * Math.PI * 2 + .35;
+  return { kind: 'agent', id: a.id, a, lat: C.lat + 25 * Math.sin(th), lng: C.lng + 40 * Math.cos(th) };
+});
+const beaconById = Object.fromEntries(beacons.map(b => [b.id, b]));
+const humanCities = [[51.5, -.1], [40.7, -74], [-23.5, -46.6], [6.5, 3.4], [-1.3, 36.8], [19.1, 72.9], [1.35, 103.8], [35.7, 139.7], [-33.9, 151.2], [41.9, -87.6], [-34.6, -58.4], [-26.2, 28], [52.5, 13.4], [48.9, 2.35], [59.3, 18.1], [25.2, 55.3]];
+const botDCs = [[50.1, 8.7], [39, -77.5], [1.3, 103.8], [35.6, 139.8], [53.3, -6.3]];
+
+/* ---------- globe ---------- */
+let arcs = [], rings = [], html = [];
+const staticArcs = [];
+M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => { const t = M.getRegion(f.regionId); staticArcs.push({ static: true, startLat: r.lat, startLng: r.lng, endLat: t.lat, endLng: t.lng, color: ['rgba(255,210,122,.05)', 'rgba(255,210,122,.75)'], stroke: .25 + f.usd / 1.2e8, dash: .06, gap: .04, time: 4000, from: r, to: t, usd: f.usd }); }));
+const prod = M.regions.filter(r => r.kind === 'production');
+const riskRings = prod.filter(r => r.risk >= .62).map(r => ({ lat: r.lat, lng: r.lng, risk: true, r, max: 2 + r.risk * 4, speed: 1.2 + r.risk, period: 2600 - r.risk * 1500, col: riskRGB(r.risk) }));
+const labels = prod.filter(r => r.lng > -15 && r.lng < 45 && r.lat > 30).map(r => ({ kind: 'label', r, lat: r.lat, lng: r.lng, alt: .02 + r.risk * .16 }))
+  .concat(M.regions.filter(r => r.kind === 'capital_origin').map(r => ({ kind: 'label', r, lat: r.lat, lng: r.lng, alt: .01 })));
+html = beacons.concat(labels);
+
+let world;
+const el = $('#globe');
+function htmlFor(d) {
+  const e = document.createElement('div');
+  if (d.kind === 'agent') {
+    e.className = 'beacon'; e.style.color = d.a.color; e.dataset.id = d.id;
+    e.innerHTML = `<div class="core">${d.a.emoji}</div><div class="tag">${esc(d.a.name)}</div>`;
+    e.onclick = () => openAgent(d.id);
+  } else if (d.kind === 'label') {
+    e.className = 'rlabel'; e.textContent = d.r.name; e.style.color = d.r.kind === 'capital_origin' ? 'var(--gold)' : '';
+    e.onclick = () => openRegion(d.r.id);
+  } else {
+    e.className = 'bub'; e.style.color = d.color; e.textContent = d.text;
+  }
+  return e;
+}
+function initGlobe() {
+  world = Globe()(el)
+    .width(innerWidth).height(innerHeight)
+    .globeImageUrl(IMG + 'earth-night.jpg').bumpImageUrl(IMG + 'earth-topology.png').backgroundImageUrl(IMG + 'night-sky.png')
+    .showAtmosphere(true).atmosphereColor('#6fb6ff').atmosphereAltitude(.22)
+    .pointsData(prod).pointLat('lat').pointLng('lng').pointAltitude(r => .02 + r.risk * .16).pointRadius(r => .28 + r.risk * .35).pointColor(r => riskCol(r.risk, .9)).pointsMerge(false)
+    .pointLabel(r => `<div class="gtip"><b>${esc(r.name)}, ${esc(r.country)}</b>${esc(r.crop)}<br><span>Risk ${Math.round(r.risk * 100)} · Fund ${F.usd(r.fund)}</span><br><span>Click for details</span></div>`)
+    .onPointClick(r => openRegion(r.id))
+    .arcsData(staticArcs).arcColor('color').arcStroke('stroke').arcDashLength('dash').arcDashGap('gap').arcDashInitialGap(d => d.initGap || 0).arcDashAnimateTime('time').arcAltitudeAutoScale(.42)
+    .arcLabel(d => d.static ? `<div class="gtip"><b>${esc(d.from.name)} → ${esc(d.to.name)}</b><span>Sovereign farmland capital ${F.usd(d.usd)}</span></div>` : `<div class="gtip"><b>${esc(d.bet.actorName)} · ${d.bet.side} ${F.usd(d.bet.stake)}</b>${esc(d.bet.marketTitle)}<br><span>Click for the transaction</span></div>`)
+    .onArcClick(d => d.static ? openRegion(d.from.id) : openBet(d.bet.id))
+    .ringsData(riskRings).ringColor(d => t => `rgba(${d.col.join(',')},${(1 - t) * (d.risk ? .55 : .95)})`).ringMaxRadius('max').ringPropagationSpeed('speed').ringRepeatPeriod('period')
+    .htmlElementsData(html).htmlLat('lat').htmlLng('lng').htmlAltitude(d => d.kind === 'agent' ? .06 : d.alt || .03).htmlElement(htmlFor)
+    .pointOfView({ lat: 36, lng: 14, altitude: mobile ? 2.9 : 1.75 });
+  world.renderer().setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  const ctl = world.controls(); ctl.enableZoom = true; ctl.autoRotate = false; ctl.minDistance = 160; ctl.maxDistance = 700;
+  ctl.addEventListener('start', () => lastTouch = Date.now());
+  setTimeout(() => $('#loading').remove(), 600);
+}
+let lastTouch = 0, swayDir = 1;
+setInterval(() => { if (!world || Date.now() - lastTouch < 15000 || $('#drawer').classList.contains('on')) return; swayDir *= -1; world.pointOfView({ lat: 38 + swayDir * 4, lng: 14 + swayDir * 16, altitude: mobile ? 2.9 : 1.8 }, 9000); }, 9200);
+
+/* ---------- HUD ---------- */
+const open = M.markets.filter(m => m.status === 'open');
+let vol = open.reduce((s, m) => s + m.volume24h, 0), fund = M.fund.balance, betTimes = [];
+const counts = {};
+const showCounters = () => { $('#cVol').textContent = '$' + F.compact(vol); $('#cFund').textContent = F.usd(fund); };
+showCounters();
+$('#agents').innerHTML = M.agents.slice().sort((a, b) => a.brier - b.brier).map(a => `<div class="ag" data-a="${a.id}" style="color:${a.color}"><span class="orb"></span><span class="nm" style="color:var(--ink)">${esc(a.name)}</span><span class="ct" data-ct="${a.id}">0</span><span class="br">${a.brier.toFixed(3)}</span></div>`).join('');
+document.querySelectorAll('.ag').forEach(e => {
+  e.onclick = () => openAgent(e.dataset.a);
+  e.onmouseenter = () => { focusAgent = e.dataset.a; refreshArcs(); };
+  e.onmouseleave = () => { focusAgent = null; refreshArcs(); };
+});
+let oddsIds = open.slice().sort((a, b) => b.volume24h - a.volume24h).slice(0, 5).map(m => m.id);
+function oddCard(m) { return `<div class="od" data-m="${m.id}"><div class="t">${mkIcon(m)} ${esc(m.title)}</div><div class="p">${Math.round(m.yes * 100)}%<small class="${m.change24h >= 0 ? 'up' : 'dn'}">${m.change24h >= 0 ? '▲' : '▼'} ${Math.abs(m.change24h).toFixed(1)}</small></div><div class="bar"><i style="width:${m.yes * 100}%"></i></div></div>`; }
+function renderOdds() { $('#odds').innerHTML = oddsIds.map(id => oddCard(M.getMarket(id))).join(''); document.querySelectorAll('.od').forEach(e => e.onclick = () => openMarket(e.dataset.m)); }
+renderOdds();
+
+/* ---------- bets ---------- */
+const betById = {};
+let focusAgent = null;
+function refreshArcs() {
+  arcs.forEach(a => { const dim = focusAgent && a.bet.actorId !== focusAgent; a.color = dim ? ['rgba(255,255,255,.04)', 'rgba(255,255,255,.08)'] : a.baseColor; });
+  world && world.arcsData(staticArcs.concat(arcs));
+}
+function originOf(b) {
+  if (b.actorType === 'agent') return beaconById[b.actorId];
+  const pool = b.actorType === 'human' ? humanCities : botDCs, c = pool[Math.floor(Math.random() * pool.length)];
+  return { lat: c[0], lng: c[1] };
+}
+function onBet(b) {
+  betById[b.id] = b;
+  vol += b.stake; fund += b.stake * M.fund.cutBps / 10000; showCounters();
+  betTimes.push(Date.now()); betTimes = betTimes.filter(t => Date.now() - t < 60000);
+  $('#cBpm').textContent = Math.round(betTimes.length * 60000 / Math.max(10000, Math.min(60000, Date.now() - t0)));
+  const m = M.getMarket(b.marketId);
+  const reg = m.regions.map(M.getRegion).filter(r => r.kind === 'production');
+  const r = (reg.length ? reg : m.regions.map(M.getRegion))[Math.floor(Math.random() * (reg.length || m.regions.length))];
+  const o = originOf(b);
+  const sideCol = b.side === 'YES' ? '60,240,160' : '255,85,119';
+  const actorCol = b.actorType === 'agent' ? b.actorColor : b.actorType === 'human' ? '#cfe3ff' : '#9aa8c4';
+  const arc = { bet: b, startLat: o.lat, startLng: o.lng, endLat: r.lat, endLng: r.lng, stroke: Math.max(.35, Math.min(1.3, Math.log10(b.stake) * .32)), dash: .45, gap: 2, initGap: 1, time: 1700 };
+  arc.baseColor = [actorCol, `rgba(${sideCol},1)`]; arc.color = arc.baseColor;
+  arcs.push(arc); refreshArcs();
+  setTimeout(() => { arcs = arcs.filter(a => a !== arc); refreshArcs(); }, 3400);
+  setTimeout(() => {
+    const ring = { lat: r.lat, lng: r.lng, max: 3 + Math.log10(b.stake), speed: 4, period: 900, col: sideCol.split(',').map(Number) };
+    world.ringsData(riskRings.concat(burstRings = burstRings.concat([ring])));
+    setTimeout(() => { burstRings = burstRings.filter(x => x !== ring); world.ringsData(riskRings.concat(burstRings)); }, 1100);
+    const bub = { kind: 'bub', lat: r.lat, lng: r.lng, alt: .05, color: `rgb(${sideCol})`, text: `${b.side} $${F.compact(b.stake)}` };
+    html = html.concat([bub]); world.htmlElementsData(html);
+    setTimeout(() => { html = html.filter(x => x !== bub); world.htmlElementsData(html); }, 2400);
+  }, 1100);
+  // beacon + legend ping
+  if (b.actorType === 'agent') {
+    counts[b.actorId] = (counts[b.actorId] || 0) + 1;
+    const ct = document.querySelector(`[data-ct="${b.actorId}"]`); if (ct) ct.textContent = counts[b.actorId];
+    const ag = document.querySelector(`.ag[data-a="${b.actorId}"]`); if (ag) { ag.classList.remove('ping'); void ag.offsetWidth; ag.classList.add('ping'); }
+    const be = document.querySelector(`.beacon[data-id="${b.actorId}"]`); if (be) { be.classList.remove('fire'); void be.offsetWidth; be.classList.add('fire'); }
+  }
+  // caption
+  $('#capWho').textContent = `${b.actorType === 'agent' ? 'AI agent' : b.actorType === 'human' ? 'Human trader' : 'External agent'} · ${new Date(b.ts).toISOString().slice(11, 19)} UTC → ${r.name}`;
+  $('#capWhat').innerHTML = `${b.actorEmoji} <b style="color:${actorCol}">${esc(b.actorName)}</b> bets <b class="${b.side === 'YES' ? 'up' : 'dn'}">${b.side} ${F.usd(b.stake)}</b> on ${esc(b.marketTitle)} <span style="color:var(--muted)">${Math.round(b.priceBefore * 100)}→${Math.round(b.priceAfter * 100)}¢</span>`;
+  $('#capWhy').textContent = '“' + b.rationale + '”';
+  $('#caption').dataset.b = b.id;
+  const cap = $('#caption'); cap.classList.remove('glow'); void cap.offsetWidth; cap.classList.add('glow');
+  // odds
+  if (oddsIds.includes(b.marketId)) {
+    const card = document.querySelector(`.od[data-m="${b.marketId}"]`);
+    card.querySelector('.p').firstChild.nodeValue = Math.round(m.yes * 100) + '%';
+    card.querySelector('.bar i').style.width = m.yes * 100 + '%';
+    card.classList.remove('tick-up', 'tick-dn'); void card.offsetWidth; card.classList.add(b.priceImpact >= 0 ? 'tick-up' : 'tick-dn');
+    clearTimeout(card._t); card._t = setTimeout(() => card.classList.remove('tick-up', 'tick-dn'), 900);
+  } else { oddsIds = [b.marketId].concat(oddsIds).slice(0, 5); renderOdds(); }
+  // timeline
+  const tl = $('#timeline');
+  const tick = document.createElement('i');
+  tick.style.height = Math.max(4, Math.min(24, Math.log10(b.stake) * 7)) + 'px';
+  tick.style.background = b.side === 'YES' ? 'var(--yes)' : 'var(--no)';
+  tick.style.boxShadow = `0 0 8px ${b.side === 'YES' ? 'var(--yes)' : 'var(--no)'}`;
+  tick.title = `${b.actorName} ${b.side} ${F.usd(b.stake)}`;
+  tick.onclick = () => openBet(b.id);
+  tl.appendChild(tick);
+  while (tl.querySelectorAll('i').length > 80) tl.querySelector('i').remove();
+}
+let burstRings = [];
+$('#caption').onclick = () => { const id = $('#caption').dataset.b; if (id) openBet(id); };
+
+/* ---------- drawer ---------- */
+function openDrawer(head, body, pov) {
+  $('#dh').innerHTML = head + '<button class="x" aria-label="Close">✕</button>';
+  $('#db').innerHTML = body; $('#dh .x').onclick = closeDrawer;
+  $('#drawer').classList.add('on');
+  $('#db').querySelectorAll('[data-open]').forEach(e => e.onclick = () => { const [k, id] = e.dataset.open.split(':'); ({ m: openMarket, a: openAgent, r: openRegion, b: openBet })[k](id); });
+  if (pov && world) { lastTouch = Date.now(); world.pointOfView(Object.assign({ altitude: mobile ? 2.4 : 1.35 }, pov, { lng: pov.lng + (mobile ? 0 : 14) }), 1600); }
+}
+function closeDrawer() { $('#drawer').classList.remove('on'); }
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+const head = (k, t, av, col) => `<div class="av" style="color:${col || 'var(--accent)'}">${av}</div><div><div class="k">${k}</div><h4>${esc(t)}</h4></div>`;
+const chart = (vals, col) => { const w = 380, h = 90, lo = Math.min(...vals), hi = Math.max(...vals), sx = w / (vals.length - 1), sy = v => h - 6 - (v - lo) / ((hi - lo) || 1) * (h - 12); const d = vals.map((v, i) => (i ? 'L' : 'M') + (i * sx).toFixed(1) + ',' + sy(v).toFixed(1)).join(''); return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="g${col.slice(1)}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${d}L${w},${h}L0,${h}Z" fill="url(#g${col.slice(1)})"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px ${col})"/></svg>`; };
+const betList = l => l.length ? `<div class="list">${l.slice(0, 6).map(b => `<div class="r" data-open="b:${b.id}"><span>${b.actorEmoji}</span><span class="g">${esc(b.actorName)} · ${esc(b.marketTitle)}</span><b class="${b.side === 'YES' ? 'up' : 'dn'}">${b.side}</b><span>${F.usd(b.stake)}</span></div>`).join('')}</div>` : '<p>No bets yet this session.</p>';
+const recent = f => Object.values(betById).filter(f).sort((a, b) => b.ts - a.ts);
+function openMarket(id) {
+  const m = M.getMarket(id), r0 = M.getRegion(m.regions[0]);
+  openDrawer(head(m.type === 'hard' ? 'Commodity market' : 'Policy market', m.title, mkIcon(m)), `
+    <div style="display:flex;align-items:baseline;gap:12px"><span class="big">${Math.round(m.yes * 100)}%</span><span class="${m.change7d >= 0 ? 'up' : 'dn'}">${m.change7d >= 0 ? '▲' : '▼'} ${Math.abs(m.change7d).toFixed(1)} pts · 7d</span></div>
+    ${chart(m.probHistory.concat([m.yes]), '#7cf2ff')}
+    <div class="stats"><div><div class="k">Volume</div><div class="v">$${F.compact(m.volume)}</div></div><div><div class="k">Agents say</div><div class="v">${Math.round(m.agentEstimate * 100)}%</div></div><div><div class="k">Ends</div><div class="v" style="font-size:14px">${m.endDate}</div></div></div>
+    <p>${esc(m.description)}</p>
+    <h5>Regions</h5><div class="chips">${m.regions.map(r => `<span data-open="r:${r}">${esc(M.getRegion(r).name)}</span>`).join('')}</div>
+    <h5>World models on this question</h5><div class="list">${m.positions.slice().sort((a, b) => b.stake - a.stake).map(p => { const a = M.getAgent(p.agentId); return `<div class="r" data-open="a:${a.id}"><span style="color:${a.color}">●</span><span class="g">${esc(a.name)}</span><b class="${p.side === 'YES' ? 'up' : 'dn'}">${p.side}</b><span style="color:var(--muted)">${Math.round(p.estimate * 100)}%</span><span>${F.usd(p.stake)}</span></div>`; }).join('')}</div>
+    <h5>Live bets</h5>${betList(recent(b => b.marketId === id))}`, { lat: r0.lat, lng: r0.lng });
+}
+function openAgent(id) {
+  const a = M.getAgent(id), bc = beaconById[id];
+  openDrawer(head('World model', a.name, a.emoji, a.color), `
+    <p style="font-size:16px;color:var(--ink);font-weight:300;line-height:1.5">“${esc(a.worldModel)}”</p>
+    <div class="stats"><div><div class="k">PnL</div><div class="v ${a.pnl >= 0 ? 'up' : 'dn'}">${a.pnl >= 0 ? '+' : ''}$${F.compact(a.pnl)}</div></div><div><div class="k">Brier</div><div class="v">${a.brier.toFixed(3)}</div></div><div><div class="k">Win rate</div><div class="v">${Math.round(a.winRate * 100)}%</div></div></div>
+    <h5>Cumulative PnL · ${M.quarters[0]} → ${M.quarters[M.quarters.length - 1]}</h5>${chart(a.pnlHistory, a.color)}
+    <p>${esc(a.conviction)}</p>
+    <h5>Biggest positions</h5><div class="list">${open.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6).map(({ m, p }) => `<div class="r" data-open="m:${m.id}"><span>${mkIcon(m)}</span><span class="g">${esc(m.title)}</span><b class="${p.side === 'YES' ? 'up' : 'dn'}">${p.side}</b><span>${F.usd(p.stake)}</span></div>`).join('')}</div>
+    <h5>Live bets</h5>${betList(recent(b => b.actorId === id))}`, { lat: bc.lat, lng: bc.lng });
+}
+function openRegion(id) {
+  const r = M.getRegion(id), mks = open.filter(m => m.regions.includes(id));
+  const cap = r.kind === 'capital_origin';
+  openDrawer(head(cap ? 'Sovereign capital origin' : 'Region · ' + r.country, r.name, cap ? '🏛️' : '📍', cap ? 'var(--gold)' : riskCol(r.risk)), `
+    ${cap ? '' : `<div class="stats"><div><div class="k">Climate risk</div><div class="v" style="color:${riskCol(r.risk)}">${Math.round(r.risk * 100)}</div></div><div><div class="k">Fund alloc.</div><div class="v">$${F.compact(r.fund)}</div></div><div><div class="k">Live bets</div><div class="v">${recent(b => mks.some(m => m.id === b.marketId)).length}</div></div></div>`}
+    <p><b>${esc(r.crop)}.</b> ${esc(r.note)}</p>
+    ${cap ? `<h5>Farmland capital out</h5><div class="list">${r.flowsTo.map(f => `<div class="r" data-open="r:${f.regionId}"><span>→</span><span class="g">${esc(M.getRegion(f.regionId).name)}</span><span>${F.usd(f.usd)}</span></div>`).join('')}</div>` : ''}
+    <h5>Markets</h5><div class="list">${mks.map(m => `<div class="r" data-open="m:${m.id}"><span>${mkIcon(m)}</span><span class="g">${esc(m.title)}</span><b>${Math.round(m.yes * 100)}%</b></div>`).join('') || '<div class="r">No open markets</div>'}</div>
+    <h5>Live bets</h5>${betList(recent(b => mks.some(m => m.id === b.marketId)))}`, { lat: r.lat, lng: r.lng });
+}
+function openBet(id) {
+  const b = betById[id]; if (!b) return;
+  const col = b.actorType === 'agent' ? b.actorColor : '#cfe3ff';
+  openDrawer(head(b.actorType === 'agent' ? 'Agent bet' : b.actorType === 'human' ? 'Human bet' : 'External agent bet', `${b.side} ${F.usd(b.stake)}`, b.actorEmoji, col), `
+    <div class="list"><div class="r" ${b.actorType === 'agent' ? `data-open="a:${b.actorId}"` : ''}><span>${b.actorEmoji}</span><span class="g">${esc(b.actorName)}</span><span style="color:var(--muted)">${new Date(b.ts).toISOString().slice(11, 19)}</span></div><div class="r" data-open="m:${b.marketId}"><span>${mkIcon(M.getMarket(b.marketId))}</span><span class="g">${esc(b.marketTitle)}</span></div></div>
+    <div class="stats"><div><div class="k">Before</div><div class="v">${Math.round(b.priceBefore * 100)}¢</div></div><div><div class="k">After</div><div class="v">${Math.round(b.priceAfter * 100)}¢</div></div><div><div class="k">Impact</div><div class="v ${b.priceImpact >= 0 ? 'up' : 'dn'}">${b.priceImpact >= 0 ? '+' : ''}${b.priceImpact.toFixed(2)}</div></div></div>
+    <h5>Why</h5><p>“${esc(b.rationale)}”</p>
+    <h5>Solana devnet signature</h5><p class="mono">${b.tx}</p>
+    <a class="cta" target="_blank" rel="noopener" href="https://explorer.solana.com/tx/${b.tx}?cluster=devnet">View on Solana Explorer ↗</a>`);
+}
+
+/* ---------- go ---------- */
+const t0 = Date.now();
+initGlobe();
+const stream = M.makeBetStream({ minMs: 450, maxMs: 1300 });
+stream.on(onBet);
+M.recentBets(60).reverse().forEach(b => { betById[b.id] = b; const tl = $('#timeline'), i = document.createElement('i'); i.style.height = Math.max(4, Math.min(24, Math.log10(b.stake) * 7)) + 'px'; i.style.background = b.side === 'YES' ? 'var(--yes)' : 'var(--no)'; i.style.opacity = .35; i.onclick = () => openBet(b.id); tl.appendChild(i); });
+[300, 600, 950, 1300].forEach(t => setTimeout(() => stream.next(), t));
+setTimeout(() => stream.start(), 1400);
+addEventListener('resize', () => world && world.width(innerWidth).height(innerHeight));
+</script>
+</body>
+</html>

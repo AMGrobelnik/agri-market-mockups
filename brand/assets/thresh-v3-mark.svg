@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<defs>
+<linearGradient id="sol" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#9945FF"/><stop offset="1" stop-color="#14F1B5"/>
+</linearGradient>
+<linearGradient id="solv" x1="0" y1="1" x2="0" y2="0">
+  <stop offset="0" stop-color="#9945FF"/><stop offset="1" stop-color="#14F1B5"/>
+</linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#FFD877"/><stop offset="1" stop-color="#D98E04"/>
+</linearGradient>
+<radialGradient id="sun" cx="0.5" cy="0.45" r="0.6">
+  <stop offset="0" stop-color="#FFD877"/><stop offset="0.7" stop-color="#F5B83D"/><stop offset="1" stop-color="#D98E04"/>
+</radialGradient>
+</defs>
+<path d="M32,52 L17,30 M32,52 V22 M32,52 L47,30" stroke="#D98E04" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path d="M0,-12.5 C7.1875,-5.625 7.1875,5.625 0,12.5 C-7.1875,5.625 -7.1875,-5.625 0,-12.5 Z" fill="#9945FF" transform="translate(16.5 28) rotate(-34)"/>
+<path d="M0,-12.5 C7.1875,-5.625 7.1875,5.625 0,12.5 C-7.1875,5.625 -7.1875,-5.625 0,-12.5 Z" fill="#14F1B5" transform="translate(47.5 28) rotate(34)"/>
+<path d="M0,-14.5 C8.4375,-6.525 8.4375,6.525 0,14.5 C-8.4375,6.525 -8.4375,-6.525 0,-14.5 Z" fill="url(#gold)" transform="translate(32 16) rotate(0)"/>
+<rect x="10" y="51" width="44" height="7" rx="3.5" fill="url(#sol)"/>
+</svg>

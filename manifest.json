@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T14:45:41+00:00",
+ "generated": "2026-10-25T14:48:48+00:00",
  "pages": {
   "landing": [
    {
@@ -102,18 +102,30 @@
    },
    {
     "n": 3,
+    "id": "03",
+    "file": "live/v03.html",
+    "shot": null
+   },
+   {
+    "n": 4,
     "id": "04",
     "file": "live/v04.html",
     "shot": "_shots/live-v04.png"
    },
    {
-    "n": 4,
+    "n": 5,
     "id": "05",
     "file": "live/v05.html",
     "shot": "_shots/live-v05.png"
    },
    {
-    "n": 5,
+    "n": 6,
+    "id": "06",
+    "file": "live/v06.html",
+    "shot": "_shots/live-v06.png"
+   },
+   {
+    "n": 7,
     "id": "13",
     "file": "live/v13.html",
     "shot": "_shots/live-v13.png"

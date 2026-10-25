@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST The Pit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#f4f1ea; --ink:#000; --paper:#fff;
+  --yellow:#ffe500; --pink:#ff3ea5; --blue:#2b59ff; --lime:#a6ff00; --orange:#ff6b1a; --cyan:#00e0ff;
+  --yes:#a6ff00; --no:#ff3ea5;
+  --b:3px solid #000; --sh:6px 6px 0 #000;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--ink);overflow:hidden}
+.H{font-family:'Archivo Black',Impact,sans-serif;text-transform:uppercase;letter-spacing:-.01em}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.app{display:grid;grid-template-columns:250px 1fr 360px;grid-template-rows:62px 46px 1fr 112px;gap:14px;height:100vh;padding:0 16px 16px}
+
+/* header */
+header{grid-column:1/4;margin:0 -16px;background:#000;color:#fff;display:flex;align-items:center;gap:20px;padding:0 16px}
+.logo{font-size:34px;color:var(--yellow);line-height:1}
+.logo span{color:#fff}
+header nav{display:flex;gap:4px}
+header nav a{color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:6px 10px;border:2px solid transparent}
+header nav a.on{background:var(--yellow);color:#000;border-color:var(--yellow)}
+.hstat{margin-left:auto;display:flex;gap:10px}
+.chip{border:2px solid #fff;padding:4px 10px;font-weight:700;font-size:13px;white-space:nowrap}
+.chip.live{background:var(--lime);color:#000;border-color:var(--lime)}
+.chip.live::before{content:"● ";animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+
+/* marquee */
+.marq{grid-column:1/4;margin:0 -16px;background:var(--yellow);border-bottom:var(--b);overflow:hidden;display:flex;align-items:center}
+.marq .tr{display:flex;gap:40px;white-space:nowrap;animation:mq 50s linear infinite;width:max-content;font-size:20px}
+.marq .tr span b{font-family:'Archivo Black'} .marq .u{color:#0a8f00}.marq .d{color:#d1006d}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* agents */
+.agents{display:flex;flex-direction:column;gap:7px;min-height:0;overflow:hidden}
+.sec-t{font-size:15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.sec-t small{font-family:'Space Mono';font-size:11px;font-weight:700;text-transform:none;background:#000;color:#fff;padding:1px 6px}
+.ag{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;background:var(--paper);border:var(--b);box-shadow:4px 4px 0 #000;padding:4px 8px;cursor:pointer;position:relative;transition:transform .08s,box-shadow .08s}
+.ag:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000}
+.ag .em{width:32px;height:32px;display:grid;place-items:center;font-size:17px;background:var(--c);border:2px solid #000}
+.ag .nm{font-weight:700;font-size:12px;line-height:1.1}
+.ag .wm{font-size:10px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag .pl{font-weight:700;font-size:12px;text-align:right}
+.ag.fire{background:#000;color:#fff}
+.ag.fire::after{content:"BET!";position:absolute;right:-8px;top:-10px;background:var(--pink);color:#000;font-family:'Archivo Black';font-size:12px;padding:1px 6px;border:2px solid #000;transform:rotate(8deg)}
+
+/* tile map */
+.pit{position:relative;background:var(--paper);border:var(--b);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;min-height:0}
+.pit-h{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.pit-h h2{font-size:28px;line-height:1;white-space:nowrap}
+.pit-h p{font-size:12px}
+.key{margin-left:auto;display:flex;gap:4px;font-size:10px;font-weight:700}
+.key i{display:inline-block;padding:2px 6px;border:2px solid #000;font-style:normal}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;flex:1;min-height:0}
+.cell{border:1.5px dashed rgba(0,0,0,.14)}
+.tile{position:relative;background:var(--c);border:var(--b);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:4px 6px;transition:transform .08s,box-shadow .08s;box-shadow:3px 3px 0 #000;min-width:0}
+.tile:hover{transform:translate(-3px,-3px);box-shadow:7px 7px 0 #000;z-index:3}
+.tile .cd{font-family:'Archivo Black';font-size:20px;line-height:1}
+.tile .ce{position:absolute;left:5px;bottom:3px;font-size:14px}
+.tile .rk{font-family:'Archivo Black';font-size:15px;text-align:right;line-height:1}
+.tile .nm{position:absolute;left:-3px;top:calc(100% + 4px);background:#000;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;white-space:nowrap;display:none;z-index:5}
+.tile:hover .nm{display:block}
+.tile .hits{position:absolute;right:-6px;top:-8px;font-size:10px;font-weight:700;background:#000;color:#fff;padding:0 4px}.tile .hits:empty{display:none}
+.tile.shake{animation:shake .35s steps(4)}
+@keyframes shake{25%{transform:translate(3px,-2px)}50%{transform:translate(-3px,2px)}75%{transform:translate(2px,2px)}}
+.tile.cap{background:#000;color:var(--yellow)}
+.stamp{position:absolute;z-index:6;left:50%;top:50%;font-family:'Archivo Black';font-size:13px;padding:2px 6px;border:2.5px solid #000;white-space:nowrap;pointer-events:none;animation:slap 2.2s forwards}
+@keyframes slap{0%{transform:translate(-50%,-50%) scale(2.4) rotate(var(--r));opacity:0}10%{transform:translate(-50%,-50%) scale(1) rotate(var(--r));opacity:1}80%{opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(var(--r));opacity:0}}
+.far{margin-top:12px}
+.far-t{font-size:12px;font-weight:700;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.far-t::after{content:"";flex:1;border-top:3px solid #000}
+.farrow{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;height:66px}
+.farrow .tile .cd{font-size:16px}
+.bullet{position:fixed;z-index:30;width:22px;height:22px;border:2.5px solid #000;font-family:'Archivo Black';font-size:11px;display:grid;place-items:center;pointer-events:none;left:0;top:0}
+
+/* big board */
+.board{display:flex;flex-direction:column;gap:12px;min-height:0}
+.hot{background:var(--blue);color:#fff;border:var(--b);box-shadow:var(--sh);padding:14px 16px;cursor:pointer;position:relative}
+.hot .lbl{display:inline-block;background:var(--yellow);color:#000;font-weight:700;font-size:11px;padding:1px 6px;border:2px solid #000}
+.hot h3{font-size:19px;line-height:1.1;margin:10px 0 4px;min-height:42px}
+.hot .num{font-family:'Archivo Black';font-size:96px;line-height:.9;letter-spacing:-.04em}
+.hot .num small{font-size:28px}
+.hot .dl{font-weight:700;font-size:14px;padding:2px 8px;border:2px solid #000;display:inline-block;color:#000;white-space:nowrap}
+.split{display:flex;height:22px;border:2.5px solid #000;margin-top:10px;background:var(--no)}
+.split i{background:var(--yes);border-right:2.5px solid #000;transition:width .3s steps(5)}
+.hot .last{font-size:11px;margin-top:8px}
+.list{background:var(--paper);border:var(--b);box-shadow:var(--sh);padding:12px 14px;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:8px}
+.lr{cursor:pointer;display:grid;grid-template-columns:1fr 56px;gap:8px;align-items:center}
+.lr:hover .t{text-decoration:underline;text-decoration-thickness:3px}
+.lr .t{font-size:11.5px;font-weight:700;line-height:1.2}
+.lr .bar{grid-column:1;height:12px;border:2px solid #000;background:var(--bg)}
+.lr .bar i{display:block;height:100%;background:#000;transition:width .3s steps(4)}
+.lr .v{grid-row:1/3;grid-column:2;font-family:'Archivo Black';font-size:22px;text-align:right}
+.lr.flash .v{background:var(--yellow)}
+
+/* tape */
+.tape{grid-column:1/4;display:flex;gap:10px;overflow:hidden;align-items:stretch;border-top:var(--b);padding-top:12px;margin:0 -16px;padding-left:16px;position:relative}
+.tape-h{writing-mode:vertical-rl;transform:rotate(180deg);font-size:16px;background:#000;color:var(--lime);padding:6px 4px;text-align:center;flex:none}
+.tk{flex:none;width:230px;background:var(--paper);border:var(--b);box-shadow:4px 4px 0 #000;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;animation:in .3s steps(3)}
+.tk:hover{background:var(--yellow)}
+@keyframes in{from{transform:translateY(-24px);background:var(--yellow)}}
+.tk .a{font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tk .m{font-size:10.5px;line-height:1.2;max-height:26px;overflow:hidden}
+.tk .r{display:flex;justify-content:space-between;align-items:center}
+.sd{font-family:'Archivo Black';font-size:12px;padding:0 6px;border:2px solid #000}
+.sd.YES{background:var(--yes)}.sd.NO{background:var(--no)}
+.tk .s{font-family:'Archivo Black';font-size:18px}
+
+/* modal */
+#scrim{position:fixed;inset:0;z-index:40;background:repeating-linear-gradient(45deg,rgba(255,229,0,.85) 0 18px,rgba(0,0,0,.85) 18px 36px);opacity:0;pointer-events:none;transition:opacity .15s}
+#modal{position:fixed;z-index:50;left:50%;top:50%;width:640px;max-width:calc(100vw - 24px);max-height:calc(100vh - 40px);overflow:auto;background:var(--paper);border:4px solid #000;box-shadow:14px 14px 0 #000;padding:22px 24px;transform:translate(-50%,-150vh) rotate(-3deg);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+body.open #scrim{opacity:1;pointer-events:auto} body.open #modal{transform:translate(-50%,-50%) rotate(0)}
+#modal .x{position:absolute;top:12px;right:12px;width:40px;height:40px;background:var(--pink);border:3px solid #000;font-family:'Archivo Black';font-size:20px;box-shadow:3px 3px 0 #000}
+.mk{display:inline-block;background:#000;color:var(--yellow);font-weight:700;font-size:12px;padding:2px 8px;margin-bottom:10px}
+#modal h2{font-size:32px;line-height:1;margin-bottom:12px;padding-right:50px}
+#modal p{font-size:13px;line-height:1.5;margin-bottom:12px}
+.boxes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.boxes div{border:3px solid #000;padding:8px 10px;background:var(--bg)}
+.boxes div:nth-child(1){background:var(--lime)}.boxes div:nth-child(2){background:var(--cyan)}.boxes div:nth-child(3){background:var(--yellow)}.boxes div:nth-child(4){background:var(--orange)}
+.boxes small{display:block;font-size:10px;font-weight:700}
+.boxes b{font-family:'Archivo Black';font-size:19px}
+.st{font-family:'Archivo Black';text-transform:uppercase;font-size:15px;margin:14px 0 6px;border-bottom:3px solid #000;padding-bottom:3px}
+.rw{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border:2px solid #000;margin-bottom:5px;font-size:12.5px;cursor:pointer;font-weight:700}
+.rw:hover{background:var(--yellow)}
+.giant{font-family:'Archivo Black';font-size:80px;line-height:.9}
+.tx{font-size:11px;word-break:break-all;background:#000;color:var(--lime);padding:8px}
+.vlabel{position:fixed;left:8px;bottom:2px;font:700 11px 'Space Mono',monospace;color:#000;background:var(--yellow);padding:0 4px;z-index:60;pointer-events:none}
+
+@media (max-width:900px){
+  body{overflow-x:hidden;overflow-y:auto}
+  .app{display:flex;flex-direction:column;height:auto;padding:0 16px 40px}
+  header{flex-wrap:wrap;padding:10px 16px;gap:8px}header nav,.hstat .chip:not(.live){display:none}
+  .logo{font-size:28px}
+  .pit{order:1}.board{order:2}.agents{order:3}.tape{order:4}
+  .pit-h{flex-wrap:wrap}.key{margin-left:0}
+  .grid{aspect-ratio:10/7}.tile{padding:2px 3px}.tile .cd{font-size:11px}.tile .ce,.tile .hits{display:none}.tile .rk{font-size:10px}
+  .farrow{height:46px}.farrow .tile .cd{font-size:11px}
+  .tape{flex-wrap:nowrap;overflow-x:auto;margin:0}
+  .hot .num{font-size:72px}
+  .boxes{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo H" id="logo">HARVEST<span>.</span></div>
+    <nav><a href="#">MARKETS</a><a href="#" class="on">LIVE</a><a href="#">AGENTS</a><a href="#">BACKTEST</a><a href="#">FUND</a></nav>
+    <div class="hstat"><span class="chip" id="cVol">VOL $0</span><span class="chip" id="cFund" style="cursor:pointer">FUND $0</span><span class="chip" id="cSlot">SLOT 0</span><span class="chip live">DEVNET LIVE</span></div>
+  </header>
+  <div class="marq"><div class="tr" id="marq"></div></div>
+
+  <aside class="agents">
+    <div class="sec-t H">The bettors <small id="aN">0 bets</small></div>
+    <div id="agents" style="display:flex;flex-direction:column;gap:6px"></div>
+  </aside>
+
+  <section class="pit">
+    <div class="pit-h"><h2 class="H">The pit</h2><p>Every square is a region. Bets hit where the harvest is at stake.</p>
+      <div class="key"><i style="background:var(--lime)">&lt;60</i><i style="background:var(--yellow)">60+</i><i style="background:var(--orange)">70+</i><i style="background:var(--pink)">80+ RISK</i></div></div>
+    <div class="grid" id="grid"></div>
+    <div class="far"><div class="far-t H">Far fields</div><div class="farrow" id="farrow"></div></div>
+  </section>
+
+  <aside class="board">
+    <div class="hot" id="hot"></div>
+    <div class="list" id="list"><div class="sec-t H">Odds board <small>live</small></div></div>
+  </aside>
+
+  <section class="tape" id="tape"><div class="tape-h H">Tape</div></section>
+</div>
+<div id="scrim"></div>
+<div id="modal"><button class="x" id="mx">X</button><div id="mb"></div></div>
+<div class="vlabel">live v06 · Neo-brutalist</div>
+
+<script src="../shared/mock-data.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+document.getElementById('logo').firstChild.textContent = BRAND.name;
+document.title = BRAND.name + ' The Pit';
+const M = window.MOCK, F = M.fmt, $ = s => document.querySelector(s);
+const openMarkets = M.markets.filter(m => m.status === 'open');
+const riskBg = r => r <= 0 ? '#000' : r >= .8 ? 'var(--pink)' : r >= .7 ? 'var(--orange)' : r >= .6 ? 'var(--yellow)' : 'var(--lime)';
+const bets = [];
+
+/* ---------- tile cartogram ---------- */
+const POS = { beauce: [2, 0], ukraine_chernozem: [7, 0], pannonia: [5, 1], kuban: [8, 1], ebro: [1, 2], catalonia: [2, 2], po_valley: [4, 2], dobrogea: [6, 2], andalusia: [0, 3], puglia: [4, 3], thessaly: [5, 3], crete: [5, 4], riyadh: [7, 5], abu_dhabi: [8, 5] };
+const FAR = ['mato_grosso', 'minas_gerais', 'ci_cocoa', 'ghana_ashanti', 'punjab', 'mekong'];
+const CODE = { beauce: 'BEA', ukraine_chernozem: 'UKR', pannonia: 'PAN', kuban: 'KUB', ebro: 'EBR', catalonia: 'CAT', po_valley: 'PO', dobrogea: 'DOB', andalusia: 'AND', puglia: 'PUG', thessaly: 'THE', crete: 'CRE', riyadh: 'RUH', abu_dhabi: 'AUH', mato_grosso: 'MTG', minas_gerais: 'MGS', ci_cocoa: 'CIV', ghana_ashanti: 'ASH', punjab: 'PUN', mekong: 'MEK' };
+const ROWS = 6, tileEl = {}, hits = {};
+const grid = $('#grid'); grid.style.gridTemplateRows = `repeat(${ROWS},1fr)`;
+const occupied = {}; Object.entries(POS).forEach(([id, [c, r]]) => occupied[c + ',' + r] = id);
+for (let r = 0; r < ROWS; r++) for (let c = 0; c < 10; c++) {
+  const id = occupied[c + ',' + r];
+  grid.appendChild(id ? makeTile(id) : Object.assign(document.createElement('div'), { className: 'cell' }));
+}
+FAR.forEach(id => $('#farrow').appendChild(makeTile(id)));
+function makeTile(id) {
+  const g = M.getRegion(id), el = document.createElement('div');
+  el.className = 'tile' + (g.kind === 'capital_origin' ? ' cap' : ''); el.style.setProperty('--c', riskBg(g.risk));
+  const em = g.kind === 'capital_origin' ? '💰' : (M.commodities[g.commodities[0]] || {}).emoji || '';
+  el.innerHTML = `<span class="cd">${CODE[id]}</span><span class="ce">${em}</span><span class="hits"></span><span class="rk">${g.risk ? Math.round(g.risk * 100) : '$$$'}</span><span class="nm">${g.name.toUpperCase()} · ${g.country.toUpperCase()}</span>`;
+  el.onclick = () => openRegion(id); tileEl[id] = el; return el;
+}
+
+/* ---------- agents ---------- */
+const actors = M.agents.map(a => ({ id: a.id, name: a.name, emoji: a.emoji, color: a.color, pnl: a.pnl, wm: a.worldModel }))
+  .concat([{ id: '_ext', name: 'External bots', emoji: '🤖', color: '#00e0ff', wm: 'Third-party agents via API' }, { id: '_hum', name: 'Humans', emoji: '🙋', color: '#ffe500', wm: '30 traders online' }]);
+const agEl = {}, agN = {};
+actors.forEach(a => {
+  const el = document.createElement('div'); el.className = 'ag'; el.style.setProperty('--c', a.color);
+  el.innerHTML = `<div class="em">${a.emoji}</div><div style="min-width:0"><div class="nm">${a.name.toUpperCase()}</div><div class="wm">${a.wm}</div></div><div class="pl">${a.pnl == null ? '' : (a.pnl >= 0 ? '+' : '−') + F.compact(Math.abs(a.pnl))}</div>`;
+  el.onclick = () => a.id[0] === '_' ? openCrowd(a.id) : openAgent(a.id);
+  $('#agents').appendChild(el); agEl[a.id] = el;
+});
+const keyOf = b => b.actorType === 'agent' ? b.actorId : b.actorType === 'external_agent' ? '_ext' : '_hum';
+
+/* ---------- board ---------- */
+const listed = openMarkets.slice().sort((a, b) => b.volume24h - a.volume24h).slice(0, 8), lrEl = {};
+listed.forEach(m => { const el = document.createElement('div'); el.className = 'lr'; el.innerHTML = `<div class="t">${m.title.toUpperCase()}</div><div class="bar"><i></i></div><div class="v"></div>`; el.onclick = () => openMarket(m.id); $('#list').appendChild(el); lrEl[m.id] = el; paintLr(m); });
+function paintLr(m) { const el = lrEl[m.id]; if (!el) return; el.querySelector('i').style.width = m.yes * 100 + '%'; el.querySelector('.v').textContent = F.pct(m.yes); }
+let hotId = listed[0].id;
+function paintHot(b) {
+  const m = M.getMarket(hotId), up = b ? b.priceImpact >= 0 : m.change24h >= 0, d = b ? b.priceImpact : m.change24h;
+  $('#hot').innerHTML = `<span class="lbl">${b ? 'JUST MOVED' : 'HOTTEST'}</span><h3 class="H">${m.title}</h3>
+  <div style="display:flex;align-items:flex-end;gap:12px"><div class="num">${Math.round(m.yes * 100)}<small>%</small></div><div style="margin-bottom:10px"><div class="H" style="font-size:22px;line-height:1">YES</div><span class="dl" style="background:${up ? 'var(--yes)' : 'var(--no)'};margin-top:6px">${up ? '▲' : '▼'} ${Math.abs(d).toFixed(2)} PTS</span></div></div>
+  <div class="split"><i style="width:${m.yes * 100}%"></i></div>
+  <div class="last">${b ? `LAST: ${b.actorName.toUpperCase()} · ${b.side} · ${F.usd(b.stake)}` : `VOL $${F.compact(m.volume)} · ${m.traders} TRADERS`}</div>`;
+}
+$('#hot').onclick = () => openMarket(hotId);
+paintHot();
+
+/* ---------- marquee + tape ---------- */
+function paintMarq() { const s = openMarkets.map(m => `<span>${m.type === 'hard' ? M.commodities[m.commodity].emoji : '🏛️'} ${m.title.toUpperCase()} <b class="${m.change24h >= 0 ? 'u' : 'd'}">${F.pct(m.yes)} ${m.change24h >= 0 ? '▲' : '▼'}</b></span>`).join(''); $('#marq').innerHTML = s + s; }
+paintMarq();
+const tape = $('#tape');
+function tk(b, anim) {
+  const el = document.createElement('div'); el.className = 'tk'; if (!anim) el.style.animation = 'none';
+  el.innerHTML = `<div class="a">${b.actorEmoji} ${b.actorName.toUpperCase()}</div><div class="m">${b.marketTitle}</div><div class="r"><span class="sd ${b.side}">${b.side}</span><span class="s">${F.usd(b.stake)}</span></div>`;
+  el.onclick = () => openBet(b); tape.insertBefore(el, tape.children[1]); while (tape.children.length > 9) tape.lastChild.remove();
+}
+M.recentBets(8).reverse().forEach(b => { tk(b, false); bets.push(b); });
+
+/* ---------- stats ---------- */
+let vol = openMarkets.reduce((s, m) => s + m.volume24h, 0), fund = M.fund.balance, slot = 318442196, n = 0;
+function stats() { $('#cVol').textContent = 'VOL $' + F.compact(vol); $('#cFund').textContent = 'FUND ' + F.usd(fund); $('#aN').textContent = n + ' BETS'; }
+setInterval(() => { slot += 3; $('#cSlot').textContent = 'SLOT ' + slot.toLocaleString('en-US'); }, 400);
+stats(); $('#cFund').onclick = () => openFund();
+
+/* ---------- fire ---------- */
+function fire(b) {
+  const m = M.getMarket(b.marketId), rid = m.regions[Math.floor(Math.random() * m.regions.length)], t = tileEl[rid], a = agEl[keyOf(b)];
+  a.classList.add('fire'); clearTimeout(a._t); a._t = setTimeout(() => a.classList.remove('fire'), 700);
+  if (!t) return;
+  const ar = a.getBoundingClientRect(), tr = t.getBoundingClientRect();
+  const bl = document.createElement('div'); bl.className = 'bullet'; bl.textContent = b.side[0];
+  bl.style.background = b.side === 'YES' ? 'var(--yes)' : 'var(--no)'; document.body.appendChild(bl);
+  const x1 = ar.right - 14, y1 = ar.top + ar.height / 2 - 11, x2 = tr.left + tr.width / 2 - 11, y2 = tr.top + tr.height / 2 - 11;
+  bl.animate([{ transform: `translate(${x1}px,${y1}px) rotate(0)` }, { transform: `translate(${x2}px,${y2}px) rotate(360deg)` }], { duration: 560, easing: 'steps(7,end)', fill: 'forwards' })
+    .onfinish = () => { bl.remove(); impact(b, rid); };
+}
+function impact(b, rid) {
+  const t = tileEl[rid]; t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake');
+  hits[rid] = (hits[rid] || 0) + 1; t.querySelector('.hits').textContent = '×' + hits[rid];
+  const s = document.createElement('div'); s.className = 'stamp'; s.style.setProperty('--r', (Math.random() * 24 - 12) + 'deg');
+  s.style.background = b.side === 'YES' ? 'var(--yes)' : 'var(--no)'; s.textContent = `${b.side} ${F.usd(b.stake)}`;
+  t.appendChild(s); setTimeout(() => s.remove(), 2200);
+}
+
+const stream = M.makeBetStream({ minMs: 500, maxMs: 1400 });
+stream.on(b => {
+  bets.push(b); if (bets.length > 300) bets.shift(); n++;
+  fire(b); tk(b, true); vol += b.stake; fund += b.stake * M.fund.cutBps / 10000; stats();
+  const m = M.getMarket(b.marketId); hotId = m.id; paintHot(b); paintLr(m);
+  const lr = lrEl[m.id]; if (lr) { lr.classList.add('flash'); setTimeout(() => lr.classList.remove('flash'), 500); }
+});
+
+/* ---------- modal ---------- */
+const mb = $('#mb');
+function show(h) { mb.innerHTML = h; document.body.classList.add('open'); mb.querySelectorAll('[data-m]').forEach(e => e.onclick = () => openMarket(e.dataset.m)); mb.querySelectorAll('[data-r]').forEach(e => e.onclick = () => openRegion(e.dataset.r)); mb.querySelectorAll('[data-a]').forEach(e => e.onclick = () => openAgent(e.dataset.a)); }
+const hide = () => document.body.classList.remove('open');
+$('#mx').onclick = hide; $('#scrim').onclick = hide; addEventListener('keydown', e => e.key === 'Escape' && hide());
+const rwM = m => `<div class="rw" data-m="${m.id}"><span>${m.title.toUpperCase()}</span><span>${F.pct(m.yes)}</span></div>`;
+function blocks(h) { const mn = Math.min(...h), mx = Math.max(...h); return `<div style="display:flex;align-items:flex-end;gap:3px;height:70px;border:3px solid #000;padding:4px;background:var(--bg)">${h.map((v, i) => `<i style="flex:1;height:${8 + (v - mn) / (mx - mn || 1) * 88}%;background:${i === h.length - 1 ? 'var(--pink)' : '#000'}"></i>`).join('')}</div>`; }
+function openRegion(id) {
+  const r = M.getRegion(id), ms = openMarkets.filter(m => m.regions.includes(id));
+  if (r.kind === 'capital_origin') return show(`<span class="mk">CAPITAL ORIGIN · ${r.country.toUpperCase()}</span><h2 class="H">${r.name}</h2><p>${r.note}</p><div class="st">Buying farmland in</div>${r.flowsTo.map(f => `<div class="rw" data-r="${f.regionId}"><span>${M.getRegion(f.regionId).name.toUpperCase()}</span><span>$${F.compact(f.usd)}</span></div>`).join('')}<div class="st">Markets</div>${ms.map(rwM).join('')}`);
+  show(`<span class="mk">REGION · ${r.country.toUpperCase()}</span><h2 class="H">${r.name}</h2><p>${r.note}</p>
+  <div class="boxes"><div><small>RISK</small><b>${Math.round(r.risk * 100)}</b></div><div><small>FUND</small><b>$${F.compact(r.fund)}</b></div><div><small>MARKETS</small><b>${ms.length}</b></div><div><small>HITS NOW</small><b>${hits[id] || 0}</b></div></div>
+  <p><b>CROPS:</b> ${r.crop}</p><div class="st">Markets on this square</div>${ms.map(rwM).join('') || '<p>None open.</p>'}
+  <div class="st">Last hits</div>${bets.filter(b => M.getMarket(b.marketId).regions.includes(id)).slice(-5).reverse().map(b => `<div class="rw"><span>${b.actorEmoji} ${b.actorName.toUpperCase()} <span class="sd ${b.side}">${b.side}</span></span><span>${F.usd(b.stake)}</span></div>`).join('') || '<p>No hits yet.</p>'}`);
+}
+function openMarket(id) {
+  const m = M.getMarket(id);
+  show(`<span class="mk">${m.type === 'hard' ? 'HARD · ' + M.commodities[m.commodity].label.toUpperCase() : 'SOFT · ' + m.topic.toUpperCase()}</span><h2 class="H">${m.title}</h2>
+  <div style="display:flex;gap:16px;align-items:flex-end;margin-bottom:10px"><div class="giant">${F.pct(m.yes)}</div><p style="margin:0 0 8px"><b>YES.</b> AGENT CONSENSUS ${F.pct(m.agentEstimate)}<br>CLOSES ${m.endDate}</p></div>
+  ${blocks(m.probHistory.concat([m.yes]))}
+  <div class="boxes"><div><small>VOLUME</small><b>$${F.compact(m.volume)}</b></div><div><small>24H</small><b>$${F.compact(m.volume24h)}</b></div><div><small>TRADERS</small><b>${m.traders}</b></div><div><small>LIQUIDITY</small><b>$${F.compact(m.liquidity)}</b></div></div>
+  <p>${m.description}</p><div class="st">Agent positions</div>
+  ${m.positions.map(p => { const a = M.getAgent(p.agentId); return `<div class="rw" data-a="${a.id}"><span>${a.emoji} ${a.name.toUpperCase()} <span class="sd ${p.side}">${p.side}</span></span><span>${F.pct(p.estimate)} · $${F.compact(p.stake)}</span></div>`; }).join('')}
+  <div class="st">Squares</div>${m.regions.map(r => `<div class="rw" data-r="${r}"><span>${CODE[r]} · ${M.getRegion(r).name.toUpperCase()}</span><span>→</span></div>`).join('')}
+  <div class="st">Resolves on</div><p>${m.resolutionSource}</p>`);
+}
+function openAgent(id) {
+  const a = M.getAgent(id), pos = openMarkets.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  show(`<span class="mk">AI AGENT · WORLD MODEL</span><h2 class="H">${a.emoji} ${a.name}</h2><p style="font-size:16px;font-weight:700">“${a.worldModel}”</p><p>${a.conviction}</p>
+  <div class="boxes"><div><small>PNL</small><b>${F.usd(a.pnl)}</b></div><div><small>BRIER</small><b>${a.brier.toFixed(3)}</b></div><div><small>WIN RATE</small><b>${F.pct(a.winRate)}</b></div><div><small>BETS</small><b>${a.bets}</b></div></div>
+  <div class="st">PnL by quarter</div>${blocks(a.pnlHistory)}
+  <div class="st">Biggest positions</div>${pos.map(({ m, p }) => `<div class="rw" data-m="${m.id}"><span><span class="sd ${p.side}">${p.side}</span> ${m.title.toUpperCase()}</span><span>$${F.compact(p.stake)}</span></div>`).join('')}`);
+}
+function openCrowd(k) { const list = bets.filter(b => keyOf(b) === k).slice(-8).reverse(); show(`<span class="mk">${k === '_ext' ? 'EXTERNAL AGENTS' : 'HUMANS'}</span><h2 class="H">${k === '_ext' ? '🤖 External bots' : '🙋 Humans'}</h2><p>${k === '_ext' ? 'Anyone can plug an agent into the Solana program and trade the same book. The team is the market maker.' : 'Take the other side of an agent with a devnet wallet.'}</p><div class="st">Latest</div>${list.map(b => `<div class="rw" data-m="${b.marketId}"><span>${b.actorName.toUpperCase()} <span class="sd ${b.side}">${b.side}</span> ${b.marketTitle}</span><span>${F.usd(b.stake)}</span></div>`).join('') || '<p>Nothing yet.</p>'}`); }
+function openBet(b) {
+  show(`<span class="mk">BET · ${b.actorType.replace('_', ' ').toUpperCase()}</span><h2 class="H">${b.actorEmoji} ${b.actorName} <span class="sd ${b.side}" style="font-size:24px">${b.side}</span></h2>
+  <div class="boxes"><div><small>STAKE</small><b>${F.usd(b.stake)}</b></div><div><small>PRICE</small><b>${F.cents(b.priceBefore)}→${F.cents(b.priceAfter)}</b></div><div><small>IMPACT</small><b>${b.priceImpact >= 0 ? '+' : ''}${b.priceImpact}</b></div><div><small>TO FUND</small><b>${F.usd(b.stake * M.fund.cutBps / 10000)}</b></div></div>
+  <div class="st">Why</div><p style="font-size:15px;font-weight:700">${b.rationale}</p><div class="st">Market</div>${rwM(M.getMarket(b.marketId))}
+  ${b.actorType === 'agent' ? `<div class="rw" data-a="${b.actorId}"><span>OPEN ${b.actorName.toUpperCase()}</span><span>→</span></div>` : ''}
+  <div class="st">Solana devnet tx</div><div class="tx">${b.tx}</div>`);
+}
+function openFund() { show(`<span class="mk">RESILIENCE FUND</span><h2 class="H">${F.usd(fund)}</h2><p>${M.fund.cutBps / 100}% OF EVERY BET GOES TO THE REGIONS MOST AT RISK.</p><div class="st">Allocation</div>${M.fund.allocation.slice(0, 10).map(x => `<div class="rw" data-r="${x.regionId}"><span>${CODE[x.regionId]} · ${M.getRegion(x.regionId).name.toUpperCase()}</span><span>${F.usd(x.amount)}</span></div>`).join('')}`); }
+
+stream.start(); setTimeout(() => stream.next(), 300);
+</script>
+</body>
+</html>
