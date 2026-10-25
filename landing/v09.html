@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
 <title>HARVEST · Landing v09</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +42,7 @@ section.s:not(.aud):not(.cta)::before{content:"";position:absolute;inset:0;z-ind
 .over{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
 .num{font:400 12px var(--mono);color:var(--a1);letter-spacing:.2em;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .num::after{content:"";height:1px;width:60px;background:var(--a1);opacity:.5}
-h1.brand{white-space:nowrap;font:800 clamp(54px,6.8vw,108px)/.9 var(--display);letter-spacing:-.04em;margin:18px 0 18px;background:linear-gradient(100deg,#fff 0%,#fff 45%,#c6f24e 62%,#ff7a59 82%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:sheen 8s ease-in-out infinite alternate}
+h1.brand{display:inline-block;white-space:nowrap;padding-right:.06em;font:800 clamp(52px,5.6vw,92px)/.95 var(--display);letter-spacing:-.04em;margin:18px 0 18px;background:linear-gradient(100deg,#fff 0%,#fff 45%,#c6f24e 62%,#ff7a59 82%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:sheen 8s ease-in-out infinite alternate}
 @keyframes sheen{to{background-position:100% 0}}
 .tagline{font:500 clamp(22px,2.4vw,34px)/1.15 var(--display);margin-bottom:16px}
 .lede{color:var(--mut);font-size:17px;max-width:470px}
@@ -86,7 +87,7 @@ footer{position:relative;z-index:2;padding:0 40px 70px;font:400 12px var(--mono)
 .dots a{width:9px;height:9px;border-radius:50%;border:1px solid var(--mut);position:relative;transition:all .3s}
 .dots a.on{background:var(--a1);border-color:var(--a1);transform:scale(1.3)}
 .dots a span{position:absolute;right:18px;top:50%;transform:translateY(-50%);font:400 11px var(--mono);color:var(--mut);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
-.dots a:hover span,.dots a.on span{opacity:1}
+.dots a:hover span{opacity:1}
 .ticker{position:fixed;left:0;right:0;bottom:0;z-index:15;height:40px;display:flex;align-items:center;gap:12px;padding:0 20px 0 260px;font:400 12px var(--mono);color:var(--mut);background:linear-gradient(transparent,rgba(7,6,13,.9) 45%);overflow:hidden;white-space:nowrap}
 .ticker .lv{color:var(--a2);display:flex;align-items:center;gap:6px;flex:none}
 .ticker .lv::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--a2);animation:pu 1.2s infinite}
@@ -125,6 +126,7 @@ footer{position:relative;z-index:2;padding:0 40px 70px;font:400 12px var(--mono)
   .hero.s{padding-bottom:50vh}
   .stats{gap:18px;flex-wrap:wrap}
   .lede{max-width:none}
+  h1.brand{font-size:min(54px,11vw)}
   section.s::before{display:none}
   .alist li .wm{max-width:220px}
   .aud .wrap2{grid-template-columns:1fr}
@@ -308,7 +310,7 @@ const wells = [];
 
 function target(p) {
   switch (mode) {
-    case 'hero': { if (p.free) return null; const n = HM[p.mk], ang = p.a0 + t * p.spd * 0.6, rr = n.r * (0.35 + p.r0 * 1.15); return [n.x + Math.cos(ang) * rr, n.y + Math.sin(ang) * rr]; }
+    case 'hero': { if (p.free) return null; const n = HM[p.mk], ang = p.a0 + t * p.spd * 0.6, rr = n.r * (0.45 + p.r0 * 1.6); return [n.x + Math.cos(ang) * rr, n.y + Math.sin(ang) * rr]; }
     case 'agents': { const o = POLES[p.a], ang = p.a0 + t * p.spd * (p.a % 2 ? 1 : -1), rr = o.r * (0.15 + Math.sqrt(p.r0) * 0.95); return [o.x + Math.cos(ang) * rr, o.y + Math.sin(ang) * rr * 0.9]; }
     case 'sankey': {
       p.s += 0.0016 + p.spd * 0.18; let wrap = false; if (p.s > 1) { p.s -= 1; wrap = true; }
@@ -354,7 +356,7 @@ function step(p) {
     p.vx += (tg[0] - p.x) * k; p.vy += (tg[1] - p.y) * k; p.vx *= 0.86; p.vy *= 0.86;
     if (mode !== 'seal' && mode !== 'reveal') { const a = field(p.x, p.y); p.vx += Math.cos(a) * 0.06; p.vy += Math.sin(a) * 0.06; }
   } else {
-    const a = field(p.x, p.y); p.vx = p.vx * 0.93 + Math.cos(a) * 0.085; p.vy = p.vy * 0.93 + Math.sin(a) * 0.085;
+    const a = field(p.x, p.y); p.vx = p.vx * 0.93 + Math.cos(a) * 0.11; p.vy = p.vy * 0.93 + Math.sin(a) * 0.11;
     for (const w of wells) { const dx = w.x - p.x, dy = w.y - p.y, d2 = dx * dx + dy * dy + 900; const f = w.s * 900 / d2; p.vx += dx / Math.sqrt(d2) * f; p.vy += dy / Math.sqrt(d2) * f; }
   }
   p.x += p.vx; p.y += p.vy;
@@ -377,7 +379,7 @@ function frame() {
   }
   for (let i = wells.length - 1; i >= 0; i--) { wells[i].s *= 0.965; if (wells[i].s < 0.01) wells.splice(i, 1); }
   ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-  groups.forEach((g, c) => { ctx.strokeStyle = PAL[c]; ctx.lineWidth = mode === 'seal' || mode === 'reveal' ? 1.8 : 1.3; ctx.globalAlpha = 0.8; ctx.stroke(g[0]); ctx.globalAlpha = 0.16; ctx.stroke(g[1]); });
+  groups.forEach((g, c) => { ctx.strokeStyle = PAL[c]; ctx.lineWidth = mode === 'seal' || mode === 'reveal' ? 1.8 : 1.3; ctx.globalAlpha = 0.8; ctx.stroke(g[0]); ctx.globalAlpha = 0.3; ctx.stroke(g[1]); });
   ctx.globalAlpha = 1;
   // sparks
   for (let i = sparks.length - 1; i >= 0; i--) {
