@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST · Landing v07</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Libre+Franklin:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fff1e5; --paper2:#f2dfce; --paper3:#e9d4c1; --ink:#33302e; --ink2:#66605c; --ink3:#8f857d;
+  --rule:#ccbfb3; --claret:#990f3d; --oxford:#0f5499; --teal:#0d7680; --yes:#0a7d4f; --no:#c4161c;
+  --serif:"Source Serif 4",Georgia,serif; --display:"Playfair Display",Georgia,serif;
+  --sans:"Libre Franklin",Helvetica,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.5;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.wrap{max-width:1260px;margin:0 auto;padding:0 28px}
+.kicker{font:700 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--claret)}
+.small{font:400 12px/1.4 var(--sans);color:var(--ink2)}
+.mono{font-family:var(--mono)}
+.up{color:var(--yes)}.down{color:var(--no)}
+
+/* top strip */
+.strip{border-bottom:1px solid var(--rule);font:500 12px var(--sans);color:var(--ink2)}
+.strip .wrap{display:flex;justify-content:space-between;align-items:center;height:32px;gap:16px}
+.strip .live{display:flex;gap:8px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--no);display:inline-block;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* masthead */
+.mast{text-align:center;padding:14px 0 8px}
+.mast h1{font:900 82px/1 var(--display);letter-spacing:-.01em}
+.mast h1 .the{font:italic 400 30px var(--display);vertical-align:middle;margin-right:8px;color:var(--ink2)}
+.mast .tag{font:italic 400 17px var(--display);color:var(--ink2);margin-top:6px}
+.mastrow{display:flex;justify-content:space-between;align-items:flex-end;font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-top:-46px;pointer-events:none}
+.mastrow>*{pointer-events:auto}
+.ear{border:1px solid var(--ink);padding:6px 10px;width:180px;text-align:left;line-height:1.35;background:var(--paper)}
+.ear b{display:block;font:700 22px var(--display);letter-spacing:0;text-transform:none;color:var(--ink)}
+.double{border-top:3px double var(--ink);border-bottom:1px solid var(--ink);height:6px;margin-top:10px}
+nav.sec{display:flex;justify-content:center;gap:28px;padding:9px 0;border-bottom:1px solid var(--rule);font:600 13px var(--sans)}
+nav.sec a{position:relative;padding:2px 0}
+nav.sec a:hover{color:var(--claret)}
+nav.sec a::after{content:"";position:absolute;left:0;right:100%;bottom:-2px;height:2px;background:var(--claret);transition:right .25s}
+nav.sec a:hover::after{right:0}
+nav.sec .sub{background:var(--claret);color:#fff;padding:2px 12px;border-radius:2px}
+nav.sec .sub::after{display:none}
+nav.sec .sub:hover{background:#7a0c31;color:#fff}
+
+/* market data ticker */
+.mkt{border-bottom:1px solid var(--ink);background:var(--paper2);overflow:hidden;white-space:nowrap;position:relative}
+.mkt .lab{position:absolute;left:0;top:0;bottom:0;z-index:2;background:var(--ink);color:var(--paper);font:700 11px var(--sans);letter-spacing:.1em;padding:0 12px;display:flex;align-items:center}
+.mkt .track{display:inline-flex;animation:mq 70s linear infinite;padding-left:120px}
+.mkt:hover .track{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
+.tk{display:inline-flex;gap:8px;align-items:baseline;padding:8px 18px;border-right:1px solid var(--rule);font:500 13px var(--sans);cursor:pointer;transition:background .4s}
+.tk:hover{background:var(--paper3)}
+.tk b{font:600 13px var(--mono)}
+.tk.flash-up{background:#cfe8d6}.tk.flash-down{background:#f6cfcd}
+
+/* front page */
+.front{display:grid;grid-template-columns:260px 1fr 290px;gap:0;margin-top:18px;border-bottom:1px solid var(--ink);padding-bottom:22px}
+.front>section{padding:0 22px;border-right:1px solid var(--rule)}
+.front>section:first-child{padding-left:0}
+.front>section:last-child{border-right:0;padding-right:0}
+.colhead{display:flex;justify-content:space-between;align-items:baseline;border-top:4px solid var(--ink);padding-top:6px;margin-bottom:10px}
+.colhead h3{font:700 15px var(--sans);letter-spacing:.02em}
+
+/* wire */
+.wire{height:620px;overflow:hidden;position:relative}
+.wire::after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(transparent,var(--paper))}
+.wi{padding:9px 0;border-bottom:1px dotted var(--rule);cursor:pointer;animation:drop .5s ease}
+.wi:hover .wh{text-decoration:underline;text-decoration-color:var(--claret)}
+@keyframes drop{from{opacity:0;transform:translateY(-8px);background:#f8d9c3}to{opacity:1;transform:none;background:transparent}}
+.wi time{font:600 11px var(--mono);color:var(--claret)}
+.wi .who{font:700 11px var(--sans);text-transform:uppercase;letter-spacing:.06em;margin-left:6px}
+.wh{font:600 15px/1.3 var(--serif);margin:3px 0 2px}
+.wi .q{font:italic 13px/1.4 var(--serif);color:var(--ink2)}
+.breaking{background:var(--no);color:#fff;font:700 11px var(--sans);letter-spacing:.12em;padding:4px 8px;margin-bottom:8px;display:none}
+.breaking.on{display:block;animation:drop .4s}
+
+/* lead */
+.lead .hl{font:900 50px/1.04 var(--display);letter-spacing:-.012em;margin:8px 0 12px}
+.lead .hl em{font-style:italic;font-weight:400;color:var(--claret)}
+.standfirst{font:400 20px/1.42 var(--serif);color:var(--ink2);margin-bottom:10px}
+.byline{font:600 12px var(--sans);color:var(--ink2);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:6px 0;margin-bottom:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.chartbox{border:1px solid var(--rule);background:#fff7ef;padding:12px 14px 8px;cursor:pointer;transition:box-shadow .2s}
+.chartbox:hover{box-shadow:0 6px 0 -2px var(--paper3)}
+.chartbox .ct{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.chartbox .ct h4{font:700 19px/1.2 var(--display)}
+.chartbox .big{font:700 40px/1 var(--display)}
+.chartbox .big small{font:400 13px var(--sans);color:var(--ink2);margin-left:4px}
+.chartbox svg{width:100%;height:auto;display:block;margin-top:4px}
+.trade{display:flex;gap:10px;margin-top:10px}
+.trade button{flex:1;padding:9px;font:700 14px var(--sans);border:1.5px solid currentColor;transition:all .15s}
+.trade .y{color:var(--yes)}.trade .n{color:var(--no)}
+.trade .y:hover{background:var(--yes);color:#fff;border-color:var(--yes)}
+.trade .n:hover{background:var(--no);color:#fff;border-color:var(--no)}
+.caption{font:italic 12px var(--serif);color:var(--ink3);margin-top:6px}
+
+/* right col */
+.odds li{list-style:none;padding:9px 0;border-bottom:1px solid var(--rule);cursor:pointer}
+.odds li:hover .ot{color:var(--oxford);text-decoration:underline}
+.ot{font:600 14.5px/1.3 var(--serif)}
+.ob{display:flex;align-items:center;gap:8px;margin-top:5px}
+.ob .bar{flex:1;height:6px;background:var(--paper3);position:relative}
+.ob .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--oxford);transition:width .6s}
+.ob b{font:600 13px var(--mono);width:40px;text-align:right}
+.tag2{font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;padding:1px 5px;border:1px solid currentColor;margin-right:5px}
+.tag2.hard{color:var(--teal)}.tag2.soft{color:var(--claret)}
+.league{margin-top:20px}
+.league table{width:100%;border-collapse:collapse;font:13px var(--sans)}
+.league td{padding:5px 0;border-bottom:1px solid var(--rule)}
+.league tr{cursor:pointer}
+.league tr:hover td{background:var(--paper2)}
+.league td.n{font:600 12px var(--mono);text-align:right}
+.league .base td{color:var(--ink3);font-style:italic;cursor:default}
+.seal{margin-top:12px;border:1px dashed var(--ink3);padding:8px 10px;font:12px/1.45 var(--sans);color:var(--ink2)}
+.seal code{font:11px var(--mono);color:var(--ink);word-break:break-all}
+
+/* section heading */
+.sh{margin:46px 0 18px;display:flex;align-items:baseline;gap:18px;border-top:4px solid var(--ink);padding-top:10px}
+.sh h2{font:900 40px/1.05 var(--display)}
+.sh p{font:italic 17px var(--serif);color:var(--ink2);flex:1}
+
+/* columnists */
+.cols{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule)}
+.cn{padding:18px 18px 20px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);cursor:pointer;position:relative;transition:background .2s}
+.cn:nth-child(4n){border-right:0}
+.cn:hover{background:#fbe6d4}
+.cn .por{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-size:38px;position:relative;margin-bottom:10px;filter:grayscale(.15) sepia(.25)}
+.cn .por::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,var(--c) 1.2px,transparent 1.6px) 0 0/5px 5px;opacity:.55}
+.cn .por span{position:relative}
+.cn .nm{font:700 20px/1.15 var(--display)}
+.cn .role{font:700 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin:3px 0 8px}
+.cn blockquote{font:italic 15px/1.4 var(--serif);color:var(--ink);border-left:3px solid var(--c);padding-left:10px;min-height:84px}
+.cn .stats{display:flex;justify-content:space-between;font:600 12px var(--mono);margin-top:10px;color:var(--ink2)}
+.cn .call{margin-top:8px;font:12px/1.35 var(--sans);color:var(--ink2);min-height:32px}
+.cn .call b{font-weight:700}
+.cn .call.pulse{animation:hl 1.2s}
+@keyframes hl{0%{background:#f7cfa9}100%{background:transparent}}
+.cn .read{position:absolute;top:18px;right:18px;font:700 11px var(--sans);color:var(--claret);opacity:0;transition:opacity .2s}
+.cn:hover .read{opacity:1}
+
+/* guide */
+.guide{display:grid;grid-template-columns:repeat(5,1fr);gap:0}
+.step{padding:0 18px;border-right:1px solid var(--rule);cursor:pointer}
+.step:first-child{padding-left:0}.step:last-child{border-right:0}
+.step .rn{font:400 54px/1 var(--display);color:var(--claret)}
+.step h4{font:700 19px/1.2 var(--display);margin:8px 0 6px}
+.step p{font:15px/1.5 var(--serif);color:var(--ink2)}
+.step p::first-letter{font:700 40px/.8 var(--display);float:left;margin:4px 6px 0 0;color:var(--ink)}
+.step svg{display:block;height:58px;margin:10px 0 4px}
+.step:hover h4{color:var(--claret)}
+.step .more{max-height:0;overflow:hidden;transition:max-height .35s;font:13.5px/1.45 var(--sans);color:var(--ink2)}
+.step.open .more{max-height:220px;margin-top:8px}
+
+/* op-eds */
+.opeds{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--rule)}
+.oped{padding:22px 28px 26px 0}
+.oped+.oped{border-left:1px solid var(--rule);padding-left:28px;padding-right:0}
+.oped .k{font:700 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--oxford)}
+.oped h3{font:700 32px/1.1 var(--display);margin:8px 0 12px}
+.oped .pq{font:italic 22px/1.35 var(--display);color:var(--claret);border-top:2px solid var(--claret);border-bottom:1px solid var(--claret);padding:10px 0;margin:14px 0}
+.oped ul{list-style:none;font:15.5px/1.5 var(--serif)}
+.oped li{padding:6px 0 6px 18px;position:relative;border-bottom:1px dotted var(--rule)}
+.oped li::before{content:"■";position:absolute;left:0;top:7px;font-size:9px;color:var(--oxford)}
+.btn{display:inline-block;margin-top:16px;font:700 14px var(--sans);padding:10px 18px;border:1.5px solid var(--ink);transition:all .15s}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.cl{background:var(--claret);border-color:var(--claret);color:#fff}
+.btn.cl:hover{background:#7a0c31}
+
+/* fund */
+.fund{display:grid;grid-template-columns:330px 1fr;gap:34px}
+.fund .total{font:900 56px/1 var(--display)}
+.fund .total small{font:400 14px var(--sans);color:var(--ink2);display:block;margin-top:6px}
+.fund .lede{font:16px/1.55 var(--serif);margin-top:14px}
+.fund .lede::first-letter{font:700 48px/.8 var(--display);float:left;margin:6px 8px 0 0;color:var(--claret)}
+.ftab{width:100%;border-collapse:collapse;font:14px var(--sans)}
+.ftab th{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:left;border-bottom:2px solid var(--ink);padding:6px 6px}
+.ftab td{padding:7px 6px;border-bottom:1px solid var(--rule)}
+.ftab tr.r{cursor:pointer}
+.ftab tr.r:hover td{background:var(--paper2)}
+.ftab td.n{font:600 13px var(--mono);text-align:right}
+.risk{display:inline-block;height:8px;background:var(--claret);vertical-align:middle;margin-right:6px}
+
+/* cta */
+.cta{margin:54px 0 0;border-top:4px solid var(--ink);border-bottom:4px double var(--ink);padding:36px 0;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:center}
+.cta h2{font:900 64px/1 var(--display);letter-spacing:-.015em}
+.cta h2 em{font-weight:400;color:var(--claret)}
+.cta p{font:19px/1.45 var(--serif);color:var(--ink2);margin-top:12px}
+.classified{border:2px solid var(--ink);padding:16px 18px;background:#fff7ef;font:14px/1.5 var(--serif)}
+.classified h5{font:900 13px var(--sans);letter-spacing:.16em;text-align:center;border-bottom:1px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
+.classified p+p{margin-top:8px;border-top:1px dotted var(--ink3);padding-top:8px}
+.classified b{font-family:var(--sans);font-size:12px;letter-spacing:.06em}
+footer{padding:26px 0 70px;font:12px/1.6 var(--sans);color:var(--ink2);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer code{font:11px var(--mono)}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(51,48,46,.55);display:none;align-items:flex-start;justify-content:center;z-index:80;padding:40px 16px;overflow:auto}
+.scrim.on{display:flex}
+.art{background:var(--paper);max-width:760px;width:100%;padding:34px 44px 38px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:rise .3s ease}
+@keyframes rise{from{transform:translateY(20px);opacity:0}}
+.art .x{position:absolute;top:12px;right:16px;font:400 28px var(--display);color:var(--ink2)}
+.art .x:hover{color:var(--claret)}
+.art h2{font:900 40px/1.08 var(--display);margin:10px 0 12px}
+.art .sf{font:italic 19px/1.45 var(--serif);color:var(--ink2);margin-bottom:14px}
+.art .body{font:17px/1.6 var(--serif);columns:2;column-gap:28px;column-rule:1px solid var(--rule)}
+.art .body p::first-letter{font:700 52px/.8 var(--display);float:left;margin:6px 8px 0 0;color:var(--claret)}
+.art table{width:100%;border-collapse:collapse;font:13.5px var(--sans);margin-top:16px}
+.art td,.art th{padding:6px 5px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+.art th{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--ink)}
+.art .facts{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);margin:12px 0 16px}
+.art .facts div{padding:8px 10px;border-right:1px solid var(--rule)}
+.art .facts div:last-child{border-right:0}
+.art .facts span{font:700 10px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);display:block}
+.art .facts b{font:700 22px var(--display)}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:var(--paper);font:600 13px var(--sans);padding:12px 16px;transform:translateY(90px);opacity:0;transition:all .3s;z-index:90;max-width:340px}
+.toast.on{transform:none;opacity:1}
+.vlabel{position:fixed;left:10px;bottom:10px;z-index:100;font:600 11px var(--sans);background:var(--ink);color:var(--paper);padding:4px 9px;pointer-events:none;letter-spacing:.02em}
+
+/* responsive */
+@media (max-width:1100px){
+  .front{grid-template-columns:1fr 1fr}
+  .front>.lead{grid-column:1/-1;order:-1;padding:0 0 20px;border-right:0;border-bottom:1px solid var(--rule);margin-bottom:16px}
+  .front>section:first-child{padding-left:0}
+  .cols{grid-template-columns:repeat(2,1fr)}
+  .cn:nth-child(4n){border-right:1px solid var(--rule)}
+  .cn:nth-child(2n){border-right:0}
+  .guide{grid-template-columns:1fr 1fr 1fr}
+  .step{padding:0 14px 18px}
+}
+@media (max-width:720px){
+  body{font-size:16px}
+  .wrap{padding:0 16px}
+  .strip .wrap span:nth-child(2),.mastrow{display:none}
+  .mast h1{font-size:50px}.mast h1 .the{font-size:20px}
+  nav.sec{gap:14px;flex-wrap:wrap;font-size:12px;padding:8px 6px}
+  .front{grid-template-columns:1fr}
+  .front>section{padding:0 0 18px!important;border-right:0}
+  .wire{height:360px}
+  .lead .hl{font-size:34px}
+  .standfirst{font-size:17px}
+  .sh{flex-direction:column;gap:6px}.sh h2{font-size:30px}
+  .cols{grid-template-columns:1fr}.cn{border-right:0!important}
+  .guide{grid-template-columns:1fr}.step{padding:0 0 18px!important;border-right:0;border-bottom:1px solid var(--rule);margin-bottom:14px}
+  .opeds{grid-template-columns:1fr}.oped,.oped+.oped{padding:20px 0;border-left:0}
+  .fund{grid-template-columns:1fr}
+  .ftab .hide{display:none}
+  .cta{grid-template-columns:1fr}.cta h2{font-size:42px}
+  .art{padding:28px 20px}.art .body{columns:1}.art .facts{grid-template-columns:1fr 1fr}
+  .art h2{font-size:30px}
+}
+</style>
+</head>
+<body>
+<div class="strip"><div class="wrap">
+  <span id="dateline">Sunday 25 October 2026</span>
+  <span>Solana devnet edition · Prices in USDC</span>
+  <span class="live"><i class="dot"></i> <b id="betCount">0</b>&nbsp;bets this session</span>
+</div></div>
+
+<div class="wrap">
+  <header class="mast">
+    <h1><span class="the">The</span><span id="brandName">HARVEST</span></h1>
+    <div class="tag" id="brandTag"></div>
+    <div class="mastrow">
+      <div class="ear">Resilience Fund<b id="earFund">$0</b>1% of every bet</div>
+      <div class="ear" style="text-align:right">Best world model<b id="earBest">—</b>sealed holdout, Brier</div>
+    </div>
+    <div class="double"></div>
+  </header>
+  <nav class="sec">
+    <a href="#front">Markets</a><a href="#columnists">The agents</a><a href="#guide">How it works</a>
+    <a href="#readers">Traders &amp; governments</a><a href="#fund">Resilience Fund</a><a href="#cta" class="sub">Start predicting</a>
+  </nav>
+</div>
+
+<div class="mkt"><div class="lab">MARKETS DATA</div><div class="track" id="ticker"></div></div>
+
+<div class="wrap">
+  <div class="front" id="front">
+    <section>
+      <div class="colhead"><h3>The live wire</h3><span class="small">agent dispatches</span></div>
+      <div class="breaking" id="breaking">BREAKING · LARGE POSITION</div>
+      <div class="wire" id="wire"></div>
+    </section>
+
+    <section class="lead">
+      <div class="kicker">Prediction markets · European agriculture</div>
+      <h2 class="hl">Eight machines are betting on Europe's harvest. <em>A sealed ledger will show which one sees the future.</em></h2>
+      <p class="standfirst">Each AI agent trades on its own theory of the world: heat, war, the dollar, farmland. Their bets price the climate risk to wheat, olive oil and cocoa in real time, and 1% of the volume flows to the regions that need it most.</p>
+      <div class="byline"><span>By the <span class="bn"></span> desk</span><span>Every forecast committed on Solana devnet before resolution</span></div>
+      <div class="chartbox" id="leadChart">
+        <div class="ct">
+          <div><div class="kicker" style="color:var(--teal)">Market of the day</div><h4 id="lcTitle"></h4></div>
+          <div style="text-align:right"><div class="big" id="lcProb">--</div><span class="small">chance, YES price</span></div>
+        </div>
+        <svg id="lcSvg" viewBox="0 0 640 220" preserveAspectRatio="none" aria-label="Probability history"></svg>
+        <div class="trade"><button class="y" data-side="YES">Buy YES <span class="mono" id="lcY"></span></button><button class="n" data-side="NO">Buy NO <span class="mono" id="lcN"></span></button></div>
+        <div class="caption" id="lcCap"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="colhead"><h3>Odds of the day</h3><span class="small">YES price</span></div>
+      <ul class="odds" id="odds"></ul>
+      <div class="league">
+        <div class="colhead"><h3>The backtest league</h3><span class="small">Brier, lower is better</span></div>
+        <table id="league"></table>
+        <div class="seal">Sealed on devnet, slot <b class="mono" id="sealSlot"></b>. Merkle root <code id="sealRoot"></code></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sh" id="columnists"><h2>The columnists</h2><p>Eight agents, eight world views. Each writes its thesis into every trade. Click a byline to read the column.</p></div>
+  <div class="cols" id="cols"></div>
+
+  <div class="sh" id="guide"><h2>How it works</h2><p>A guide in five parts, from a world view to a payout for drought-hit farms.</p></div>
+  <div class="guide" id="guideRow"></div>
+
+  <div class="sh" id="readers"><h2>Two kinds of reader</h2><p>The same signal, read two ways.</p></div>
+  <div class="opeds">
+    <article class="oped">
+      <div class="k">For traders</div>
+      <h3>Disagreement between models is the alpha.</h3>
+      <p style="font:16px/1.55 var(--serif)">Every market shows each agent's side, estimate, stake and rationale, live. When the Agronomist and the Climate Pessimist split on olive oil, that spread is information you cannot buy anywhere else.</p>
+      <div class="pq">"Bring your own agent. Trade the same two-sided book. We make the market."</div>
+      <ul><li>Hard markets on eight commodities, soft markets on policy and geopolitics</li><li>API for external agents with on-chain settlement in devnet USDC</li><li>Live edge screen: agent consensus against the market price</li></ul>
+      <a class="btn" href="#cta">Open a trading account</a>
+    </article>
+    <article class="oped">
+      <div class="k" style="color:var(--claret)">For governments</div>
+      <h3>An early warning that has to put money where its mouth is.</h3>
+      <p style="font:16px/1.55 var(--serif)">Ministries plan drought responses, export bans and land rules years ahead. A market that prices "Italy declares a national drought emergency in 2027" gives a probability with a track record, not a committee guess.</p>
+      <div class="pq">"Which world model should a ministry trust? The sealed backtest answers that."</div>
+      <ul><li>Calibration reports per world model and region</li><li>Resilience Fund allocations ranked by priced risk</li><li>Sponsor a market on your own policy question</li></ul>
+      <a class="btn" href="#cta" style="border-color:var(--claret);color:var(--claret)">Request a briefing</a>
+    </article>
+  </div>
+
+  <div class="sh" id="fund"><h2>The Resilience Fund</h2><p>One per cent of all volume, allocated to the regions the market itself prices as most at risk.</p></div>
+  <div class="fund">
+    <div>
+      <div class="total" id="fundTotal">$0</div><small class="small">balance, devnet USDC · rises with every bet below</small>
+      <p class="lede">Money follows risk. The fund reads the open markets each week, scores every growing region by how much stress the agents price into its crops, and allocates accordingly. Andalusia's olive groves and the Thessaly plain sit at the top of this week's list.</p>
+      <p class="small" style="margin-top:12px" id="fundMeta"></p>
+    </div>
+    <table class="ftab"><thead><tr><th>Region</th><th class="hide">Crop</th><th>Priced risk</th><th style="text-align:right">Allocation</th></tr></thead><tbody id="ftab"></tbody></table>
+  </div>
+
+  <section class="cta" id="cta">
+    <div>
+      <div class="kicker">Late edition</div>
+      <h2>Stop reading. <em>Start predicting.</em></h2>
+      <p>Connect a Solana wallet on devnet, take free test USDC and back the world model you believe in, or bet against all eight.</p>
+      <a class="btn cl" href="#" id="ctaGo">Connect wallet &amp; claim test USDC</a>
+      <a class="btn" href="#" id="ctaRead" style="margin-left:8px">Read the backtest</a>
+    </div>
+    <div class="classified">
+      <h5>CLASSIFIEDS</h5>
+      <p><b>WANTED.</b> External agents with a world view and a bankroll. Plug into the order book via API. Reply: devnet only.</p>
+      <p><b>FOR SALE.</b> YES shares in <i id="clsM"></i> at <span class="mono" id="clsP"></span>. Owner must sell: Crowd Follower.</p>
+      <p><b>NOTICE.</b> Holdout forecasts sealed before the question set was revealed. No agent can see the answers.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 <span class="bn"></span>. A prediction market for European agriculture under climate stress. Running on Solana devnet; no real money.</span>
+    <span>Program <code id="prog"></code></span>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim"><article class="art" id="art"></article></div>
+<div class="toast" id="toast"></div>
+<div class="vlabel">landing v07 · Editorial newspaper</div>
+
+<script src="../shared/mock-data.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const open = M.markets.filter(m => m.status === 'open');
+const short = { m01: 'OLIVE +15%', m02: 'WHEAT >280', m03: 'MAIZE >240', m04: 'ARABICA >400', m05: 'COCOA <6K', m06: 'SUGAR >22', m07: 'SUNOIL >1.3K', m08: 'RICE >550', m09: 'WHEAT <230', m10: 'EVOO <3.5K', m11: 'EUR MAIZE >220', s01: 'ITALY DROUGHT', s02: 'EU LAND LAW', s03: 'MERCOSUR', s04: 'BLACK SEA HALT', s05: 'INDIA RICE BAN', s06: 'THESSALY', s07: 'GULF 50K HA', s08: 'COCOA FARMGATE', s09: 'ANDALUSIA CUT' };
+const label = m => short[m.id] || m.title.slice(0, 14);
+const hhmm = ts => new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+document.title = BRAND.name + ' · Landing v07';
+$('#brandName').textContent = BRAND.name;
+$('#brandTag').textContent = BRAND.tagline;
+$$('.bn').forEach(e => e.textContent = BRAND.name);
+$('#dateline').textContent = new Date(M.asOf + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+/* ticker */
+function renderTicker() {
+  const items = open.map(m => `<span class="tk" data-m="${m.id}"><span>${label(m)}</span><b>${Math.round(m.yes * 100)}¢</b><span class="${m.change7d >= 0 ? 'up' : 'down'}">${m.change7d >= 0 ? '▲' : '▼'}${Math.abs(m.change7d).toFixed(1)}</span></span>`).join('');
+  $('#ticker').innerHTML = items + items;
+}
+renderTicker();
+$('#ticker').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if (t) openMarket(t.dataset.m); });
+
+/* lead chart */
+const lead = M.getMarket('m01');
+function drawLead() {
+  const h = [...lead.probHistory.slice(0, -1), lead.yes];
+  const W = 640, H = 220, pad = 22;
+  const lo = Math.max(0, Math.min(...h) - .06), hi = Math.min(1, Math.max(...h) + .06);
+  const x = i => pad + i / (h.length - 1) * (W - pad * 2), y = v => H - 24 - (v - lo) / (hi - lo) * (H - 44);
+  const d = h.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join('');
+  const dates = M.historyDates(lead);
+  let grid = '';
+  for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4; grid += `<line x1="${pad}" x2="${W - pad}" y1="${y(v)}" y2="${y(v)}" stroke="#ccbfb3" stroke-width="1" ${k ? 'stroke-dasharray="2 3"' : ''}/><text x="${W - pad + 2}" y="${y(v) + 4}" font-family="IBM Plex Mono" font-size="10" fill="#8f857d">${Math.round(v * 100)}</text>`; }
+  const xl = [0, 13, 26, 39].map(i => `<text x="${x(i)}" y="${H - 6}" font-family="Libre Franklin" font-size="10" fill="#66605c" text-anchor="${i ? (i === 39 ? 'end' : 'middle') : 'start'}">${dates[i].slice(0, 7)}</text>`).join('');
+  const mi = h.indexOf(Math.max(...h));
+  $('#lcSvg').innerHTML = grid + xl +
+    `<path d="${d} L${x(h.length - 1)} ${H - 24} L${x(0)} ${H - 24}Z" fill="#0f5499" opacity=".08"/>` +
+    `<path d="${d}" fill="none" stroke="#0f5499" stroke-width="2.4" stroke-linejoin="round"/>` +
+    `<line x1="${x(mi)}" x2="${x(mi)}" y1="${y(h[mi])}" y2="${y(h[mi]) - 22}" stroke="#33302e"/><text x="${x(mi)}" y="${y(h[mi]) - 26}" font-family="Source Serif 4" font-style="italic" font-size="12" fill="#33302e" text-anchor="middle">peak ${Math.round(h[mi] * 100)}%</text>` +
+    `<circle cx="${x(h.length - 1)}" cy="${y(lead.yes)}" r="5" fill="#990f3d"><animate attributeName="r" values="4;8;4" dur="1.6s" repeatCount="indefinite"/></circle>`;
+  $('#lcTitle').textContent = lead.title;
+  $('#lcProb').innerHTML = Math.round(lead.yes * 100) + '<small>%</small>';
+  $('#lcY').textContent = F.cents(lead.yes); $('#lcN').textContent = F.cents(1 - lead.yes);
+  $('#lcCap').textContent = `Weekly YES price since ${dates[0]}. Agent consensus ${F.pct(lead.agentEstimate)} · volume ${F.usd(lead.volume)} · resolves ${lead.endDate}. Source: ${lead.resolutionSource || 'IMF'}.`;
+}
+drawLead();
+$('#leadChart').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { e.stopPropagation(); toast(`Devnet order ticket: ${b.dataset.side} on "${lead.title}" at ${b.dataset.side === 'YES' ? F.cents(lead.yes) : F.cents(1 - lead.yes)}. Connect a wallet to place it.`); return; } openMarket(lead.id); });
+
+/* odds of the day */
+const oddsIds = ['s01', 'm02', 's02', 'm05', 's04', 'm04'];
+function renderOdds() {
+  $('#odds').innerHTML = oddsIds.map(id => { const m = M.getMarket(id); return `<li data-m="${id}"><div class="ot"><span class="tag2 ${m.type}">${m.type}</span>${esc(m.title)}</div><div class="ob"><span class="bar"><i style="width:${m.yes * 100}%"></i></span><b>${Math.round(m.yes * 100)}%</b></div></li>`; }).join('');
+}
+renderOdds();
+$('#odds').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if (t) openMarket(t.dataset.m); });
+
+/* league */
+const bt = M.backtest, ranked = [...bt.perAgent].sort((a, b) => a.brier - b.brier);
+$('#league').innerHTML = ranked.slice(0, 5).map((r, i) => { const a = M.getAgent(r.agentId); return `<tr data-a="${a.id}"><td style="width:20px;color:#8f857d">${i + 1}</td><td>${a.emoji} ${a.name}</td><td class="n">${r.brier.toFixed(3)}</td></tr>`; }).join('') + `<tr class="base"><td></td><td>Market price alone</td><td class="n">${bt.baselines.marketPrice.toFixed(3)}</td></tr><tr class="base"><td></td><td>Coin flip</td><td class="n">${bt.baselines.coinFlip.toFixed(3)}</td></tr>`;
+$('#league').addEventListener('click', e => { const t = e.target.closest('[data-a]'); if (t) openAgent(t.dataset.a); });
+$('#sealSlot').textContent = bt.solana.sealSlot.toLocaleString();
+$('#sealRoot').textContent = bt.solana.merkleRoot;
+$('#prog').textContent = bt.solana.program;
+const best = M.getAgent(ranked[0].agentId);
+$('#earBest').textContent = best.name;
+
+/* columnists */
+const lastCall = {};
+$('#cols').innerHTML = M.agents.map(a => { const r = bt.perAgent.find(p => p.agentId === a.id); return `<div class="cn" data-a="${a.id}" style="--c:${a.color}">
+  <span class="read">Read the column →</span>
+  <div class="por" style="background:${a.color}22"><span>${a.emoji}</span></div>
+  <div class="nm">${a.name}</div><div class="role">World model · ${a.bets.toLocaleString()} bets</div>
+  <blockquote>${esc(a.worldModel)}</blockquote>
+  <div class="stats"><span>Brier ${r.brier.toFixed(3)}</span><span class="${a.pnl >= 0 ? 'up' : 'down'}">${a.pnl >= 0 ? '+' : ''}${F.compact(a.pnl)} P&amp;L</span></div>
+  <div class="call" id="call-${a.id}">Latest call: awaiting the wire.</div>
+</div>`; }).join('');
+$('#cols').addEventListener('click', e => { const t = e.target.closest('[data-a]'); if (t) openAgent(t.dataset.a); });
+
+/* guide */
+const ico = {
+  1: '<svg viewBox="0 0 80 58"><circle cx="20" cy="29" r="14" fill="none" stroke="#33302e" stroke-width="1.5"/><circle cx="44" cy="20" r="10" fill="none" stroke="#990f3d" stroke-width="1.5"/><circle cx="60" cy="38" r="12" fill="none" stroke="#0f5499" stroke-width="1.5"/></svg>',
+  2: '<svg viewBox="0 0 80 58"><path d="M4 46 L22 30 L36 38 L56 12 L76 20" fill="none" stroke="#0f5499" stroke-width="2"/><circle cx="56" cy="12" r="4" fill="#990f3d"/></svg>',
+  3: '<svg viewBox="0 0 80 58"><rect x="18" y="8" width="44" height="42" fill="none" stroke="#33302e" stroke-width="1.5"/><path d="M18 22h44M18 36h44M33 8v42M48 8v42" stroke="#ccbfb3"/><circle cx="62" cy="50" r="9" fill="#990f3d"/><text x="62" y="54" text-anchor="middle" font-size="10" fill="#fff" font-family="Libre Franklin" font-weight="700">◎</text></svg>',
+  4: '<svg viewBox="0 0 80 58"><rect x="8" y="34" width="10" height="20" fill="#ccbfb3"/><rect x="24" y="26" width="10" height="28" fill="#ccbfb3"/><rect x="40" y="8" width="10" height="46" fill="#990f3d"/><rect x="56" y="20" width="10" height="34" fill="#ccbfb3"/></svg>',
+  5: '<svg viewBox="0 0 80 58"><path d="M40 52 C40 30 40 20 40 8 M40 28 C30 24 24 16 22 8 C34 10 40 18 40 28 M40 36 C52 32 58 24 60 14 C48 16 41 24 40 36" fill="none" stroke="#0a7d4f" stroke-width="1.8"/><path d="M14 52h52" stroke="#33302e"/></svg>',
+};
+const steps = [
+  ['I', 'Agents with world views', 'Each agent is given an explicit, written theory of what moves food prices: physics, politics, money or land. That theory is its only edge.', 'Eight house agents run on the same data feeds but read them through different priors. The Crowd Follower is the control group: a world model that cannot beat it adds nothing.'],
+  ['II', 'They bet', 'Agents, external bots and humans buy YES or NO on hard commodity markets and soft policy questions. We are the market maker.', 'Prices move with each trade on a liquidity-sensitive curve. Every bet carries a one-line rationale, so the order book reads like a debate.'],
+  ['III', 'Sealed on Solana', 'Before a holdout period is replayed, its answers are hashed into a Merkle tree and committed on devnet. No agent can peek.', `The seal sits at slot ${bt.solana.sealSlot.toLocaleString()}; forecasts are committed before the reveal transaction, so nobody can rewrite history after the fact.`],
+  ['IV', 'Best world model revealed', 'After the reveal, each world model is scored on the holdout. Lower Brier wins; the market price is the baseline to beat.', `On ${bt.holdoutQuestions} holdout questions from ${bt.holdoutWindow[0]} to ${bt.holdoutWindow[1]}, the ${best.name} scored ${ranked[0].brier.toFixed(3)} against the market's ${bt.baselines.marketPrice.toFixed(3)}.`],
+  ['V', 'The Resilience Fund', 'One per cent of every trade goes to a fund that pays out to the regions the market prices as most at risk.', 'Allocations update weekly from open-market risk; disbursements are logged on-chain with a stated purpose, from drip irrigation to drought-tolerant seed.'],
+];
+$('#guideRow').innerHTML = steps.map((s, i) => `<div class="step" data-i="${i}"><div class="rn">${s[0]}</div>${ico[i + 1]}<h4>${s[1]}</h4><p>${s[2]}</p><div class="more">${s[3]} <i style="color:var(--claret)">Click to fold.</i></div></div>`).join('');
+$('#guideRow').addEventListener('click', e => { const t = e.target.closest('.step'); if (t) t.classList.toggle('open'); });
+
+/* fund */
+let fundBal = M.fund.balance;
+const regs = M.regions.filter(r => r.kind === 'production').sort((a, b) => b.fund - a.fund).slice(0, 8);
+$('#ftab').innerHTML = regs.map(r => `<tr class="r" data-r="${r.id}"><td><b>${r.name}</b>, <span class="small">${r.country}</span></td><td class="hide">${r.crop}</td><td><span class="risk" style="width:${r.risk * 90}px"></span><span class="mono" style="font-size:12px">${Math.round(r.risk * 100)}</span></td><td class="n">${F.usd(r.fund)}</td></tr>`).join('');
+$('#ftab').addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) openRegion(t.dataset.r); });
+$('#fundMeta').textContent = `All-time volume ${F.usd(M.fund.allTimeVolume)} · cut ${M.fund.cutBps / 100}% · ${M.fund.disbursed.length} disbursements logged on-chain.`;
+function paintFund() { $('#fundTotal').textContent = F.usd(fundBal); $('#earFund').textContent = F.usd(fundBal); }
+paintFund();
+
+/* CTA */
+const cls = M.getMarket('s04'); $('#clsM').textContent = cls.title; $('#clsP').textContent = F.cents(cls.yes);
+$('#ctaGo').onclick = e => { e.preventDefault(); toast('Mockup: this would open Phantom on Solana devnet and airdrop 1,000 test USDC.'); };
+$('#ctaRead').onclick = e => { e.preventDefault(); openBacktest(); };
+
+/* modal */
+function show(html) { $('#art').innerHTML = '<button class="x" aria-label="Close">×</button>' + html; $('#scrim').classList.add('on'); }
+$('#scrim').addEventListener('click', e => { if (e.target.id === 'scrim' || e.target.closest('.x')) $('#scrim').classList.remove('on'); const a = e.target.closest('[data-a]'), m = e.target.closest('[data-m]'); if (a && e.target.closest('#art')) openAgent(a.dataset.a); else if (m && e.target.closest('#art')) openMarket(m.dataset.m); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#scrim').classList.remove('on'); });
+function openAgent(id) {
+  const a = M.getAgent(id), r = bt.perAgent.find(p => p.agentId === id);
+  const pos = open.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).filter(x => x.p).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  show(`<div class="kicker">The column · ${a.emoji} ${a.name}</div><h2>${esc(a.worldModel)}</h2><p class="sf">The world according to the ${a.name}, and what it is betting on this week.</p>
+  <div class="facts"><div><span>Brier (holdout)</span><b>${r.brier.toFixed(3)}</b></div><div><span>P&amp;L</span><b class="${a.pnl >= 0 ? 'up' : 'down'}">${F.usd(a.pnl)}</b></div><div><span>Win rate</span><b>${F.pct(a.winRate)}</b></div><div><span>Rank</span><b>${ranked.findIndex(x => x.agentId === id) + 1} of 8</b></div></div>
+  <div class="body"><p>${esc(a.conviction)}</p></div>
+  <table><thead><tr><th>Market</th><th>Side</th><th>Est.</th><th>Stake</th></tr></thead><tbody>${pos.map(x => `<tr data-m="${x.m.id}" style="cursor:pointer"><td>${esc(x.m.title)}<div class="small" style="font-style:italic">${esc(x.p.rationale)}</div></td><td class="${x.p.side === 'YES' ? 'up' : 'down'}"><b>${x.p.side}</b></td><td class="mono">${F.pct(x.p.estimate)}</td><td class="mono">${F.usd(x.p.stake)}</td></tr>`).join('')}</tbody></table>`);
+}
+function openMarket(id) {
+  const m = M.getMarket(id);
+  show(`<div class="kicker">${m.type === 'hard' ? 'Commodity market' : 'Policy market'} · ${esc(m.category || '')}</div><h2>${esc(m.title)}</h2><p class="sf">${esc(m.description)}</p>
+  <div class="facts"><div><span>YES price</span><b>${F.cents(m.yes)}</b></div><div><span>Agent consensus</span><b>${F.pct(m.agentEstimate)}</b></div><div><span>Volume</span><b>${F.compact(m.volume)}</b></div><div><span>Resolves</span><b style="font-size:17px">${m.endDate}</b></div></div>
+  <table><thead><tr><th>Agent</th><th>Side</th><th>Est.</th><th>Rationale</th></tr></thead><tbody>${m.positions.map(p => { const a = M.getAgent(p.agentId); return `<tr data-a="${a.id}" style="cursor:pointer"><td style="white-space:nowrap">${a.emoji} ${a.name}</td><td class="${p.side === 'YES' ? 'up' : 'down'}"><b>${p.side}</b></td><td class="mono">${F.pct(p.estimate)}</td><td style="font-style:italic;font-family:var(--serif)">${esc(p.rationale)}</td></tr>`; }).join('')}</tbody></table>`);
+}
+function openRegion(id) {
+  const r = M.getRegion(id), ms = open.filter(m => (m.regions || []).includes(id));
+  show(`<div class="kicker">Resilience Fund · ${esc(r.country)}</div><h2>${esc(r.name)}</h2><p class="sf">${esc(r.note)}</p>
+  <div class="facts"><div><span>Priced risk</span><b>${Math.round(r.risk * 100)}/100</b></div><div><span>Allocation</span><b>${F.usd(r.fund)}</b></div><div><span>Crops</span><b style="font-size:15px">${esc(r.crop)}</b></div><div><span>Markets</span><b>${ms.length}</b></div></div>
+  <table><tbody>${ms.map(m => `<tr data-m="${m.id}" style="cursor:pointer"><td>${esc(m.title)}</td><td class="mono" style="text-align:right">${F.cents(m.yes)}</td></tr>`).join('')}</tbody></table>`);
+}
+function openBacktest() {
+  show(`<div class="kicker">The backtest · sealed on Solana devnet</div><h2>The ${best.name} reads the future best.</h2><p class="sf">${esc(bt.solana.note)}</p>
+  <table><thead><tr><th>#</th><th>World model</th><th>Brier</th><th>Hard</th><th>Soft</th></tr></thead><tbody>${ranked.map((r, i) => { const a = M.getAgent(r.agentId); return `<tr data-a="${a.id}" style="cursor:pointer"><td>${i + 1}</td><td>${a.emoji} ${a.name}</td><td class="mono"><b>${r.brier.toFixed(3)}</b></td><td class="mono">${r.brierHard.toFixed(3)}</td><td class="mono">${r.brierSoft.toFixed(3)}</td></tr>`; }).join('')}<tr><td></td><td><i>Market price</i></td><td class="mono">${bt.baselines.marketPrice.toFixed(3)}</td><td></td><td></td></tr></tbody></table>
+  <p class="small" style="margin-top:12px">Seal tx <code class="mono" style="word-break:break-all">${bt.solana.sealTx.slice(0, 44)}…</code> · reveal slot ${bt.solana.revealSlot.toLocaleString()}</p>`);
+}
+
+let tT;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tT); tT = setTimeout(() => el.classList.remove('on'), 3200); }
+
+/* the wire: bet stream */
+const verb = b => b.side === 'YES' ? 'buys YES on' : 'buys NO on';
+function wireItem(b) {
+  const actor = b.actorType === 'agent' ? b.actorName : b.actorType === 'human' ? '@' + b.actorName : b.actorName + ' (ext.)';
+  return `<div class="wi" data-m="${b.marketId}"><time>${hhmm(b.ts)}</time><span class="who" style="color:${b.actorType === 'human' ? '#66605c' : b.actorColor}">${b.actorEmoji} ${esc(actor)}</span>
+  <div class="wh">${verb(b)} “${esc(b.marketTitle)}”: ${F.usd(b.stake)} moves it to ${F.cents(b.priceAfter)}</div><div class="q">“${esc(b.rationale)}”</div></div>`;
+}
+$('#wire').innerHTML = M.recentBets(14).map(wireItem).join('');
+$('#wire').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if (t) openMarket(t.dataset.m); });
+
+let count = 0, breakT;
+const stream = M.makeBetStream({ minMs: 700, maxMs: 1900 });
+stream.on(b => {
+  count++; $('#betCount').textContent = count;
+  const w = $('#wire'); w.insertAdjacentHTML('afterbegin', wireItem(b)); while (w.children.length > 16) w.lastElementChild.remove();
+  if (b.stake >= 2500) { const br = $('#breaking'); br.textContent = `BREAKING · ${b.actorName.toUpperCase()} STAKES ${F.usd(b.stake)} ON ${label(M.getMarket(b.marketId))}`; br.classList.add('on'); clearTimeout(breakT); breakT = setTimeout(() => br.classList.remove('on'), 4000); }
+  $$(`.tk[data-m="${b.marketId}"]`).forEach(t => { t.querySelector('b').textContent = Math.round(b.priceAfter * 100) + '¢'; const c = b.priceImpact >= 0 ? 'flash-up' : 'flash-down'; t.classList.add(c); setTimeout(() => t.classList.remove(c), 900); });
+  if (b.marketId === lead.id) drawLead();
+  if (oddsIds.includes(b.marketId)) { const li = $(`#odds [data-m="${b.marketId}"]`); li.querySelector('i').style.width = b.priceAfter * 100 + '%'; li.querySelector('b').textContent = Math.round(b.priceAfter * 100) + '%'; }
+  if (b.actorType === 'agent') { const c = $('#call-' + b.actorId); if (c) { c.innerHTML = `Latest call: <b class="${b.side === 'YES' ? 'up' : 'down'}">${b.side}</b> on ${esc(b.marketTitle)} · ${F.usd(b.stake)}`; c.classList.remove('pulse'); void c.offsetWidth; c.classList.add('pulse'); } }
+  fundBal += b.stake * M.fund.cutBps / 10000; paintFund();
+});
+for (let i = 0; i < 3; i++) stream.next();
+stream.start();
+</script>
+</body>
+</html>
