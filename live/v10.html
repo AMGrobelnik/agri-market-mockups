@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST · Live map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../shared/mock-data.js"></script>
+<style>
+:root{
+  --bg:#05080a; --glass:rgba(10,16,20,.62); --glass2:rgba(14,22,28,.82); --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.18);
+  --ink:#eef4f2; --muted:#93a4a2; --accent:#7cf7c4; --accent2:#ffcf5a; --yes:#3ee08f; --no:#ff5d73; --risk-hi:#ff4d3d; --risk-mid:#ffb13b; --risk-lo:#7ad97a;
+  --r:16px; --font:'Space Grotesk',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--font);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#map{position:fixed;inset:0;z-index:0;background:#05080a}
+.leaflet-tile-pane{filter:brightness(.5) saturate(.55) contrast(1.15) hue-rotate(-8deg)}
+.leaflet-labels-pane{filter:brightness(1.1) opacity(.55)}
+.leaflet-control-attribution{background:rgba(0,0,0,.45)!important;color:#7c8b89!important;font-size:9px!important}
+.leaflet-control-attribution a{color:#9fb!important}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(2,6,8,.75) 100%)}
+#fx{position:fixed;inset:0;z-index:2;pointer-events:none}
+.glass{background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+/* top bar */
+.top{position:fixed;top:16px;left:16px;right:16px;z-index:10;display:flex;gap:12px;align-items:stretch;pointer-events:none}
+.top>*{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:10px 16px}
+.logo{width:28px;height:28px;border-radius:9px;background:conic-gradient(from 200deg,var(--accent),#2bb7ff,var(--accent2),var(--accent));display:grid;place-items:center;font-weight:700;color:#04110c;font-size:15px}
+.brand b{font-size:18px;letter-spacing:.08em}
+.live{display:flex;align-items:center;gap:6px;font:600 11px var(--mono);color:var(--accent);letter-spacing:.1em;padding:4px 8px;border-radius:99px;background:rgba(124,247,196,.1)}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:ping 1.6s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(124,247,196,.7)}100%{box-shadow:0 0 0 10px rgba(124,247,196,0)}}
+.stats{display:flex;align-items:center;padding:0 6px;flex:1;min-width:0}
+.stat{padding:8px 16px;border-right:1px solid var(--line);white-space:nowrap}
+.stat:last-child{border-right:0}
+.stat small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat span{font:600 17px var(--mono)}
+.stat span.bump{animation:bump .5s}
+@keyframes bump{0%{color:var(--accent)}100%{color:var(--ink)}}
+.views{display:flex;padding:5px;gap:4px;align-items:center}
+.views button{padding:8px 12px;border-radius:10px;font-size:13px;color:var(--muted)}
+.views button.on{background:rgba(255,255,255,.1);color:var(--ink)}
+.views button:hover{color:var(--ink)}
+/* agent dock */
+.dock{position:fixed;left:16px;top:96px;z-index:10;display:flex;flex-direction:column;gap:6px;padding:10px 8px;width:64px;align-items:center}
+.dock h6{font:600 9px var(--mono);letter-spacing:.14em;color:var(--muted);margin-bottom:2px}
+.puck{position:relative;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:20px;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--c) 55%,#fff 0%),color-mix(in srgb,var(--c) 30%,#000));border:2px solid color-mix(in srgb,var(--c) 70%,#fff);transition:transform .15s}
+.puck:hover{transform:scale(1.12)}
+.puck.fire{animation:fire .6s}
+@keyframes fire{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 14px transparent}}
+.puck .tip{position:absolute;left:54px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:6px 10px;border-radius:10px;background:var(--glass2);border:1px solid var(--line2);font-size:12px;opacity:0;pointer-events:none;transition:opacity .15s}
+.puck .tip em{font-style:normal;color:var(--muted);display:block;font-size:11px;max-width:260px;white-space:normal;width:max-content}
+.puck:hover .tip{opacity:1}
+.dock hr{width:70%;border:0;border-top:1px solid var(--line);margin:4px 0}
+.puck.small{width:34px;height:34px;font-size:15px}
+/* market rail */
+.rail{position:fixed;right:16px;top:96px;bottom:96px;width:340px;z-index:10;display:flex;flex-direction:column;overflow:hidden}
+.rail header{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 8px}
+.rail header b{font-size:14px;letter-spacing:.04em}
+.rail header small{color:var(--muted);font-size:11px}
+.mlist{overflow:auto;padding:0 8px 8px;scrollbar-width:thin}
+.mrow{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:9px 8px;border-radius:12px;cursor:pointer;transition:background .2s}
+.mrow:hover{background:rgba(255,255,255,.07)}
+.mrow.flash-yes{animation:fy .9s}
+.mrow.flash-no{animation:fn .9s}
+@keyframes fy{0%{background:rgba(62,224,143,.28)}100%{background:transparent}}
+@keyframes fn{0%{background:rgba(255,93,115,.28)}100%{background:transparent}}
+.mrow .ic{font-size:18px;text-align:center}
+.mrow .t{font-size:12.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mrow .meta{font:11px var(--mono);color:var(--muted);margin-top:3px;display:flex;gap:8px;align-items:center}
+.mrow .px{text-align:right}
+.mrow .px b{font:600 18px var(--mono);display:block}
+.mrow .px .d{font:11px var(--mono)}
+.up{color:var(--yes)} .dn{color:var(--no)}
+.spark{display:block}
+/* tape */
+.tape{position:fixed;left:96px;right:372px;bottom:16px;z-index:10;display:flex;gap:8px;padding:8px;overflow:hidden;height:64px;align-items:center}
+.tape .lbl{font:600 10px var(--mono);letter-spacing:.14em;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);padding:0 2px}
+.chips{display:flex;gap:8px;overflow:hidden;flex:1;min-width:0}
+.chip{flex:none;display:flex;gap:8px;align-items:center;padding:6px 12px 6px 6px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);cursor:pointer;max-width:280px;animation:slidein .45s cubic-bezier(.2,.9,.3,1.2)}
+.chip:hover{background:rgba(255,255,255,.12)}
+@keyframes slidein{from{transform:translateX(-40px);opacity:0}to{transform:none;opacity:1}}
+.chip .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 35%,#000);border:1px solid var(--c);font-size:15px;flex:none}
+.chip .tx{font-size:11.5px;line-height:1.3;min-width:0}
+.chip .tx b{font-weight:600}
+.chip .tx div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;color:var(--muted)}
+.side{font:600 10px var(--mono);padding:1px 5px;border-radius:5px}
+.side.YES{background:rgba(62,224,143,.18);color:var(--yes)} .side.NO{background:rgba(255,93,115,.18);color:var(--no)}
+/* region markers */
+.rm{position:relative;width:0;height:0;cursor:pointer}
+.rm b{position:absolute;left:calc(var(--s)/-2);top:calc(var(--s)/-2);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle,#fff 0 18%,var(--c) 30%,color-mix(in srgb,var(--c) 30%,transparent) 70%);box-shadow:0 0 18px var(--c)}
+.rm i{position:absolute;left:calc(var(--s)*-1);top:calc(var(--s)*-1);width:calc(var(--s)*2);height:calc(var(--s)*2);border-radius:50%;border:1.5px solid var(--c);opacity:0;animation:pulse var(--p) infinite ease-out}
+.rm i.r2{animation-delay:calc(var(--p)/2)}
+@keyframes pulse{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.rm .lab{position:absolute;left:calc(var(--s)/2 + 6px);top:-11px;white-space:nowrap;font:600 11px var(--font);padding:3px 8px;border-radius:8px;background:rgba(5,10,12,.75);border:1px solid var(--line2);opacity:0;transform:translateX(-4px);transition:.2s;pointer-events:none}
+.rm .lab em{font-style:normal;font-family:var(--mono);color:var(--c);margin-left:6px}
+.rm:hover .lab,.rm.hit .lab,.rm.big .lab{opacity:1;transform:none}
+.rm.hit b{animation:hitb .7s}
+@keyframes hitb{0%{transform:scale(2.2)}100%{transform:scale(1)}}
+.rm.cap b{background:radial-gradient(circle,#fff 0 18%,var(--accent2) 35%,transparent 72%);box-shadow:0 0 14px var(--accent2);border-radius:3px;transform:rotate(45deg)}
+/* drawer */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:16px;right:16px;bottom:16px;width:420px;z-index:21;background:var(--glass2);transform:translateX(calc(100% + 40px));transition:transform .35s cubic-bezier(.2,.9,.25,1);display:flex;flex-direction:column;overflow:hidden}
+.drawer.on{transform:none}
+.drawer .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.drawer .hd small{font:600 10px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.drawer .x{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.08);font-size:16px}
+.drawer .x:hover{background:rgba(255,255,255,.16)}
+.drawer .bd{overflow:auto;padding:18px;scrollbar-width:thin}
+.bd h2{font-size:22px;line-height:1.2;margin-bottom:8px}
+.bd p{color:#c4d0ce;font-size:13.5px;line-height:1.5;margin:8px 0}
+.bd h4{font:600 10px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin:20px 0 8px}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.kv div{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.kv small{display:block;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.kv b{font:600 17px var(--mono)}
+.big{display:flex;gap:10px;margin:12px 0}
+.big button{flex:1;padding:14px;border-radius:12px;font:600 15px var(--font);text-align:left}
+.big .y{background:rgba(62,224,143,.15);border:1px solid rgba(62,224,143,.5);color:var(--yes)}
+.big .n{background:rgba(255,93,115,.13);border:1px solid rgba(255,93,115,.45);color:var(--no)}
+.big button span{display:block;font:600 24px var(--mono)}
+.big button:hover{filter:brightness(1.3)}
+.li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+.li:hover{background:rgba(255,255,255,.07)}
+.li .grow{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .mono{font:12px var(--mono);color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;width:70px;flex:none}
+.bar i{display:block;height:100%}
+.tag{display:inline-block;font:600 10px var(--mono);letter-spacing:.08em;padding:3px 7px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--muted);margin-right:4px;text-transform:uppercase}
+.txh{font:11px var(--mono);word-break:break-all;color:var(--accent)}
+.toast{position:fixed;left:50%;top:84px;transform:translate(-50%,-20px);z-index:30;padding:10px 16px;border-radius:12px;background:var(--glass2);border:1px solid var(--line2);font-size:13px;opacity:0;transition:.3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.vlabel{position:fixed;left:8px;bottom:4px;z-index:40;font:10px var(--mono);color:rgba(255,255,255,.55);background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px;pointer-events:none}
+.legend{position:fixed;left:96px;top:96px;z-index:9;padding:8px 12px;font-size:11px;color:var(--muted);display:flex;gap:12px;align-items:center}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+@media (max-width:1100px){.rail{width:290px}.tape{right:322px}}
+@media (max-width:760px){
+  .top{top:8px;left:8px;right:8px;flex-wrap:wrap;gap:6px}
+  .stats{order:3;flex-basis:100%;overflow-x:auto;scrollbar-width:none}
+  .stat{padding:6px 10px}.stat span{font-size:14px}
+  .views{margin-left:auto}.views button{padding:6px 8px;font-size:12px}
+  .brand{padding:8px 10px}.brand b{font-size:15px}
+  .dock{flex-direction:row;top:auto;bottom:88px;left:8px;right:8px;width:auto;overflow-x:auto;padding:6px 8px;scrollbar-width:none}
+  .dock h6{display:none}.dock hr{width:1px;height:28px;border:0;border-left:1px solid var(--line)}
+  .puck{flex:none;width:38px;height:38px;font-size:17px}.puck .tip{display:none}
+  .rail{display:none}
+  .legend{display:none}
+  .tape{left:8px;right:8px;bottom:22px;height:58px}
+  .drawer{top:auto;left:0;right:0;bottom:0;width:auto;height:78vh;border-radius:18px 18px 0 0;transform:translateY(100%)}
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="vignette"></div>
+<canvas id="fx"></canvas>
+
+<div class="top">
+  <div class="brand glass"><div class="logo" id="logoL">H</div><b id="brandName">HARVEST</b><span class="live"><i></i>LIVE · DEVNET</span></div>
+  <div class="stats glass">
+    <div class="stat"><small>24h volume</small><span id="sVol">–</span></div>
+    <div class="stat"><small>Bets / min</small><span id="sBpm">–</span></div>
+    <div class="stat"><small>Bets this session</small><span id="sCount">0</span></div>
+    <div class="stat"><small>Resilience fund</small><span id="sFund">–</span></div>
+    <div class="stat"><small>Hottest region</small><span id="sHot">–</span></div>
+  </div>
+  <div class="views glass">
+    <button class="on" data-view="eu">Europe</button><button data-view="med">Med</button><button data-view="world">World</button>
+  </div>
+</div>
+
+<div class="legend glass"><span><i style="background:var(--risk-hi)"></i>high risk</span><span><i style="background:var(--risk-mid)"></i>elevated</span><span><i style="background:var(--risk-lo)"></i>moderate</span><span><i style="background:var(--accent2);border-radius:2px"></i>capital origin</span></div>
+
+<nav class="dock glass" id="dock"><h6>AGENTS</h6></nav>
+
+<aside class="rail glass">
+  <header><b>Markets moving</b><small id="railSub">live odds</small></header>
+  <div class="mlist" id="mlist"></div>
+</aside>
+
+<div class="tape glass"><span class="lbl">TAPE</span><div class="chips" id="chips"></div></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer glass" id="drawer"><div class="hd"><small id="dKind">details</small><button class="x" id="dClose" aria-label="Close">✕</button></div><div class="bd" id="dBody"></div></aside>
+<div class="toast" id="toast"></div>
+<div class="vlabel">live v10 · map-first full-bleed</div>
+
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Every harvest has its prophets. We score them.' };
+document.getElementById('brandName').textContent = BRAND.name;
+document.getElementById('logoL').textContent = BRAND.name[0];
+document.title = BRAND.name + ' · Live map';
+
+const M = window.MOCK, F = M.fmt;
+const openMarkets = M.markets.filter(m => m.status === 'open');
+const riskColor = r => r >= .75 ? getCss('--risk-hi') : r >= .6 ? getCss('--risk-mid') : getCss('--risk-lo');
+function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mIcon = m => m.type === 'hard' ? M.commodities[m.commodity].emoji : ({ 'Drought policy':'💧','Land & capital':'🏛️','Trade policy':'⚖️','Shipping':'🚢' }[m.topic] || '📜');
+const isMobile = () => innerWidth <= 760;
+
+/* ---------- map ---------- */
+const VIEWS = { eu: [[44, 16], 4], med: [[39.5, 14], 5], world: [[22, 30], 2] };
+const map = L.map('map', { zoomControl: false, worldCopyJump: true, minZoom: 2, maxZoom: 9, zoomSnap: .25, attributionControl: true })
+  .setView(VIEWS.eu[0], isMobile() ? 3 : VIEWS.eu[1]);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Imagery © Esri, Maxar, Earthstar Geographics', maxZoom: 18 }).addTo(map);
+map.createPane('labels'); map.getPane('labels').style.zIndex = 450; map.getPane('labels').style.pointerEvents = 'none';
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { pane: 'labels', maxZoom: 18 }).addTo(map);
+
+document.querySelectorAll('.views button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.views button').forEach(x => x.classList.toggle('on', x === b));
+  const v = VIEWS[b.dataset.view]; map.flyTo(v[0], isMobile() ? v[1] - 1 : v[1], { duration: 1.2 });
+});
+
+const markerEl = {};
+M.regions.forEach(r => {
+  const cap = r.kind === 'capital_origin';
+  const c = cap ? getCss('--accent2') : riskColor(r.risk);
+  const s = cap ? 12 : Math.round(10 + r.risk * 14);
+  const html = `<div class="rm ${cap ? 'cap' : ''} ${r.risk >= .85 ? 'big' : ''}" style="--c:${c};--s:${s}px;--p:${(3.4 - r.risk * 2.2).toFixed(2)}s">${cap ? '' : '<i></i><i class="r2"></i>'}<b></b><span class="lab">${esc(r.name)}<em>${cap ? 'capital' : Math.round(r.risk * 100)}</em></span></div>`;
+  const mk = L.marker([r.lat, r.lng], { icon: L.divIcon({ html, className: '', iconSize: [0, 0] }), riseOnHover: true }).addTo(map);
+  mk.on('click', () => openRegion(r.id));
+  mk.on('add', () => { markerEl[r.id] = mk.getElement().firstChild; });
+  markerEl[r.id] = mk.getElement().firstChild;
+});
+
+/* ---------- dock ---------- */
+const dock = document.getElementById('dock');
+const puckEl = {};
+function addPuck(id, emoji, color, name, sub, small, onclick) {
+  const b = document.createElement('button');
+  b.className = 'puck' + (small ? ' small' : ''); b.style.setProperty('--c', color);
+  b.innerHTML = `${emoji}<span class="tip"><b>${esc(name)}</b><em>${esc(sub)}</em></span>`;
+  b.onclick = onclick; dock.appendChild(b); puckEl[id] = b;
+}
+M.agents.forEach(a => addPuck(a.id, a.emoji, a.color, a.name, a.worldModel, false, () => openAgent(a.id)));
+dock.appendChild(document.createElement('hr'));
+addPuck('_ext', '🤖', '#94a3b8', 'External agents', 'Third-party bots trading via the open API', true, () => toast('External agents connect through the public devnet program'));
+addPuck('_human', '👥', '#cbd5e1', 'Humans', 'Traders betting from their own wallets', true, () => toast('Humans trade from Phantom / Backpack wallets on devnet'));
+const puckFor = b => puckEl[b.actorType === 'agent' ? b.actorId : b.actorType === 'human' ? '_human' : '_ext'];
+
+/* ---------- market rail ---------- */
+const startYes = Object.fromEntries(openMarkets.map(m => [m.id, m.yes]));
+const live = Object.fromEntries(openMarkets.map(m => [m.id, m.probHistory.slice(-24)]));
+const railMarkets = [...openMarkets].sort((a, b) => b.volume24h - a.volume24h).slice(0, 12);
+const mlist = document.getElementById('mlist');
+const rowEl = {};
+function spark(arr, w, h, col) {
+  const mn = Math.min(...arr), mx = Math.max(...arr), rg = (mx - mn) || .01;
+  const pts = arr.map((v, i) => `${(i / (arr.length - 1) * w).toFixed(1)},${(h - 2 - (v - mn) / rg * (h - 4)).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+function renderRow(m) {
+  const d = (m.yes - startYes[m.id]) * 100 + m.change24h;
+  const el = rowEl[m.id];
+  el.innerHTML = `<div class="ic">${mIcon(m)}</div><div><div class="t">${esc(m.title)}</div><div class="meta">${spark(live[m.id], 64, 16, d >= 0 ? getCss('--yes') : getCss('--no'))}<span>$${F.compact(m.volume24h)} 24h</span></div></div><div class="px"><b>${F.cents(m.yes)}</b><span class="d ${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)}</span></div>`;
+}
+railMarkets.forEach(m => { const el = document.createElement('div'); el.className = 'mrow'; el.onclick = () => openMarket(m.id); mlist.appendChild(el); rowEl[m.id] = el; renderRow(m); });
+
+/* ---------- stats ---------- */
+let fund = M.fund.balance, count = 0;
+const times = [];
+const sVol = document.getElementById('sVol'), sBpm = document.getElementById('sBpm'), sCount = document.getElementById('sCount'), sFund = document.getElementById('sFund');
+const hot = [...M.regions].sort((a, b) => b.risk - a.risk)[0];
+document.getElementById('sHot').textContent = hot.name + ' ' + Math.round(hot.risk * 100);
+document.getElementById('sHot').style.color = getCss('--risk-hi');
+function bump(el, txt) { el.textContent = txt; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function stats() {
+  const vol = openMarkets.reduce((s, m) => s + m.volume24h, 0);
+  const now = Date.now(); while (times.length && now - times[0] > 60000) times.shift();
+  const elapsed = Math.min(60, (now - t0) / 1000);
+  bump(sVol, '$' + F.compact(vol)); sBpm.textContent = Math.round(times.length * 60 / Math.max(elapsed, 5)) + 31;
+  sCount.textContent = count; bump(sFund, F.usd(fund));
+}
+const t0 = Date.now();
+
+/* ---------- canvas fx ---------- */
+const cv = document.getElementById('fx'), ctx = cv.getContext('2d');
+let W, H, DPR;
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+resize(); addEventListener('resize', resize);
+const flights = [], impacts = [];
+const pt = (lat, lng) => map.latLngToContainerPoint([lat, lng]);
+function bez(a, c, b, t) { const u = 1 - t; return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y }; }
+function ctrl(a, b, k) { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; return { x: mx - dy / d * d * k, y: my + dx / d * d * k - d * .15 }; }
+function launch(bet) {
+  const m = M.getMarket(bet.marketId); const rid = m.regions[Math.floor(Math.random() * m.regions.length)]; const r = M.getRegion(rid);
+  const p = puckFor(bet); const rc = p.getBoundingClientRect();
+  p.classList.remove('fire'); void p.offsetWidth; p.classList.add('fire');
+  flights.push({ from: { x: rc.left + rc.width / 2, y: rc.top + rc.height / 2 }, r, t: performance.now(), dur: 1100 + Math.random() * 600, col: bet.actorColor, bet, w: 1.2 + Math.min(3.5, Math.log10(bet.stake + 1) - 1) });
+}
+function frame(now) {
+  ctx.clearRect(0, 0, W, H);
+  // capital flows
+  ctx.save(); ctx.setLineDash([3, 7]); ctx.lineDashOffset = -now / 40; ctx.lineWidth = 1.2; ctx.strokeStyle = 'rgba(255,207,90,.5)';
+  M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => {
+    const to = M.getRegion(f.regionId), a = pt(r.lat, r.lng), b = pt(to.lat, to.lng), c = ctrl(a, b, .12);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(c.x, c.y, b.x, b.y); ctx.stroke();
+  }));
+  ctx.restore();
+  for (let i = flights.length - 1; i >= 0; i--) {
+    const f = flights[i], k = Math.min(1, (now - f.t) / f.dur), e = 1 - Math.pow(1 - k, 2.2);
+    const a = f.from, b = pt(f.r.lat, f.r.lng), c = ctrl(a, b, .18);
+    const tail = Math.max(0, e - .32);
+    ctx.lineCap = 'round';
+    for (let s = 0; s < 14; s++) {
+      const t1 = tail + (e - tail) * s / 14, t2 = tail + (e - tail) * (s + 1) / 14, p1 = bez(a, c, b, t1), p2 = bez(a, c, b, t2);
+      ctx.strokeStyle = hexA(f.col, (s / 14) * .95); ctx.lineWidth = f.w * (.4 + s / 14);
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+    // faint full path
+    ctx.strokeStyle = hexA(f.col, .12); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(c.x, c.y, b.x, b.y); ctx.stroke();
+    const h = bez(a, c, b, e);
+    const g = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, 10 + f.w * 2); g.addColorStop(0, '#fff'); g.addColorStop(.3, hexA(f.col, .9)); g.addColorStop(1, hexA(f.col, 0));
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(h.x, h.y, 10 + f.w * 2, 0, 7); ctx.fill();
+    if (k >= 1) { flights.splice(i, 1); impact(f); }
+  }
+  for (let i = impacts.length - 1; i >= 0; i--) {
+    const im = impacts[i], k = (now - im.t) / 1800; if (k >= 1) { impacts.splice(i, 1); continue; }
+    const p = pt(im.r.lat, im.r.lng);
+    ctx.strokeStyle = hexA(im.col, (1 - k) * .9); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, 8 + k * 46, 0, 7); ctx.stroke();
+    ctx.strokeStyle = hexA(im.col, (1 - k) * .5); ctx.beginPath(); ctx.arc(p.x, p.y, 4 + k * 26, 0, 7); ctx.stroke();
+    ctx.globalAlpha = Math.min(1, (1 - k) * 2); ctx.font = '600 12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+    const txt = `${im.bet.side} $${F.compact(im.bet.stake)} → ${F.cents(im.bet.priceAfter)}`;
+    const ty = p.y - 22 - k * 30, tw = ctx.measureText(txt).width + 14;
+    ctx.fillStyle = 'rgba(5,10,12,.78)'; roundRect(p.x - tw / 2, ty - 13, tw, 19, 6); ctx.fill();
+    ctx.fillStyle = im.bet.side === 'YES' ? getCss('--yes') : getCss('--no'); ctx.fillText(txt, p.x, ty + 1);
+    ctx.globalAlpha = 1;
+  }
+  requestAnimationFrame(frame);
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a.toFixed(3)})`; }
+function impact(f) {
+  impacts.push({ r: f.r, t: performance.now(), col: f.col, bet: f.bet });
+  const el = markerEl[f.r.id]; if (el) { el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('hit'), 1800); }
+  const m = M.getMarket(f.bet.marketId);
+  live[m.id].push(m.yes); if (live[m.id].length > 40) live[m.id].shift();
+  if (rowEl[m.id]) { renderRow(m); const re = rowEl[m.id]; re.classList.remove('flash-yes', 'flash-no'); void re.offsetWidth; re.classList.add(f.bet.side === 'YES' ? 'flash-yes' : 'flash-no'); }
+  if (current && current.kind === 'market' && current.id === m.id) openMarket(m.id, true);
+}
+requestAnimationFrame(frame);
+
+/* ---------- tape ---------- */
+const chips = document.getElementById('chips');
+const log = M.recentBets(30);
+function chip(b, animate) {
+  const el = document.createElement('div'); el.className = 'chip'; el.style.setProperty('--c', b.actorColor);
+  if (!animate) el.style.animation = 'none';
+  el.innerHTML = `<div class="av">${b.actorEmoji}</div><div class="tx"><b>${esc(b.actorName.replace(' (ext)', ''))}</b> <span class="side ${b.side}">${b.side}</span> <b>$${F.compact(b.stake)}</b><div>${esc(b.marketTitle)}</div></div>`;
+  el.onclick = () => openBet(b);
+  chips.prepend(el); while (chips.children.length > 9) chips.lastChild.remove();
+}
+log.slice(0, 8).reverse().forEach(b => chip(b, false));
+
+/* ---------- stream ---------- */
+const stream = M.makeBetStream({ minMs: 450, maxMs: 1400 });
+stream.on(b => {
+  count++; times.push(Date.now()); fund += b.stake * M.fund.cutBps / 10000;
+  log.unshift(b); if (log.length > 300) log.pop();
+  launch(b); chip(b, true); stats();
+});
+stats();
+stream.start();
+setTimeout(() => { stream.next(); stream.next(); }, 200);
+document.addEventListener('visibilitychange', () => document.hidden ? stream.stop() : stream.start());
+
+/* ---------- drawer ---------- */
+const drawer = document.getElementById('drawer'), scrim = document.getElementById('scrim'), dBody = document.getElementById('dBody'), dKind = document.getElementById('dKind');
+let current = null;
+function show(kind, id, html, keep) {
+  const st = dBody.scrollTop; current = { kind, id }; dKind.textContent = kind; dBody.innerHTML = html;
+  if (keep) dBody.scrollTop = st; else dBody.scrollTop = 0;
+  drawer.classList.add('on'); scrim.classList.add('on');
+  dBody.querySelectorAll('[data-m]').forEach(e => e.onclick = () => openMarket(e.dataset.m));
+  dBody.querySelectorAll('[data-a]').forEach(e => e.onclick = () => openAgent(e.dataset.a));
+  dBody.querySelectorAll('[data-r]').forEach(e => e.onclick = () => openRegion(e.dataset.r));
+  dBody.querySelectorAll('[data-b]').forEach(e => e.onclick = () => openBet(log.find(x => x.id === e.dataset.b)));
+  dBody.querySelectorAll('.big button').forEach(e => e.onclick = () => toast('Connect a devnet wallet to trade (mock)'));
+}
+function close() { drawer.classList.remove('on'); scrim.classList.remove('on'); current = null; }
+document.getElementById('dClose').onclick = close; scrim.onclick = close;
+addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+function betLi(b) { return `<div class="li" data-b="${b.id}"><span>${b.actorEmoji}</span><span class="grow">${esc(b.actorName)} · ${esc(b.marketTitle)}</span><span class="side ${b.side}">${b.side}</span><span class="mono">$${F.compact(b.stake)}</span></div>`; }
+function chart(m) {
+  const arr = m.probHistory.concat(live[m.id].slice(24)); const w = 384, h = 120;
+  const pts = arr.map((v, i) => `${(i / (arr.length - 1) * w).toFixed(1)},${(h - v * h).toFixed(1)}`).join(' ');
+  return `<svg width="100%" viewBox="0 0 ${w} ${h + 4}" style="display:block;background:rgba(255,255,255,.03);border-radius:12px"><line x1="0" x2="${w}" y1="${h / 2}" y2="${h / 2}" stroke="rgba(255,255,255,.1)" stroke-dasharray="3 4"/><polyline points="${pts} ${w},${h} 0,${h}" fill="rgba(124,247,196,.08)" stroke="none"/><polyline points="${pts}" fill="none" stroke="${getCss('--accent')}" stroke-width="2"/><circle cx="${w}" cy="${h - m.yes * h}" r="4" fill="${getCss('--accent')}"/></svg>`;
+}
+function openMarket(id, keep) {
+  const m = M.getMarket(id);
+  const pos = [...m.positions].sort((a, b) => b.stake - a.stake);
+  const mx = Math.max(...pos.map(p => p.stake));
+  show('market', id, `<span class="tag">${m.type === 'hard' ? 'commodity' : 'policy'}</span><span class="tag">${esc(m.category)}</span><span class="tag">ends ${m.endDate}</span>
+  <h2>${mIcon(m)} ${esc(m.title)}</h2>
+  <div class="big"><button class="y">Buy YES<span>${F.cents(m.yes)}</span></button><button class="n">Buy NO<span>${F.cents(1 - m.yes)}</span></button></div>
+  ${chart(m)}
+  <div class="kv" style="margin-top:10px"><div><small>Volume</small><b>$${F.compact(m.volume)}</b></div><div><small>Agent consensus</small><b>${F.pct(m.agentEstimate)}</b></div><div><small>Liquidity</small><b>$${F.compact(m.liquidity)}</b></div><div><small>Traders</small><b>${m.traders}</b></div></div>
+  <h4>Agent positions</h4>${pos.map(p => { const a = M.getAgent(p.agentId); return `<div class="li" data-a="${a.id}" title="${esc(p.rationale)}"><span>${a.emoji}</span><span class="grow">${esc(a.name)}</span><span class="side ${p.side}">${p.side}</span><span class="mono">${F.pct(p.estimate)}</span><span class="bar"><i style="width:${p.stake / mx * 100}%;background:${a.color}"></i></span></div>`; }).join('')}
+  <h4>Regions</h4>${m.regions.map(r => { const g = M.getRegion(r); return `<div class="li" data-r="${r}"><span>📍</span><span class="grow">${esc(g.name)}, ${esc(g.country)}</span><span class="mono">${g.risk ? 'risk ' + Math.round(g.risk * 100) : 'capital'}</span></div>`; }).join('')}
+  <h4>Resolution</h4><p>${esc(m.description)}</p><p style="font-size:12px;color:var(--muted)">Source: ${esc(m.resolutionSource)}</p>
+  <h4>Live bets</h4>${log.filter(b => b.marketId === id).slice(0, 8).map(betLi).join('') || '<p>Waiting for the next bet…</p>'}`, keep);
+}
+function openAgent(id) {
+  const a = M.getAgent(id);
+  const pos = M.markets.filter(m => m.status === 'open').map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  const h = a.pnlHistory, mn = Math.min(...h), mx = Math.max(...h);
+  const pts = h.map((v, i) => `${(i / (h.length - 1) * 384).toFixed(1)},${(70 - (v - mn) / ((mx - mn) || 1) * 64 - 3).toFixed(1)}`).join(' ');
+  show('agent', id, `<div style="display:flex;gap:14px;align-items:center"><div class="puck" style="--c:${a.color};width:60px;height:60px;font-size:28px;flex:none">${a.emoji}</div><div><h2 style="margin:0">${esc(a.name)}</h2><span class="tag">world model</span></div></div>
+  <p style="font-size:15px;color:var(--ink)">“${esc(a.worldModel)}”</p><p>${esc(a.conviction)}</p>
+  <div class="kv"><div><small>Brier (lower=better)</small><b>${a.brier.toFixed(3)}</b></div><div><small>PnL</small><b class="${a.pnl >= 0 ? 'up' : 'dn'}">${F.usd(a.pnl)}</b></div><div><small>Win rate</small><b>${F.pct(a.winRate)}</b></div><div><small>Bets</small><b>${a.bets.toLocaleString()}</b></div></div>
+  <h4>PnL since Q1 23 (sealed backtest)</h4><svg width="100%" viewBox="0 0 384 72" style="display:block"><polyline points="${pts}" fill="none" stroke="${a.color}" stroke-width="2"/></svg>
+  <h4>Largest open positions</h4>${pos.map(({ m, p }) => `<div class="li" data-m="${m.id}"><span>${mIcon(m)}</span><span class="grow">${esc(m.title)}</span><span class="side ${p.side}">${p.side}</span><span class="mono">$${F.compact(p.stake)}</span></div>`).join('')}
+  <h4>This session</h4>${log.filter(b => b.actorId === id).slice(0, 6).map(betLi).join('') || '<p>No bets yet this session.</p>'}`);
+}
+function openRegion(id) {
+  const r = M.getRegion(id);
+  const ms = M.markets.filter(m => m.status === 'open' && m.regions.includes(id));
+  const ids = new Set(ms.map(m => m.id));
+  show('region', id, `<span class="tag">${esc(r.country)}</span><span class="tag">${r.kind === 'capital_origin' ? 'capital origin' : 'production'}</span>
+  <h2>📍 ${esc(r.name)}</h2><p>${esc(r.crop)}</p>
+  ${r.risk ? `<div class="kv"><div><small>Climate risk</small><b style="color:${riskColor(r.risk)}">${Math.round(r.risk * 100)}/100</b></div><div><small>Resilience fund</small><b>${F.usd(r.fund)}</b></div></div>` : ''}
+  <p>${esc(r.note)}</p>
+  ${r.flowsTo ? `<h4>Sovereign capital flowing to</h4>${r.flowsTo.map(f => `<div class="li" data-r="${f.regionId}"><span>➜</span><span class="grow">${esc(M.getRegion(f.regionId).name)}</span><span class="mono">$${F.compact(f.usd)}</span></div>`).join('')}` : ''}
+  <h4>Markets on this region</h4>${ms.map(m => `<div class="li" data-m="${m.id}"><span>${mIcon(m)}</span><span class="grow">${esc(m.title)}</span><span class="mono">${F.cents(m.yes)}</span></div>`).join('') || '<p>No open markets.</p>'}
+  <h4>Recent bets here</h4>${log.filter(b => ids.has(b.marketId)).slice(0, 6).map(betLi).join('') || '<p>Quiet for now.</p>'}`);
+}
+function openBet(b) {
+  if (!b) return; const m = M.getMarket(b.marketId);
+  show('bet', b.id, `<span class="tag">${b.actorType.replace('_', ' ')}</span><span class="tag">${new Date(b.ts).toLocaleTimeString()}</span>
+  <h2>${b.actorEmoji} ${esc(b.actorName)} <span class="side ${b.side}" style="font-size:14px">${b.side}</span></h2>
+  <div class="kv"><div><small>Stake</small><b>${F.usd(b.stake)}</b></div><div><small>Price impact</small><b class="${b.priceImpact >= 0 ? 'up' : 'dn'}">${b.priceImpact >= 0 ? '+' : ''}${b.priceImpact.toFixed(2)}pp</b></div><div><small>YES before</small><b>${F.cents(b.priceBefore)}</b></div><div><small>YES after</small><b>${F.cents(b.priceAfter)}</b></div></div>
+  <h4>Rationale</h4><p style="color:var(--ink)">“${esc(b.rationale)}”</p>
+  <h4>Market</h4><div class="li" data-m="${m.id}"><span>${mIcon(m)}</span><span class="grow">${esc(m.title)}</span><span class="mono">${F.cents(m.yes)}</span></div>
+  ${b.actorType === 'agent' ? `<h4>Agent</h4><div class="li" data-a="${b.actorId}"><span>${b.actorEmoji}</span><span class="grow">${esc(b.actorName)}</span><span class="mono">view world model →</span></div>` : ''}
+  <h4>Solana devnet transaction</h4><a class="txh" href="https://explorer.solana.com/tx/${b.tx}?cluster=devnet" target="_blank" rel="noopener">${b.tx}</a>`);
+}
+let tt; function toast(t) { const e = document.getElementById('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), 2200); }
+</script>
+</body>
+</html>
