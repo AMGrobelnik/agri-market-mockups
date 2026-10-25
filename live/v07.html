@@ -65,7 +65,7 @@ a{color:var(--oxford)}
 /* lead */
 .lead h2{font:800 32px/1.06 var(--head);margin:0 0 6px;letter-spacing:-.01em;min-height:68px;transition:opacity .35s}
 .lead h2 em{font-style:italic;color:var(--claret)}
-.lead .stand{font:400 15.5px/1.4 var(--body);color:var(--ink2);margin:0 0 4px;min-height:44px;transition:opacity .35s}
+.lead .stand{font:400 15.5px/1.4 var(--body);color:var(--ink2);margin:0 0 10px;min-height:44px;transition:opacity .35s}
 .byline{font:500 11px/1.4 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
 .fade{opacity:0}
 figure{margin:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:8px 0 6px;position:relative}
@@ -100,7 +100,8 @@ figcaption .key b{display:inline-block;width:18px;height:2px;vertical-align:3px;
 .disp{list-style:none;margin:0;padding:0}
 .disp li{padding:9px 0 9px;border-bottom:1px solid var(--rule);cursor:pointer;animation:drop .6s ease-out}
 .disp li:hover{background:var(--paper2)}
-.disp li.new{background:var(--hl);transition:background 2.5s}
+.disp li.new{animation:drop .6s ease-out,hl 2.6s ease-out}
+@keyframes hl{from{background:var(--hl)}to{background:transparent}}
 @keyframes drop{from{transform:translateY(-8px)}}
 .disp .meta{font:500 10px/1 var(--mono);color:var(--muted);letter-spacing:.05em;text-transform:uppercase;display:flex;justify-content:space-between}
 .disp .hd{font:700 15px/1.22 var(--head);margin:4px 0 3px}
@@ -195,7 +196,6 @@ figcaption .key b{display:inline-block;width:18px;height:2px;vertical-align:3px;
       <p class="kicker" id="leadKick">Breaking · agents</p>
       <h2 id="leadHead">Loading the wires…</h2>
       <p class="stand" id="leadStand"></p>
-      <div class="byline" id="leadBy">By the HARVEST desk</div>
       <figure>
         <div class="figt">Where the money is moving, live <span id="bpm">0 bets / min</span></div>
         <div class="mapwrap"><canvas id="base" width="1800" height="1300"></canvas><svg id="map" viewBox="0 0 900 650" role="img" aria-label="Live map of bets flowing from agents to regions"></svg></div>
@@ -238,7 +238,6 @@ const $ = s => document.querySelector(s);
 document.getElementById('brandName').firstChild.nodeValue = BRAND.name;
 $('#brandTag').textContent = BRAND.tagline;
 document.title = BRAND.name + ' Ledger Live';
-$('#leadBy').textContent = 'By the ' + BRAND.name + ' desk · filed from Solana devnet';
 
 const open = M.markets.filter(m => m.status === 'open');
 const commod = m => m.commodity ? M.commodities[m.commodity] : null;
@@ -286,7 +285,7 @@ function renderTicker() {
 }
 
 /* ---------- headline ---------- */
-const verbs = { YES: ['backs', 'bets', 'piles into', 'stakes'], NO: ['bets against', 'fades', 'sells', 'shorts'] };
+const verbs = { YES: [['stakes', 'on'], ['puts', 'behind'], ['wagers', 'on'], ['bets', 'on']], NO: [['stakes', 'against'], ['puts', 'against'], ['wagers', 'against'], ['bets', 'against']] };
 let lastLead = 0;
 function lead(b, force) {
   if (!force && (Date.now() - lastLead < 6500)) return;
@@ -295,9 +294,9 @@ function lead(b, force) {
   h.classList.add('fade'); s.classList.add('fade');
   setTimeout(() => {
     const v = verbs[b.side][Math.floor(Math.random() * 4)];
-    h.innerHTML = `${esc(b.actorName.replace(' (ext)', ''))} ${v} ${F.usd(b.stake)} on <em>${esc(short(b.marketTitle))}</em>`;
+    h.innerHTML = `${esc(b.actorName.replace(' (ext)', ''))} ${v[0]} ${F.usd(b.stake)} ${v[1]} <em>${esc(short(b.marketTitle))}</em>`;
     s.textContent = `“${b.rationale}” The YES price moved from ${F.cents(b.priceBefore)} to ${F.cents(b.priceAfter)}.`;
-    $('#leadKick').textContent = (b.actorType === 'agent' ? 'Agents' : b.actorType === 'human' ? 'Readers' : 'Outside desks') + ' · ' + hhmm(b.ts);
+    $('#leadKick').textContent = (b.actorType === 'agent' ? 'Agents' : b.actorType === 'human' ? 'Readers' : 'Outside desks') + ' · ' + hhmm(b.ts) + ' · filed by the ' + BRAND.name + ' desk';
     h.classList.remove('fade'); s.classList.remove('fade');
   }, 350);
 }
@@ -310,7 +309,7 @@ function dispItem(b, isNew) {
   li.innerHTML = `<div class="meta"><span>${hhmm(b.ts)} · ${b.actorType === 'agent' ? 'agent' : b.actorType === 'human' ? 'reader' : 'outside desk'}</span><span>${F.usd(b.stake)}</span></div>
   <div class="hd">${esc(b.actorName)} <span class="s" style="color:${c}">${b.side}</span> ${esc(short(b.marketTitle))}</div>
   <div class="why">${esc(b.rationale)} <span class="mono" style="font-style:normal;font-size:11px">${F.cents(b.priceBefore)}→${F.cents(b.priceAfter)}</span></div>`;
-  if (isNew) { li.classList.add('new'); requestAnimationFrame(() => requestAnimationFrame(() => li.classList.remove('new'))); }
+  if (isNew) li.classList.add('new');
   return li;
 }
 function pushDisp(b) {
