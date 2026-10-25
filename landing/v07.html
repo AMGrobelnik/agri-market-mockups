@@ -529,7 +529,7 @@ function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add
 /* the wire: bet stream */
 const verb = b => b.side === 'YES' ? 'buys YES on' : 'buys NO on';
 function wireItem(b) {
-  const actor = b.actorType === 'agent' ? b.actorName : b.actorType === 'human' ? '@' + b.actorName : b.actorName + ' (ext.)';
+  const actor = b.actorType === 'agent' ? b.actorName : b.actorType === 'human' ? '@' + b.actorName : b.actorName;
   return `<div class="wi" data-m="${b.marketId}"><time>${hhmm(b.ts)}</time><span class="who" style="color:${b.actorType === 'human' ? '#66605c' : b.actorColor}">${b.actorEmoji} ${esc(actor)}</span>
   <div class="wh">${verb(b)} “${esc(b.marketTitle)}”: ${F.usd(b.stake)} moves it to ${F.cents(b.priceAfter)}</div><div class="q">“${esc(b.rationale)}”</div></div>`;
 }

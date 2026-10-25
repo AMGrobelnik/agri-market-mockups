@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
 <title>HARVEST · Landing v11</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,7 +20,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Inter Tight',Helvetic
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;text-align:left}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:1360px;margin:0 auto;padding:0 var(--pad);position:relative}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gut)}
 /* toggleable column guides (press G) */
 .guides{position:fixed;inset:0;pointer-events:none;z-index:50;display:none}
 body.g .guides{display:block}
@@ -80,13 +81,13 @@ header nav a:hover::after{right:0}
 
 /* sections */
 section.s{padding:96px 0 0}
-.s-head{grid-column:1/13;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);border-top:2px solid var(--line);padding-top:14px;margin-bottom:44px}
+.s-head{grid-column:1/13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gut);border-top:2px solid var(--line);padding-top:14px;margin-bottom:44px}
 .s-head .no{grid-column:1/2;font:500 13px 'IBM Plex Mono'}
 .s-head h2{grid-column:2/8;font-size:52px;line-height:.98;letter-spacing:-.04em;font-weight:700}
 .s-head p{grid-column:9/13;font-size:16px;color:var(--grey);align-self:end}
 
 /* agents grid */
-.agents{grid-column:1/13;display:grid;grid-template-columns:repeat(4,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.agents{grid-column:1/13;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-left:1px solid var(--line);border-top:1px solid var(--line)}
 .ag{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:18px 18px 20px;min-height:270px;display:flex;flex-direction:column;position:relative;transition:background .2s,color .2s}
 .ag:hover,.ag.sel{background:var(--ink);color:#fff}
 .ag:hover .lbl,.ag.sel .lbl,.ag:hover .wm,.ag.sel .wm{color:#bdbdbd}
@@ -105,7 +106,7 @@ section.s{padding:96px 0 0}
 .ag.bet .ping{animation:ping 1.2s}
 @keyframes ping{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(3)}}
 .ag .last{font:500 11px 'IBM Plex Mono';margin-top:10px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent)}
-.detail{grid-column:1/13;display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);border:1px solid var(--line);border-top:0;max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.2,.8,.2,1);background:var(--soft)}
+.detail{grid-column:1/13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gut);border:1px solid var(--line);border-top:0;max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.2,.8,.2,1);background:var(--soft)}
 .detail.open{max-height:520px}
 .detail>div{padding:26px 0}
 .detail .c1{grid-column:1/5;padding-left:22px}
@@ -161,7 +162,7 @@ section.s{padding:96px 0 0}
 .fbar div:nth-child(odd){background:#2b2b2b}
 .fbar div:hover,.fbar div.on{background:var(--accent)}
 .fbar div:last-child{border-right:0}
-.fleg{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gut);margin-top:16px;min-height:60px}
+.fleg{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gut);margin-top:16px;min-height:60px}
 .fleg .nm{grid-column:1/5;font-size:28px;letter-spacing:-.03em;font-weight:600}
 .fleg .v{grid-column:5/7;font:500 14px 'IBM Plex Mono';padding-top:8px}
 .fleg .nt{grid-column:7/13;font-size:14px;color:var(--grey);padding-top:8px}
@@ -195,12 +196,12 @@ footer .grid>*{grid-column:span 4}
   .index{grid-template-columns:1fr 1fr}
   .index div{padding-left:0;border-right:0}
   .index b{font-size:28px}
-  .tk-h,.tk-row{grid-template-columns:44px 1fr 40px 64px}
-  .tk-h>:nth-child(3),.tk-row>:nth-child(3),.tk-h>:nth-child(6),.tk-row>:nth-child(6){display:none}
+  .tk-h,.tk-row{grid-template-columns:minmax(0,1fr) 40px 64px}
+  .tk-h>:nth-child(1),.tk-row>:nth-child(1),.tk-h>:nth-child(3),.tk-row>:nth-child(3),.tk-h>:nth-child(6),.tk-row>:nth-child(6){display:none}
   .s-head h2{grid-column:1/13;font-size:36px;margin-top:8px}
   .s-head .no{grid-column:1/13}
   .s-head p{grid-column:1/13;margin-top:12px}
-  .agents{grid-template-columns:1fr 1fr}
+  .agents{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ag{min-height:220px;padding:14px}.ag h3{font-size:19px}
   .detail .c1,.detail .c2,.detail .c3{grid-column:1/13;padding:16px}
   .detail.open{max-height:1400px}
