@@ -36,10 +36,12 @@ nav.top .sp{flex:1}
 
 section.s{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;padding:110px 40px 90px;pointer-events:none}
 section.s .txt{max-width:500px;pointer-events:auto}
+section.hero .txt{max-width:620px}
+section.s:not(.aud):not(.cta)::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(7,6,13,.82) 0,rgba(7,6,13,.55) 32%,rgba(7,6,13,0) 44%)}
 .over{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
 .num{font:400 12px var(--mono);color:var(--a1);letter-spacing:.2em;margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .num::after{content:"";height:1px;width:60px;background:var(--a1);opacity:.5}
-h1.brand{font:800 clamp(64px,10.5vw,158px)/.86 var(--display);letter-spacing:-.04em;margin:18px 0 18px;background:linear-gradient(100deg,#fff 0%,#fff 45%,#c6f24e 62%,#ff7a59 82%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:sheen 8s ease-in-out infinite alternate}
+h1.brand{white-space:nowrap;font:800 clamp(54px,6.8vw,108px)/.9 var(--display);letter-spacing:-.04em;margin:18px 0 18px;background:linear-gradient(100deg,#fff 0%,#fff 45%,#c6f24e 62%,#ff7a59 82%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:sheen 8s ease-in-out infinite alternate}
 @keyframes sheen{to{background-position:100% 0}}
 .tagline{font:500 clamp(22px,2.4vw,34px)/1.15 var(--display);margin-bottom:16px}
 .lede{color:var(--mut);font-size:17px;max-width:470px}
@@ -97,7 +99,8 @@ footer{position:relative;z-index:2;padding:0 40px 70px;font:400 12px var(--mono)
 .tip.on{opacity:1}
 .tip b{font:600 13px var(--sans)}
 .tip .m{font:400 11px var(--mono);color:var(--mut)}
-.drawer{position:fixed;top:14px;right:14px;bottom:54px;width:430px;max-width:calc(100vw - 28px);z-index:40;border-radius:22px;background:rgba(14,13,22,.94);border:1px solid var(--line);backdrop-filter:blur(18px);padding:26px;overflow:auto;transform:translateX(470px);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.dwrap{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:40}
+.drawer{pointer-events:auto;position:absolute;top:14px;right:14px;bottom:54px;width:430px;max-width:calc(100vw - 28px);z-index:40;border-radius:22px;background:rgba(14,13,22,.94);border:1px solid var(--line);backdrop-filter:blur(18px);padding:26px;overflow:auto;transform:translateX(470px);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
 .drawer.on{transform:none}
 .drawer .x{position:absolute;top:14px;right:16px;font:400 22px var(--sans);color:var(--mut)}
 .drawer .x:hover{color:var(--ink)}
@@ -118,9 +121,11 @@ footer{position:relative;z-index:2;padding:0 40px 70px;font:400 12px var(--mono)
   nav.top{padding:14px 16px;gap:12px}
   nav.top .links{display:none}
   section.s{align-items:flex-start;padding:84px 16px 52vh}
-  section.s .txt{max-width:none;background:rgba(7,6,13,.55);backdrop-filter:blur(6px);border-radius:16px}
+  section.s .txt,section.hero .txt{max-width:none;width:100%;min-width:0;background:rgba(7,6,13,.55);backdrop-filter:blur(6px);border-radius:16px}
   .hero.s{padding-bottom:50vh}
   .stats{gap:18px;flex-wrap:wrap}
+  .lede{max-width:none}
+  section.s::before{display:none}
   .alist li .wm{max-width:220px}
   .aud .wrap2{grid-template-columns:1fr}
   .aud.s,.cta.s{padding-bottom:90px}
@@ -218,7 +223,7 @@ footer{position:relative;z-index:2;padding:0 40px 70px;font:400 12px var(--mono)
 <div class="dots" id="dots"></div>
 <div class="ticker"><span class="lv">LIVE</span><div class="row" id="tick"></div></div>
 <div class="tip" id="tip"></div>
-<aside class="drawer" id="drawer"><button class="x" id="dx">×</button><div id="dbody"></div></aside>
+<div class="dwrap"><aside class="drawer" id="drawer"><button class="x" id="dx">×</button><div id="dbody"></div></aside></div>
 <div class="vlabel">landing v09 · Data-art generative</div>
 
 <script src="../shared/mock-data.js"></script>
@@ -339,6 +344,25 @@ function comet(x0, y0, x1, y1, col, n, cb) {
   for (let k = 0; k < n; k++) sparks.push({ x0, y0, x1, y1, cx: cx + (Math.random() - .5) * 40, cy: cy + (Math.random() - .5) * 40, t: -k * 0.018, col, x: x0, y: y0, px: x0, py: y0, cb: k === n - 1 ? cb : null });
 }
 
+/* ---------- physics ---------- */
+function step(p) {
+  p.px = p.x; p.py = p.y;
+  const tg = target(p);
+  if (tg) {
+    if (tg[2]) { p.x = p.px = tg[0]; p.y = p.py = tg[1]; p.vx = p.vy = 0; }
+    const k = mode === 'seal' || mode === 'reveal' ? 0.022 : 0.016;
+    p.vx += (tg[0] - p.x) * k; p.vy += (tg[1] - p.y) * k; p.vx *= 0.86; p.vy *= 0.86;
+    if (mode !== 'seal' && mode !== 'reveal') { const a = field(p.x, p.y); p.vx += Math.cos(a) * 0.06; p.vy += Math.sin(a) * 0.06; }
+  } else {
+    const a = field(p.x, p.y); p.vx = p.vx * 0.93 + Math.cos(a) * 0.085; p.vy = p.vy * 0.93 + Math.sin(a) * 0.085;
+    for (const w of wells) { const dx = w.x - p.x, dy = w.y - p.y, d2 = dx * dx + dy * dy + 900; const f = w.s * 900 / d2; p.vx += dx / Math.sqrt(d2) * f; p.vy += dy / Math.sqrt(d2) * f; }
+  }
+  p.x += p.vx; p.y += p.vy;
+  if (!tg) { if (p.x < -5) p.x = p.px = W + 4; else if (p.x > W + 5) p.x = p.px = -4; if (p.y < -5) p.y = p.py = H + 4; else if (p.y > H + 5) p.y = p.py = -4; }
+}
+// settle the field before the first paint so the first frame already shows the structure
+function warm(n) { for (let k = 0; k < n; k++) { t++; for (const p of P) step(p); } }
+
 /* ---------- render loop ---------- */
 function frame() {
   t++;
@@ -347,25 +371,13 @@ function frame() {
   ctx.fillRect(0, 0, W, H);
   const groups = PAL.map(() => [new Path2D(), new Path2D()]);
   for (const p of P) {
-    p.px = p.x; p.py = p.y;
-    const tg = target(p);
-    if (tg) {
-      if (tg[2]) { p.x = p.px = tg[0]; p.y = p.py = tg[1]; p.vx = p.vy = 0; }
-      const k = mode === 'seal' || mode === 'reveal' ? 0.022 : 0.016;
-      p.vx += (tg[0] - p.x) * k; p.vy += (tg[1] - p.y) * k; p.vx *= 0.86; p.vy *= 0.86;
-      if (mode !== 'seal' && mode !== 'reveal') { const a = field(p.x, p.y); p.vx += Math.cos(a) * 0.06; p.vy += Math.sin(a) * 0.06; }
-    } else {
-      const a = field(p.x, p.y); p.vx = p.vx * 0.93 + Math.cos(a) * 0.15; p.vy = p.vy * 0.93 + Math.sin(a) * 0.15;
-      for (const w of wells) { const dx = w.x - p.x, dy = w.y - p.y, d2 = dx * dx + dy * dy + 900; const f = w.s * 900 / d2; p.vx += dx / Math.sqrt(d2) * f; p.vy += dy / Math.sqrt(d2) * f; }
-    }
-    p.x += p.vx; p.y += p.vy;
-    if (!tg) { if (p.x < -5) p.x = p.px = W + 4; else if (p.x > W + 5) p.x = p.px = -4; if (p.y < -5) p.y = p.py = H + 4; else if (p.y > H + 5) p.y = p.py = -4; }
+    step(p);
     const c = colorOf(p), dim = (mode === 'hero' && p.free) || (hl >= 0 && p.a !== hl && (mode === 'agents' || mode === 'sankey')) ? 1 : 0;
     const g = groups[c][dim]; g.moveTo(p.px, p.py); g.lineTo(p.x + 0.01, p.y);
   }
   for (let i = wells.length - 1; i >= 0; i--) { wells[i].s *= 0.965; if (wells[i].s < 0.01) wells.splice(i, 1); }
   ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-  groups.forEach((g, c) => { ctx.strokeStyle = PAL[c]; ctx.lineWidth = mode === 'seal' || mode === 'reveal' ? 1.8 : 1.3; ctx.globalAlpha = 0.75; ctx.stroke(g[0]); ctx.globalAlpha = 0.22; ctx.stroke(g[1]); });
+  groups.forEach((g, c) => { ctx.strokeStyle = PAL[c]; ctx.lineWidth = mode === 'seal' || mode === 'reveal' ? 1.8 : 1.3; ctx.globalAlpha = 0.8; ctx.stroke(g[0]); ctx.globalAlpha = 0.16; ctx.stroke(g[1]); });
   ctx.globalAlpha = 1;
   // sparks
   for (let i = sparks.length - 1; i >= 0; i--) {
@@ -510,7 +522,7 @@ stream.on(b => {
     const q = POOLS[wpick(POOLS.map(x => x.r.fund), Math.random())]; comet(SRC[0], SRC[1], q.x, q.y, PAL[q.ci], 6);
   }
 });
-layout();
+layout(); warm(160);
 addEventListener('resize', () => { clearTimeout(window.__rz); window.__rz = setTimeout(layout, 150); });
 requestAnimationFrame(frame);
 for (let k = 0; k < 2; k++) stream.next();

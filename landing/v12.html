@@ -46,9 +46,9 @@ header nav a:hover{color:var(--gold)}
 /* hero heat map */
 .hero{position:relative;height:100vh;min-height:720px;overflow:hidden}
 #heat{position:absolute;inset:0;width:100%;height:100%;display:block}
-.hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(#000 1px,transparent 1.4px) 0 0/5px 5px;opacity:.35;mix-blend-mode:multiply}
+.hero::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(#000 1px,transparent 1.4px) 0 0/5px 5px;opacity:.35;mix-blend-mode:multiply}
 .hero-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(12,2,2,.92) 0,rgba(12,2,2,.6) 34%,transparent 58%),linear-gradient(0deg,var(--bg) 0,transparent 22%)}
-.pins{position:absolute;inset:0}
+.pins{position:absolute;inset:0;z-index:2}
 .pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;cursor:pointer}
 .pin::before{content:'';position:absolute;inset:9px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff,0 0 22px var(--gold)}
 .pin span{position:absolute;left:24px;top:2px;white-space:nowrap;font:700 11px 'Space Mono';text-transform:uppercase;letter-spacing:.05em;color:#fff;text-shadow:0 1px 4px #000;opacity:.0;transition:.2s}
@@ -58,7 +58,7 @@ header nav a:hover{color:var(--gold)}
 @keyframes hit{from{transform:scale(.3);opacity:1}to{transform:scale(2.4);opacity:0}}
 .spark{position:absolute;transform:translate(-50%,-100%);font:700 12px 'Space Mono';color:#fff;white-space:nowrap;pointer-events:none;text-shadow:0 0 8px var(--ember),0 1px 2px #000;animation:spark 2.4s ease-out forwards}
 @keyframes spark{0%{opacity:0;margin-top:6px}15%{opacity:1;margin-top:-6px}80%{opacity:1}100%{opacity:0;margin-top:-40px}}
-.hero-copy{position:absolute;left:0;right:0;top:50%;transform:translateY(-46%);pointer-events:none}
+.hero-copy{position:absolute;z-index:3;left:0;right:0;top:50%;transform:translateY(-46%);pointer-events:none}
 .hero-copy .inner{max-width:640px;pointer-events:auto}
 .kicker{font:700 12px 'Space Mono';letter-spacing:.18em;color:var(--gold);text-transform:uppercase;display:flex;gap:10px;align-items:center}
 .kicker .temp{background:var(--ember);color:#1a0300;padding:2px 8px}
@@ -66,14 +66,14 @@ header nav a:hover{color:var(--gold)}
 .hero h1 .hot{background:linear-gradient(180deg,var(--gold) 10%,var(--ember) 60%,var(--blood));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,69,0,.45))}
 .hero p.sub{font-size:18px;color:var(--muted);max-width:520px}
 .hero .ctas{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
-.readout{position:absolute;right:40px;bottom:96px;width:300px;border:1px solid var(--stroke);background:rgba(12,2,2,.7);backdrop-filter:blur(8px);padding:16px 18px}
+.readout{position:absolute;z-index:3;right:40px;bottom:96px;width:300px;border:1px solid var(--stroke);background:rgba(12,2,2,.7);backdrop-filter:blur(8px);padding:16px 18px}
 .readout .row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--stroke)}
 .readout .row:last-child{border-bottom:0}
 .readout .l{font:700 10px 'Space Mono';letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
 .readout .v{font:400 30px Anton;letter-spacing:.02em}
 .gauge{height:8px;background:linear-gradient(90deg,var(--cool),var(--gold),var(--ember),var(--blood));position:relative;margin:6px 0 4px}
 .gauge i{position:absolute;top:-5px;width:3px;height:18px;background:#fff;box-shadow:0 0 8px #fff;transition:left .6s}
-.legend{position:absolute;left:40px;bottom:96px;font:700 10px 'Space Mono';color:var(--dim);letter-spacing:.1em;display:flex;gap:10px;align-items:center;text-transform:uppercase}
+.legend{position:absolute;z-index:3;right:40px;bottom:66px;font:700 10px 'Space Mono';color:var(--dim);letter-spacing:.1em;display:flex;gap:10px;align-items:center;text-transform:uppercase}
 .legend .lg{width:140px;height:6px;background:linear-gradient(90deg,#3a0000,#b30000,#ff4500,#ff9a00,#ffe08a,#fff)}
 
 /* breaking ticker band */

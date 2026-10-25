@@ -33,7 +33,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* HUD */
 .hud{position:sticky;top:0;z-index:40;background:#000;border-bottom:4px solid var(--bg3)}
 .hud .wrap{display:flex;align-items:center;gap:26px;height:52px}
-.logo{font:16px var(--px);color:var(--yellow);text-shadow:3px 3px 0 var(--pink)}
+.logo{font:16px var(--px);color:var(--yellow);text-shadow:2px 2px 0 #b0126a}
 .hud .s{font:10px var(--px);color:var(--dim);display:flex;flex-direction:column;gap:5px}
 .hud .s b{font:12px var(--px);color:var(--ink)}
 .hud .s.y b{color:var(--yellow)}.hud .s.g b{color:var(--green)}.hud .s.c b{color:var(--cyan)}
@@ -122,6 +122,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .node .w{font:9px var(--px);color:var(--c);margin-top:10px}
 .node h4{font:11px/1.5 var(--px);margin-top:6px}
 .node p{font:19px/1.05 var(--vt);color:#d8f5e6;margin-top:6px}
+.node .w,.node h4,.node p{position:relative;background:#0f3b2a;padding:2px 6px;display:inline-block}
 .dialog{margin-top:22px;padding:16px 20px;min-height:96px;font:26px/1.15 var(--vt);position:relative;background:#000;border:4px solid #fff;box-shadow:0 0 0 4px #000,8px 8px 0 4px #000}
 .dialog .who{font:10px var(--px);color:var(--yellow);margin-bottom:8px}
 .dialog .nx{position:absolute;right:14px;bottom:10px;font:10px var(--px)}
@@ -160,7 +161,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes pop{50%{transform:scale(1.12)}}
 .chest .amt{font:22px var(--px);color:var(--yellow);margin-top:12px;text-shadow:3px 3px 0 #000}
 .chest .s{font:20px var(--vt);color:var(--dim);margin-top:6px}
-.coin{position:absolute;top:-30px;font-size:24px}
+.fcoin{position:absolute;top:-30px;font-size:24px}
 .villages{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .vil{padding:12px;cursor:pointer;transition:transform .1s steps(2)}
 .vil:hover{transform:translateY(-4px)}
@@ -203,7 +204,8 @@ footer{text-align:center;font:9px/2 var(--px);color:var(--dim);padding-bottom:60
 .vlabel{position:fixed;left:10px;bottom:10px;z-index:100;font:9px var(--px);background:#000;color:var(--yellow);border:2px solid var(--yellow);padding:5px 8px;pointer-events:none}
 
 @media (max-width:1180px){
-  .hero{grid-template-columns:1fr}
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .hero>*{min-width:0}
   .party{grid-template-columns:repeat(4,1fr)}
   .villages{grid-template-columns:repeat(2,1fr)}
 }
@@ -227,7 +229,8 @@ footer{text-align:center;font:9px/2 var(--px);color:var(--dim);padding-bottom:60
   .cont h2{font-size:22px}.cont .cd{font-size:60px}
   .sheet .grid{grid-template-columns:1fr}.sheet .big{line-height:120px;font-size:72px}
   .sec h2{font-size:16px}
-  .banner{font-size:10px}
+  .banner{font-size:9px;white-space:normal;width:86%;text-align:center}
+  .arena .tag2{display:none}
 }
 </style>
 </head>
@@ -446,7 +449,7 @@ stream.start();
 function dropCoin() {
   const ch = $('#chest'); const r = ch.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) { coins++; return; }
   coins++;
-  const c = document.createElement('div'); c.className = 'coin'; c.textContent = '🪙'; c.style.left = 30 + Math.random() * (r.width - 80) + 'px';
+  const c = document.createElement('div'); c.className = 'fcoin'; c.textContent = '🪙'; c.style.left = 30 + Math.random() * (r.width - 80) + 'px';
   ch.appendChild(c);
   c.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(110px)', opacity: 1 }, { transform: 'translateY(120px)', opacity: 0 }], { duration: 700, easing: 'steps(7)' }).onfinish = () => { c.remove(); const ic = $('#chestIc'); ic.classList.remove('pop'); void ic.offsetWidth; ic.classList.add('pop'); };
 }
