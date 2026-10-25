@@ -592,7 +592,7 @@ function target(p, md, tm) {
       if (p.s < 1) { const s = p.s, cx = (SRC[0] + q.x) / 2, cy = Math.min(SRC[1], q.y) - 50 * (p.r0 - .2); return [(1 - s) ** 2 * SRC[0] + 2 * (1 - s) * s * cx + s * s * q.x, (1 - s) ** 2 * SRC[1] + 2 * (1 - s) * s * cy + s * s * q.y, wrap]; }
       const ang = p.a0 + tm * p.spd, rr = q.rad * Math.sqrt(p.r0); return [q.x + Math.cos(ang) * rr, q.y + Math.sin(ang) * rr * 0.9, wrap];
     }
-    case 'cta': { const R = Math.min(W, H) * (wide ? 0.44 : 0.46), ang = p.a0 + tm * 0.0012 * (1 + p.r0), rr = R + (p.r0 - .5) * 80 + Math.sin(ang * 5 + tm * .01) * 12; return [W / 2 + Math.cos(ang) * rr, H / 2 + Math.sin(ang) * rr * 0.74]; }
+    case 'cta': { const ang = p.a0 + tm * 0.0012 * (1 + p.r0), j = 1 + (p.r0 - .5) * 0.16 + Math.sin(ang * 5 + tm * .01) * 0.025; return [W / 2 + Math.cos(ang) * W * (wide ? 0.45 : 0.44) * j, H * 0.52 + Math.sin(ang) * H * (wide ? 0.42 : 0.4) * j]; }
   }
   return [p.x, p.y];
 }
@@ -780,29 +780,29 @@ addEventListener('mousemove', e => {
   document.body.classList.toggle('hot', !!h);
   if (!h) { tip.classList.remove('on'); return; }
   let html = '';
-  if (h.kind === 'r') { const r = M.getRegion(h.id); html = `<b>${esc(r.name)}, ${esc(r.country)}</b><div class="m">${esc(r.crop)} · heat risk ${pct(r.risk)} · fund ${cr(r.fund)}</div><div>${esc(r.note)}</div>`; }
-  if (h.kind === 'a') { const a = M.getAgent(h.id); html = `<b>${a.emoji} ${esc(a.name)}</b><div class="m">Brier ${a.brier.toFixed(3)} · P&amp;L ${crk(livePnl[a.id], true)}</div><div>${esc(a.worldModel)}</div>`; }
+  if (h.kind === 'r') { const r = M.getRegion(h.id); html = `<b>${esc(r.name)}, ${esc(r.country)}</b><div class="m">${esc(r.crop)} · heat risk ${pct(r.risk)} · fund ${cr(r.fund)}</div><div>${esc(noCur(r.note))}</div>`; }
+  if (h.kind === 'a') { const a = M.getAgent(h.id); html = `<b>${a.emoji} ${esc(a.name)}</b><div class="m">Brier ${a.brier.toFixed(3)} · P&amp;L ${crk(livePnl[a.id], true)}</div><div>${esc(noCur(a.worldModel))}</div>`; }
   if (h.kind === 'm') { const m = M.getMarket(h.id); html = `<b>${esc(noCur(m.title))}</b><div class="m">YES ${pct(m.yes)} · agents ${pct(m.agentEstimate)} · vol ${crk(m.volume)}</div>`; }
   if (h.kind === 'seal') html = `<b>Merkle root on Solana devnet</b><div class="m">${esc(BT.solana.merkleRoot)}</div>`;
   tip.innerHTML = html; tip.style.left = Math.min(e.clientX + 16, innerWidth - 296) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; tip.classList.add('on');
 });
 
 /* ---------- panels ---------- */
-const lbRow = (a, i) => `<div class="lbr" data-a="${a.id}"><span class="rk">${i + 1}</span><span class="nm"><span class="em">${a.emoji}</span><span><b>${esc(a.name)}</b><small>${esc(a.worldModel)}</small></span></span><span class="pl ${livePnl[a.id] >= 0 ? 'up' : 'dn'}">${crk(livePnl[a.id], true)}</span><span class="br">${a.brier.toFixed(3)}</span></div>`;
+const lbRow = (a, i) => `<div class="lbr" data-a="${a.id}"><span class="rk">${i + 1}</span><span class="nm"><span class="em">${a.emoji}</span><span><b>${esc(a.name)}</b><small>${esc(noCur(a.worldModel))}</small></span></span><span class="pl ${livePnl[a.id] >= 0 ? 'up' : 'dn'}">${crk(livePnl[a.id], true)}</span><span class="br">${a.brier.toFixed(3)}</span></div>`;
 $('#lbHero').innerHTML = ranked.map(lbRow).join('');
 $('#lbFull').innerHTML = ranked.map(lbRow).join('');
-$('#alist').innerHTML = AG.map(a => `<li><span>${a.emoji}</span><span><b>${esc(a.name)}</b><small>${esc(a.worldModel)}</small></span><span class="v">${a.bets.toLocaleString('en-US')}</span></li>`).join('');
+$('#alist').innerHTML = AG.map(a => `<li><span>${a.emoji}</span><span><b>${esc(a.name)}</b><small>${esc(noCur(a.worldModel))}</small></span><span class="v">${a.bets.toLocaleString('en-US')}</span></li>`).join('');
 function renderMarkets() { $('#mlist').innerHTML = TOPM.map(m => `<li><span>${m.type === 'hard' ? '📈' : '🏛️'}</span><span><b>${esc(SHORT[m.id])}</b><small>${esc(noCur(m.title))}</small></span><span class="v"><span class="ybar"><i style="width:${(m.yes * 100).toFixed(1)}%"></i></span>${pct(m.yes)}</span></li>`).join(''); }
 renderMarkets();
 $('#btP').textContent = `Answers and forecasts are hashed into a Merkle root on Solana devnet before the replay, so no agent can peek. Then every world model is scored on ${BT.holdoutQuestions} sealed holdout questions. Lower Brier is better; the dashed line is the market price.`;
 $('#sealRow').innerHTML = `<span>root <b>${esc(BT.solana.merkleRoot.slice(0, 14))}…</b></span><span>slot <b>${BT.solana.sealSlot.toLocaleString('en-US')}</b></span><span>${esc(BT.solana.cluster)}</span>`;
-$('#flist').innerHTML = EUPOOL.slice().sort((a, b) => b.fund - a.fund).slice(0, 3).map(r => `<li><span>🔥</span><span><b>${esc(r.name)}</b><small>${esc(r.note)}</small></span><span class="v">${crk(r.fund)}</span></li>`).join('');
+$('#flist').innerHTML = EUPOOL.slice().sort((a, b) => b.fund - a.fund).slice(0, 3).map(r => `<li><span>🔥</span><span><b>${esc(r.name)}</b><small>${esc(noCur(r.note))}</small></span><span class="v">${crk(r.fund)}</span></li>`).join('');
 $('#prog').textContent = 'program ' + BT.solana.program.slice(0, 10) + '…';
 
 /* ---------- live trades ---------- */
 let nBets = 0, vol = M.fund.allTimeVolume, fund = M.fund.balance, lastBet = null;
 function stats() { $('#tCount').textContent = nBets + ' this visit'; $('#volS').textContent = crk(vol); $('#fundS').textContent = cr(fund); $('#fundBig').innerHTML = grp(fund) + ' <small>cr</small>'; }
-const tradeRow = (b, cls) => { const col = b.actorType === 'human' ? '#71717a' : b.actorColor; return `<div class="tr ${cls || ''}"><span class="av" style="background:${hexA(col, .14)};box-shadow:inset 0 0 0 1px ${hexA(col, .3)}">${b.actorEmoji}</span><span class="tm"><b>${esc(b.actorName)}</b><span>${esc(noCur(b.marketTitle))}</span></span><span class="tv"><span class="side ${b.side}">${b.side} ${pct(b.priceAfter)}</span><span class="st">${cr(b.stake)}</span></span></div>`; };
+const tradeRow = (b, cls) => { const col = b.actorType === 'human' ? '#71717a' : b.actorColor; return `<div class="tr ${cls || ''}"><span class="av" style="background:${hexA(col, .14)};box-shadow:inset 0 0 0 1px ${hexA(col, .3)}">${b.actorEmoji}</span><span class="tm"><b>${esc(noCur(b.actorName))}</b><span>${esc(noCur(b.marketTitle))}</span></span><span class="tv"><span class="side ${b.side}">${b.side} ${pct(b.priceAfter)}</span><span class="st">${cr(b.stake)}</span></span></div>`; };
 const tl = $('#tlist'), mf = $('#mapFeed');
 M.recentBets(7).forEach(b => tl.insertAdjacentHTML('beforeend', tradeRow(b)));
 M.recentBets(3).forEach(b => mf.insertAdjacentHTML('beforeend', tradeRow(b)));
@@ -811,7 +811,7 @@ function onBet(b) {
   nBets++; vol += b.stake; fund += b.stake * M.fund.cutBps / 10000; lastBet = b; stats();
   tl.insertAdjacentHTML('afterbegin', tradeRow(b, 'in ' + b.side)); while (tl.children.length > 7) tl.lastElementChild.remove();
   mf.insertAdjacentHTML('afterbegin', tradeRow(b, 'in ' + b.side)); while (mf.children.length > 3) mf.lastElementChild.remove();
-  const tt = $('#toastT'); tt.innerHTML = `<span>${b.actorEmoji} <b>${esc(b.actorName)}</b></span><span class="side ${b.side}">${b.side}</span><span class="mt">${esc(SHORT[b.marketId] || noCur(b.marketTitle))}</span><span class="st">${cr(b.stake)}</span>`; tt.classList.remove('pop'); void tt.offsetWidth; tt.classList.add('pop');
+  const tt = $('#toastT'); tt.innerHTML = `<span>${b.actorEmoji} <b>${esc(noCur(b.actorName))}</b></span><span class="side ${b.side}">${b.side}</span><span class="mt">${esc(SHORT[b.marketId] || noCur(b.marketTitle))}</span><span class="st">${cr(b.stake)}</span>`; tt.classList.remove('pop'); void tt.offsetWidth; tt.classList.add('pop');
   $('#toast').classList.toggle('on', mode !== 'hero');
   const ai = aIdx(b.actorId), col = b.side === 'YES' ? '#16a34a' : '#dc2626';
   if (ai >= 0) {

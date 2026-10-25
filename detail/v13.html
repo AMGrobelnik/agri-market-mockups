@@ -131,9 +131,9 @@ h1 { margin: 2px 0 0; font-size: 27px; line-height: 1.15; letter-spacing: -.025e
 .seal .row { display: flex; justify-content: space-between; gap: 10px; }
 .seal .row span:last-child { font-family: var(--mono); color: var(--fg2); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .lock { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12.5px; color: #3f6212; }
-.analog { margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: rgba(255,255,255,.6); }
+.analog { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: rgba(255,255,255,.6); }
 .analog h4 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
-.alist { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 12px; margin-top: 8px; font-size: 12px; }
+.alist { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 4px 12px; margin-top: 8px; font-size: 12px; }
 .alist div { display: flex; justify-content: space-between; gap: 8px; min-width: 0; }
 .alist div span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .alist .mono { white-space: nowrap; }
@@ -222,6 +222,7 @@ h1 { margin: 2px 0 0; font-size: 27px; line-height: 1.15; letter-spacing: -.025e
   .stats { grid-template-columns: repeat(3, minmax(0,1fr)); }
   .stats .stat:nth-child(n+4) { display: none; }
   .rel { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .alist { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .bt-grid, .res-grid { grid-template-columns: minmax(0,1fr); }
   .ag { grid-template-columns: 38px minmax(0, 1fr) 160px 84px; }
 }
@@ -245,7 +246,7 @@ h1 { margin: 2px 0 0; font-size: 27px; line-height: 1.15; letter-spacing: -.025e
   .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
   #chart { height: 270px; }
   #btc { height: 290px; }
-  .ag { grid-template-columns: 36px minmax(0, 1fr) 78px; gap: 10px; }
+  .ag { grid-template-columns: 36px minmax(0, 1fr) 78px; gap: 10px; align-items: start; }
   .ag .belief { grid-column: 2 / -1; grid-row: 2; }
   .ag .why { grid-row: 3; grid-column: 1 / -1; }
   .ag .more { grid-column: 1 / -1; }
@@ -362,9 +363,9 @@ h1 { margin: 2px 0 0; font-size: 27px; line-height: 1.15; letter-spacing: -.025e
         <div><canvas id="btc" aria-label="Backtest Brier scores per agent"></canvas></div>
         <div>
           <div class="seal" id="seal"></div>
-          <div class="analog" id="analog"></div>
         </div>
       </div>
+      <div class="analog" id="analog"></div>
     </section>
 
     <section class="glass card" id="resCard">
@@ -789,7 +790,7 @@ function drawPools(t) {
     if (d.life <= 0) PL.drops.splice(i, 1);
   }
 }
-function dropInto(side, k, col) { const j = jar(side); for (let i = 0; i < k; i++) PL.drops.push({ side, x: j.x + 8 + Math.random() * (j.w - 16), y: j.y - 4 - i * 6, vx: (Math.random() - .5) * .4, vy: Math.random(), life: 1, col: col || (side === 'YES' ? '#15803d' : '#b91c1c') }); }
+function dropInto(side, k, col) { const j = jar(side); for (let i = 0; i < k; i++) PL.drops.push({ side, x: j.x + 8 + Math.random() * (j.w - 16), y: j.y + 3 + Math.random() * 8 - i * 2, vx: (Math.random() - .5) * .4, vy: Math.random(), life: 1, col: col || (side === 'YES' ? '#15803d' : '#b91c1c') }); }
 
 /* ---------- flying dots (ticket -> pool) ---------- */
 const fly = $('#fly'), fctx = fly.getContext('2d'), FL = [];
