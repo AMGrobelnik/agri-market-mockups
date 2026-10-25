@@ -24,7 +24,7 @@ body{color:var(--fg);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialias
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .mono{font-family:var(--mono)}
-#c{position:fixed;inset:0;width:100vw;height:100vh;z-index:1;display:block;pointer-events:none}
+#gl,#c{position:fixed;inset:0;width:100vw;height:100vh;z-index:1;display:block;pointer-events:none}
 body.hot{cursor:pointer}
 
 /* glass + shadcn primitives */
@@ -201,6 +201,7 @@ body.inhero .rail{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
+<canvas id="gl" aria-hidden="true"></canvas>
 <canvas id="c" aria-hidden="true"></canvas>
 
 <nav class="top">
@@ -425,8 +426,8 @@ let W = 0, H = 0, DPR = 1, wide = true, Z = {}, MAPW = {}, EU = {}, NODES = [], 
 const projW = (lat, lng) => [MAPW.ox + (lng - WB.lng0) * MAPW.sc, MAPW.oy + (WB.lat1 - lat) * MAPW.sc];
 const projE = (lat, lng) => [EU.ox + (lng - EB.lng0) * EKX * EU.sc, EU.oy + (EB.lat1 - lat) * EU.sc];
 function layout() {
-  DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; wide = W >= 860; SPR = {};
-  cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; wide = W >= 860;
+  cvs.width = Math.round(W * DPR); cvs.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); glResize();
   Z = wide ? { x: Math.max(W * 0.44, Math.min(W * 0.38, 480) + 70), y: 92, h: H - 92 - 60 } : { x: 12, y: H * 0.47, w: W - 24, h: H * 0.42 };
   if (wide) Z.w = W - 64 - Z.x;
   Z.cx = Z.x + Z.w / 2; Z.cy = Z.y + Z.h / 2;
@@ -639,37 +640,49 @@ const FONT = '"Geist Mono", ui-monospace, monospace';
 function txt(s, x, y, o = {}) { ctx.font = o.font || `500 11px ${FONT}`; ctx.fillStyle = o.color || '#52525b'; ctx.textAlign = o.align || 'center'; ctx.textBaseline = o.base || 'middle'; ctx.fillText(s, x, y); }
 function chip(s, x, y, o = {}) { ctx.font = o.font || `600 11px ${FONT}`; const w = ctx.measureText(s).width + 14, h = 20; let bx = o.align === 'left' ? x : o.align === 'right' ? x - w : x - w / 2; ctx.fillStyle = o.bg || 'rgba(255,255,255,.88)'; ctx.strokeStyle = o.border || '#e4e4e7'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, y - h / 2, w, h, 6) : ctx.rect(bx, y - h / 2, w, h); ctx.fill(); ctx.stroke(); txt(s, bx + w / 2, y + 0.5, { font: o.font || `600 11px ${FONT}`, color: o.color || '#18181b' }); }
 let heroCount = N;
-const RKEYS = Object.keys(RAD), RIDX = {}; RKEYS.forEach((k, i) => RIDX[k] = i);
-let SPR = {};
-function sprite(c, ri) {
-  const key = c * 16 + ri; if (SPR[key]) return SPR[key];
-  const r = RAD[RKEYS[ri]] * (SM ? 0.82 : 1), half = r + 1, px = Math.ceil(half * 2 * DPR), s = document.createElement('canvas');
-  s.width = s.height = px; const g = s.getContext('2d'); g.fillStyle = CL[c]; g.beginPath(); g.arc(px / 2, px / 2, r * DPR, 0, TAU); g.fill();
-  s.half = px / DPR / 2; return SPR[key] = s;
-}
+const CLF = CL.map(h => { const v = parseInt(h.slice(1), 16); return [(v >> 16 & 255) / 255, (v >> 8 & 255) / 255, (v & 255) / 255]; });
+const GLD = (() => {
+  try {
+    const c = $('#gl'), gl = c.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false });
+    if (!gl) return null;
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const pr = gl.createProgram();
+    gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 a_p;attribute vec4 a_c;attribute float a_s;uniform vec2 u_r;uniform float u_d;varying vec4 v_c;void main(){vec2 q=a_p/u_r*2.0-1.0;gl_Position=vec4(q.x,-q.y,0.0,1.0);gl_PointSize=a_s*u_d;v_c=a_c;}'));
+    gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, 'precision mediump float;varying vec4 v_c;void main(){float r=length(gl_PointCoord-0.5);float a=v_c.a*smoothstep(0.5,0.36,r);gl_FragColor=vec4(v_c.rgb*a,a);}'));
+    gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error('link');
+    gl.useProgram(pr);
+    const vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+    const buf = new Float32Array(N * 7); gl.bufferData(gl.ARRAY_BUFFER, buf.byteLength, gl.DYNAMIC_DRAW);
+    const at = (name, size, off) => { const l = gl.getAttribLocation(pr, name); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, size, gl.FLOAT, false, 28, off * 4); };
+    at('a_p', 2, 0); at('a_c', 4, 2); at('a_s', 1, 6);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    return { c, gl, buf, uR: gl.getUniformLocation(pr, 'u_r'), uD: gl.getUniformLocation(pr, 'u_d') };
+  } catch (e) { console.warn('WebGL dots unavailable, using 2D canvas', e); return null; }
+})();
+function glResize() { if (!GLD) return; GLD.c.width = Math.round(W * DPR); GLD.c.height = Math.round(H * DPR); GLD.gl.viewport(0, 0, GLD.c.width, GLD.c.height); GLD.gl.uniform2f(GLD.uR, W, H); GLD.gl.uniform1f(GLD.uD, DPR); }
+let glLastN = -1;
+function glDraw(n) { const gl = GLD.gl; if (!n && !glLastN) return; glLastN = n; gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); if (!n) return; gl.bufferSubData(gl.ARRAY_BUFFER, 0, GLD.buf.subarray(0, n * 7)); gl.drawArrays(gl.POINTS, 0, n); }
 function frame() {
   requestAnimationFrame(frame);
   t++; const tm = RM ? 0 : t;
   if (t % 15 === 0) onScroll();
   if (heroCount > 0) globeFrame();
   ctx.clearRect(0, 0, W, H);
-  // bucket dots by colour, alpha step and size, then blit one pre-rendered sprite per bucket
-  const buckets = new Map();
-  let hc = 0;
+  // dots: one WebGL draw call (round point sprites); 2D arcs only if WebGL is unavailable
+  const rs = SM ? 0.82 : 1;
+  let hc = 0, n = 0;
+  const buckets = GLD ? null : new Array(CL.length * 4);
   for (const p of P) {
     step(p, tm);
     if (p.md === 'hero') hc++;
     if (p.al < 0.03 || p.x < -6 || p.y < -6 || p.x > W + 6 || p.y > H + 6) continue;
-    const key = (colorOf(p) * 4 + Math.min(3, Math.floor(p.al * 4))) * 16 + RIDX[p.md];
-    let b = buckets.get(key); if (!b) buckets.set(key, b = []); b.push(p.x, p.y);
+    const c = colorOf(p), r = RAD[p.md] * rs;
+    if (GLD) { const o = n * 7, rgb = CLF[c]; GLD.buf[o] = p.x; GLD.buf[o + 1] = p.y; GLD.buf[o + 2] = rgb[0]; GLD.buf[o + 3] = rgb[1]; GLD.buf[o + 4] = rgb[2]; GLD.buf[o + 5] = Math.min(1, p.al); GLD.buf[o + 6] = r * 2 + 1.2; n++; }
+    else { const key = c * 4 + Math.min(3, Math.floor(p.al * 4)); const g = buckets[key] || (buckets[key] = new Path2D()); g.moveTo(p.x + r, p.y); g.arc(p.x, p.y, r, 0, TAU); }
   }
   heroCount = hc;
-  for (const [key, b] of buckets) {
-    const ri = key % 16, cq = key >> 4, spr = sprite(cq >> 2, ri), h = spr.half, d = h * 2;
-    ctx.globalAlpha = ((cq & 3) + 1) / 4;
-    for (let k = 0; k < b.length; k += 2) ctx.drawImage(spr, b[k] - h, b[k + 1] - h, d, d);
-  }
-  ctx.globalAlpha = 1;
+  if (GLD) glDraw(n);
+  else { for (let key = 0; key < buckets.length; key++) if (buckets[key]) { ctx.globalAlpha = (key % 4 + 1) / 4; ctx.fillStyle = CL[key >> 2]; ctx.fill(buckets[key]); } ctx.globalAlpha = 1; }
   // labels fade in once the formation has mostly settled
   if (mode !== 'hero') lA = RM ? 1 : Math.min(1, lA + (t - modeT > 40 ? 0.05 : 0));
   ctx.globalAlpha = lA; labels(tm); ctx.globalAlpha = 1;
