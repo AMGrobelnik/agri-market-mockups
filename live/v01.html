@@ -110,9 +110,9 @@ a{color:inherit}
 .yn .y{background:var(--yes-50);color:var(--yes)}.yn .y:hover{background:var(--yes);color:#fff}
 .yn .n{background:var(--no-50);color:var(--no)}.yn .n:hover{background:var(--no);color:#fff}
 .feed{list-style:none;margin:0;padding:0 8px 8px;overflow:hidden;flex:1;min-height:0}
-.feed li{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:10px;cursor:pointer;animation:slidein .45s cubic-bezier(.2,.8,.2,1)}
+.feed li{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:10px;cursor:pointer;animation:slidein 1.2s ease-out}
 .feed li:hover{background:var(--line2)}
-@keyframes slidein{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes slidein{from{background:var(--blue-50)}to{background:transparent}}
 .feed .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex:none}
 .feed .b{font-size:12.5px;line-height:1.35;color:var(--ink2);min-width:0}
 .feed .b b{color:var(--ink)}
@@ -309,6 +309,15 @@ function placeRegion(r) {
 
 function drawRegions() {
   M.regions.forEach(r => regionPos[r.id] = placeRegion(r));
+  // keep edge portals inside the map and off each other
+  const boxes = [];
+  M.regions.filter(r => regionPos[r.id].off).sort((a, b) => regionPos[a.id].y - regionPos[b.id].y).forEach(r => {
+    const p = regionPos[r.id], w = (r.name.length + 2) * 6.6 + 30;
+    p.x = Math.max(x0 + 8, Math.min(p.x, W - w - 10)); p.y = Math.max(20, Math.min(p.y, H - 20));
+    let guard = 0;
+    while (boxes.some(b => Math.abs(b.y - p.y) < 26 && p.x < b.x + b.w + 6 && b.x < p.x + w + 6) && guard++ < 30) p.y += p.y > H - 60 ? -26 : 26;
+    boxes.push({ x: p.x, y: p.y, w });
+  });
   // capital flows
   gFlow.selectAll('*').remove();
   M.regions.filter(r => r.flowsTo).forEach(r => r.flowsTo.forEach(f => {
@@ -323,7 +332,8 @@ function drawRegions() {
       const g = d3.select(this), p = regionPos[d.id];
       if (d.kind === 'capital_origin') {
         g.append('path').attr('d', 'M0,-7L7,0L0,7L-7,0Z');
-        g.append('text').attr('x', 10).attr('y', 4).text(d.name);
+        const p = regionPos[d.id], right = p.x > W - 90;
+        g.append('text').attr('x', right ? -10 : 10).attr('y', 4).attr('text-anchor', right ? 'end' : 'start').text(d.name);
       } else if (p.off) {
         const label = d.name + ' ↗';
         g.append('rect').attr('rx', 9).attr('height', 22).attr('y', -11).attr('x', -6).attr('width', label.length * 6.6 + 30);
@@ -340,7 +350,7 @@ function drawRegions() {
      .on('mousemove', moveTip).on('mouseleave', hideTip).on('click', (ev, d) => openRegion(d.id));
     return g;
   });
-  sel.attr('transform', d => { const p = regionPos[d.id]; return p.off && d.kind !== 'capital_origin' ? `translate(${Math.min(p.x, W - (d.name.length * 6.6 + 40))},${p.y})` : `translate(${p.x},${p.y})`; });
+  sel.attr('transform', d => `translate(${regionPos[d.id].x},${regionPos[d.id].y})`);
 }
 
 function actorAnchor(key) {
@@ -393,15 +403,10 @@ function mkCard(m) {
 }
 function renderMarkets(bumpId, dir) {
   const box = $('#mks');
-  const before = {}; box.querySelectorAll('.mk').forEach(el => before[el.dataset.m] = el.getBoundingClientRect().top);
   box.innerHTML = shown.map(id => mkCard(M.getMarket(id))).join('');
   box.querySelectorAll('.mk').forEach(el => {
     const id = el.dataset.m;
     el.onclick = () => openMarket(id);
-    if (before[id] != null) {
-      const dy = before[id] - el.getBoundingClientRect().top;
-      if (dy) { el.style.transform = `translateY(${dy}px)`; el.style.transition = 'none'; requestAnimationFrame(() => { el.style.transition = 'transform .45s cubic-bezier(.2,.8,.2,1),background .8s'; el.style.transform = ''; }); }
-    } else { el.animate([{ opacity: 0, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 350 }); }
     if (id === bumpId) { el.classList.add(dir > 0 ? 'bump-up' : 'bump-dn'); setTimeout(() => el.classList.remove('bump-up', 'bump-dn'), 700); }
   });
 }

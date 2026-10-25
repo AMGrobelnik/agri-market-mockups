@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T14:39:33+00:00",
+ "generated": "2026-10-25T14:42:36+00:00",
  "pages": {
   "landing": [
    {
@@ -76,9 +76,15 @@
    },
    {
     "n": 13,
+    "id": "13",
+    "file": "landing/v13.html",
+    "shot": "_shots/landing-v13.png"
+   },
+   {
+    "n": 14,
     "id": "14",
     "file": "landing/v14.html",
-    "shot": null
+    "shot": "_shots/landing-v14.png"
    }
   ],
   "live": [
@@ -90,6 +96,12 @@
    },
    {
     "n": 2,
+    "id": "04",
+    "file": "live/v04.html",
+    "shot": "_shots/live-v04.png"
+   },
+   {
+    "n": 3,
     "id": "13",
     "file": "live/v13.html",
     "shot": null

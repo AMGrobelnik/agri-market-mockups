@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST Live Orbit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg0:#07051a; --bg1:#120a33; --ink:#f3efff; --muted:#a39dc7; --dim:#6e6894;
+  --purple:#9945ff; --teal:#14f195; --cyan:#19c3ff; --pink:#ff4fd8;
+  --yes:#14f195; --no:#ff5c8a;
+  --glass:rgba(255,255,255,.07); --glass2:rgba(255,255,255,.11); --edge:rgba(255,255,255,.16);
+  --blur:18px; --r:20px;
+  --grad:linear-gradient(120deg,var(--purple),var(--cyan) 55%,var(--teal));
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);background:var(--bg0);overflow:hidden;
+  background:radial-gradient(900px 600px at 15% 10%,rgba(153,69,255,.35),transparent 60%),
+             radial-gradient(800px 600px at 90% 90%,rgba(20,241,149,.18),transparent 60%),
+             radial-gradient(700px 500px at 70% 0%,rgba(25,195,255,.18),transparent 60%),var(--bg0)}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:var(--r);backdrop-filter:blur(var(--blur)) saturate(140%);-webkit-backdrop-filter:blur(var(--blur)) saturate(140%);box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* top bar */
+.top{position:fixed;top:14px;left:16px;right:16px;height:58px;display:flex;align-items:center;gap:18px;padding:0 10px 0 16px;z-index:20}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.08em;font-size:18px}
+.logo i{width:28px;height:28px;border-radius:50%;background:var(--grad);box-shadow:0 0 20px rgba(153,69,255,.8);display:block;position:relative}
+.logo i::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--bg0)}
+.nav{display:flex;gap:4px}
+.nav a{color:var(--muted);text-decoration:none;font-size:14px;padding:8px 12px;border-radius:12px}
+.nav a.on{color:var(--ink);background:var(--glass2)}
+.stats{margin-left:auto;display:flex;gap:22px;align-items:center}
+.stat{display:flex;flex-direction:column;line-height:1.1}
+.stat small{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em}
+.stat b{font-size:15px;font-weight:600}
+.pill{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:13px;background:rgba(20,241,149,.1);border:1px solid rgba(20,241,149,.35);color:var(--teal)}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* stage */
+#stage{position:fixed;left:330px;right:350px;top:84px;bottom:96px}
+#globe{position:absolute;inset:0}
+#overlay{position:absolute;inset:0;pointer-events:none;overflow:visible}
+#markers{position:absolute;inset:0;pointer-events:none}
+.mk{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.mk .dot{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px rgba(255,255,255,.12),0 0 16px var(--c);transition:transform .2s}
+.mk .lab{font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(10,6,30,.55);border:1px solid var(--edge);backdrop-filter:blur(8px);opacity:.0;transform:translateX(-4px);transition:.2s;color:var(--ink)}
+.mk:hover .dot,.mk.hit .dot{transform:scale(1.7)}
+.mk:hover .lab,.mk.hot .lab,.mk.hit .lab{opacity:1;transform:none}
+.mk.hidden{opacity:0;pointer-events:none}
+.mk.cap .dot{border-radius:3px;transform:rotate(45deg);background:#fff}
+
+/* agent orbit */
+.orb{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;z-index:5}
+.orb .face{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:rgba(255,255,255,.08);border:1px solid var(--edge);backdrop-filter:blur(10px);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 55%,transparent),0 0 24px color-mix(in srgb,var(--c) 45%,transparent);transition:transform .25s}
+.orb:hover .face{transform:scale(1.12)}
+.orb.fire .face{animation:fire .6s}
+@keyframes fire{30%{transform:scale(1.25);box-shadow:0 0 0 4px var(--c),0 0 50px var(--c)}}
+.orb .nm{font-size:11px;font-weight:600;text-align:center;max-width:110px;line-height:1.15;text-shadow:0 1px 8px #000}
+.orb .pn{font-size:10px}
+.orb .cnt{position:absolute;top:-4px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--grad);font-size:10px;font-weight:700;display:grid;place-items:center;color:#05031a}
+
+/* side panels */
+.side{position:fixed;top:84px;bottom:96px;display:flex;flex-direction:column;padding:16px;z-index:10;min-height:0}
+#left{left:16px;width:300px}
+#right{right:16px;width:320px}
+.side h3{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.side h3 span{font-family:'JetBrains Mono';font-size:11px;letter-spacing:0;color:var(--teal);text-transform:none}
+.mkts{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0;scrollbar-width:none}
+.mrow{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid transparent;cursor:pointer;transition:.2s}
+.mrow:hover{border-color:var(--edge);background:rgba(255,255,255,.08)}
+.mrow .t{font-size:13px;line-height:1.3;display:flex;gap:8px}
+.mrow .r{display:flex;align-items:center;gap:10px;margin-top:8px}
+.bar{flex:1;height:6px;border-radius:9px;background:rgba(255,92,138,.35);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grad);border-radius:9px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.odds{font-family:'JetBrains Mono';font-weight:600;font-size:16px;min-width:46px;text-align:right;transition:color .3s}
+.odds.up{color:var(--yes)} .odds.dn{color:var(--no)}
+.chg{font-size:11px;font-family:'JetBrains Mono';min-width:44px;text-align:right}
+.feed{display:flex;flex-direction:column;gap:8px;overflow:hidden;min-height:0;flex:1}
+.bet{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.04);cursor:pointer;animation:slide .5s cubic-bezier(.2,.8,.2,1);border:1px solid transparent}
+.bet:hover{border-color:var(--edge);background:rgba(255,255,255,.08)}
+@keyframes slide{from{opacity:0;transform:translateY(-16px) scale(.97)}}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;background:rgba(255,255,255,.08);box-shadow:0 0 0 1.5px var(--c)}
+.bet .who{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bet .what{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-right:4px}
+.YES{background:rgba(20,241,149,.15);color:var(--yes)} .NO{background:rgba(255,92,138,.15);color:var(--no)}
+.amt{font-family:'JetBrains Mono';font-size:13px;font-weight:600;text-align:right}
+.amt small{display:block;font-size:10px;color:var(--dim);font-weight:400}
+
+/* bottom dock */
+.dock{position:fixed;left:16px;right:16px;bottom:14px;height:70px;display:flex;align-items:center;gap:20px;padding:0 20px;z-index:10}
+.fund{display:flex;align-items:center;gap:14px;min-width:330px}
+.fund .ring{width:44px;height:44px;border-radius:50%;background:conic-gradient(var(--teal) var(--p,30%),rgba(255,255,255,.08) 0);display:grid;place-items:center}
+.fund .ring::after{content:"🌍";width:34px;height:34px;border-radius:50%;background:var(--bg1);display:grid;place-items:center;font-size:16px}
+.fund b{font-size:20px;font-family:'JetBrains Mono'}
+.fund small{display:block;font-size:11px;color:var(--muted)}
+.ticker{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ticker .tr{display:flex;gap:28px;white-space:nowrap;animation:tick 60s linear infinite;width:max-content}
+.ticker span{font-size:13px;color:var(--muted)} .ticker span b{color:var(--ink);font-family:'JetBrains Mono'}
+@keyframes tick{to{transform:translateX(-50%)}}
+.legend{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted)}
+.legend .lg{width:110px;height:8px;border-radius:9px;background:linear-gradient(90deg,#19c3ff,#9945ff,#ff4fd8)}
+
+/* drawer */
+#scrim{position:fixed;inset:0;background:rgba(5,3,20,.35);opacity:0;pointer-events:none;transition:.3s;z-index:40}
+#drawer{position:fixed;top:14px;right:14px;bottom:14px;width:420px;max-width:calc(100vw - 28px);padding:22px;z-index:50;transform:translateX(calc(100% + 30px));transition:transform .45s cubic-bezier(.2,.8,.2,1);overflow:auto;background:rgba(24,14,60,.72)}
+body.open #drawer{transform:none} body.open #scrim{opacity:1;pointer-events:auto}
+#drawer .x{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;background:var(--glass2);font-size:18px}
+.dk{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+#drawer h2{font-size:22px;line-height:1.2;margin-bottom:10px;padding-right:40px}
+#drawer p{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:14px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.kv div{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06)}
+.kv small{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.kv b{font-family:'JetBrains Mono';font-size:16px}
+.sec{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.li{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:6px;font-size:13px;cursor:pointer}
+.li:hover{background:rgba(255,255,255,.09)}
+.big{font-size:44px;font-weight:700;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+.tx{font-family:'JetBrains Mono';font-size:11px;word-break:break-all;color:var(--cyan)}
+.vlabel{position:fixed;left:10px;bottom:2px;font:11px 'JetBrains Mono',monospace;color:var(--dim);z-index:60;pointer-events:none}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  .top{position:sticky;top:0;left:0;right:0;margin:10px 16px 0;height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
+  .nav,.stats .stat:nth-child(n+2){display:none}
+  #stage{position:relative;left:0;right:0;top:0;bottom:auto;height:440px;margin:10px 0}
+  .orb .face{width:36px;height:36px;font-size:16px}.orb .nm,.orb .pn{display:none}
+  .side{position:relative;top:auto;bottom:auto;left:auto!important;right:auto!important;width:auto!important;margin:0 16px 12px;max-height:520px}
+  .dock{position:relative;left:auto;right:auto;bottom:auto;margin:0 16px 30px;height:auto;flex-wrap:wrap;padding:14px}
+  .fund{min-width:0}.legend{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top glass">
+  <div class="logo"><i></i><span id="brandName">HARVEST</span></div>
+  <nav class="nav"><a href="#">Markets</a><a href="#" class="on">Live</a><a href="#">Agents</a><a href="#">Backtest</a><a href="#">Fund</a></nav>
+  <div class="stats">
+    <div class="stat"><small>Bets / min</small><b class="mono" id="sBpm">0</b></div>
+    <div class="stat"><small>24h volume</small><b class="mono" id="sVol">$0</b></div>
+    <div class="stat"><small>Devnet slot</small><b class="mono" id="sSlot">0</b></div>
+    <div class="pill">Solana devnet live</div>
+  </div>
+</header>
+
+<aside id="left" class="side glass">
+  <h3>Odds in motion <span id="mCount"></span></h3>
+  <div class="mkts" id="mkts"></div>
+</aside>
+
+<section id="stage">
+  <div id="globe"></div>
+  <svg id="overlay"><defs>
+    <linearGradient id="beam" x1="0" x2="1"><stop offset="0" stop-color="#9945ff"/><stop offset=".6" stop-color="#19c3ff"/><stop offset="1" stop-color="#14f195"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs><g id="beams"></g></svg>
+  <div id="markers"></div>
+  <div id="orbs"></div>
+</section>
+
+<aside id="right" class="side glass">
+  <h3>Bet stream <span id="bCount">0 this session</span></h3>
+  <div class="feed" id="feed"></div>
+</aside>
+
+<footer class="dock glass">
+  <div class="fund" id="fundBtn" style="cursor:pointer">
+    <div class="ring" id="fundRing"></div>
+    <div><small>Resilience Fund · 1% of every bet</small><b id="fundBal">$0</b></div>
+  </div>
+  <div class="ticker"><div class="tr" id="ticker"></div></div>
+  <div class="legend">risk <div class="lg"></div></div>
+</footer>
+
+<div id="scrim"></div>
+<aside id="drawer" class="glass"><button class="x" id="dx">×</button><div id="dbody"></div></aside>
+<div class="vlabel">live v04 · Solana glassmorphism</div>
+
+<script src="../shared/mock-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.34.0/dist/globe.gl.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+document.getElementById('brandName').textContent = BRAND.name;
+document.title = BRAND.name + ' Live Orbit';
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s);
+const stage = $('#stage');
+const openMarkets = M.markets.filter(m => m.status === 'open');
+const riskColor = r => r <= 0 ? '#ffffff' : r < .6 ? '#19c3ff' : r < .75 ? '#9945ff' : '#ff4fd8';
+const counts = {}; const sessionBets = [];
+
+/* ---------- globe ---------- */
+const globe = Globe({ animateIn: false })(document.getElementById('globe'))
+  .backgroundColor('rgba(0,0,0,0)')
+  .showAtmosphere(true).atmosphereColor('#7b5cff').atmosphereAltitude(0.22)
+  .ringsData([]).ringColor(d => t => `rgba(${d.rgb},${1 - t})`)
+  .ringMaxRadius(d => d.max).ringPropagationSpeed(d => d.speed).ringRepeatPeriod(d => d.period)
+  .arcsData([]).arcColor(d => d.colors).arcStroke(d => d.stroke).arcDashLength(.4).arcDashGap(.2)
+  .arcDashAnimateTime(d => d.anim).arcAltitudeAutoScale(.35);
+globe.globeMaterial().color.set('#140b38');
+globe.globeMaterial().emissive.set('#1a0b4a');
+globe.globeMaterial().emissiveIntensity = 0.6;
+globe.controls().enableZoom = false;
+globe.controls().autoRotate = false;
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(r => r.json()).then(topo => {
+  const countries = topojson.feature(topo, topo.objects.countries).features;
+  globe.hexPolygonsData(countries).hexPolygonResolution(3).hexPolygonMargin(0.35)
+    .hexPolygonColor(f => { const c = d3c(f); return c; });
+});
+function d3c(f) { // Europe gets brighter hexes
+  const n = f.properties.name || '';
+  return /Spain|Italy|Greece|France|Ukraine|Romania|Hungary|Germany|Poland|Portugal/.test(n) ? 'rgba(25,195,255,.75)' : 'rgba(153,69,255,.45)';
+}
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return `${n >> 16},${(n >> 8) & 255},${n & 255}`; };
+const baseRings = M.regions.filter(r => r.kind === 'production').map(r => ({ lat: r.lat, lng: r.lng, rgb: hexRgb(riskColor(r.risk)), max: 2 + r.risk * 3, speed: 1.5, period: 2600 - r.risk * 1600 }));
+let flashRings = [];
+const pushRings = () => globe.ringsData(baseRings.concat(flashRings));
+pushRings();
+const flowArcs = [];
+M.regions.filter(r => r.flowsTo).forEach(o => o.flowsTo.forEach(f => { const t = M.getRegion(f.regionId); flowArcs.push({ startLat: o.lat, startLng: o.lng, endLat: t.lat, endLng: t.lng, colors: ['rgba(255,255,255,.6)', 'rgba(255,79,216,.8)'], stroke: .35, anim: 4000 }); }));
+let betArcs = [];
+const pushArcs = () => globe.arcsData(flowArcs.concat(betArcs));
+pushArcs();
+
+function sizeGlobe() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  globe.width(w).height(h);
+  globe.pointOfView({ lat: 30, lng: 18, altitude: w < 600 ? 2.6 : 2.15 });
+  layoutOrbs();
+}
+
+/* ---------- region markers ---------- */
+const markersEl = $('#markers'); const mk = {};
+M.regions.forEach(r => {
+  const el = document.createElement('div');
+  el.className = 'mk' + (r.kind === 'capital_origin' ? ' cap' : '') + (r.risk >= .8 ? ' hot' : '');
+  el.style.setProperty('--c', riskColor(r.risk));
+  el.innerHTML = `<span class="dot"></span><span class="lab">${r.name}${r.risk ? ' · ' + Math.round(r.risk * 100) : ''}</span>`;
+  el.onclick = () => openRegion(r.id);
+  markersEl.appendChild(el); mk[r.id] = el;
+});
+function angDist(lat1, lng1, lat2, lng2) {
+  const toR = Math.PI / 180, a = Math.sin(lat1 * toR) * Math.sin(lat2 * toR) + Math.cos(lat1 * toR) * Math.cos(lat2 * toR) * Math.cos((lng1 - lng2) * toR);
+  return Math.acos(Math.max(-1, Math.min(1, a))) / toR;
+}
+function regionScreen(r) { const p = globe.getScreenCoords(r.lat, r.lng, 0.01); return p; }
+function frame() {
+  const pov = globe.pointOfView();
+  M.regions.forEach(r => {
+    const p = regionScreen(r), el = mk[r.id];
+    el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+    el.classList.toggle('hidden', angDist(pov.lat, pov.lng, r.lat, r.lng) > 82);
+  });
+  requestAnimationFrame(frame);
+}
+
+/* ---------- agent orbit ---------- */
+const actors = M.agents.map(a => ({ id: a.id, name: a.name, emoji: a.emoji, color: a.color, pnl: a.pnl }))
+  .concat([{ id: '_ext', name: 'External agents', emoji: '🤖', color: '#19c3ff' }, { id: '_hum', name: 'Humans', emoji: '👥', color: '#e2e8f0' }]);
+const orbsEl = $('#orbs'); const orbEl = {};
+actors.forEach(a => {
+  const el = document.createElement('div'); el.className = 'orb'; el.style.setProperty('--c', a.color);
+  el.innerHTML = `<div class="face">${a.emoji}<span class="cnt" style="display:none">0</span></div><div class="nm">${a.name}</div>` + (a.pnl != null ? `<div class="pn mono" style="color:${a.pnl >= 0 ? 'var(--yes)' : 'var(--no)'}">${a.pnl >= 0 ? '+' : ''}${F.compact(a.pnl)}</div>` : '');
+  el.onclick = () => a.id.startsWith('_') ? openActors(a.id) : openAgent(a.id);
+  orbsEl.appendChild(el); orbEl[a.id] = el;
+});
+function layoutOrbs() {
+  const w = stage.clientWidth, h = stage.clientHeight, cx = w / 2, cy = h / 2;
+  const rx = Math.min(w * .44, 380), ry = h * .43;
+  actors.forEach((a, i) => {
+    const ang = -Math.PI / 2 + (i + .5) * (2 * Math.PI / actors.length);
+    const el = orbEl[a.id]; el._x = cx + rx * Math.cos(ang); el._y = cy + ry * Math.sin(ang);
+    el.style.left = el._x + 'px'; el.style.top = el._y + 'px';
+  });
+}
+const actorKey = b => b.actorType === 'agent' ? b.actorId : b.actorType === 'external_agent' ? '_ext' : '_hum';
+
+/* ---------- beams ---------- */
+const beamsG = $('#beams');
+function beam(b, region) {
+  const o = orbEl[actorKey(b)]; if (!o) return;
+  const pov = globe.pointOfView(); const visible = angDist(pov.lat, pov.lng, region.lat, region.lng) < 82;
+  const p = regionScreen(region); const x1 = o._x, y1 = o._y, x2 = visible ? p.x : stage.clientWidth / 2, y2 = visible ? p.y : stage.clientHeight / 2;
+  const mx = (x1 + x2) / 2 + (y2 - y1) * .25, my = (y1 + y2) / 2 - (x2 - x1) * .25;
+  const NS = 'http://www.w3.org/2000/svg';
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', `M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+  path.setAttribute('fill', 'none'); path.setAttribute('stroke', b.side === 'YES' ? 'url(#beam)' : '#ff5c8a');
+  path.setAttribute('stroke-width', Math.min(5, 1.2 + b.stake / 900)); path.setAttribute('stroke-linecap', 'round'); path.setAttribute('filter', 'url(#glow)');
+  beamsG.appendChild(path);
+  const L = path.getTotalLength(); path.style.strokeDasharray = `${L * .35} ${L}`; path.style.strokeDashoffset = L * .35;
+  const head = document.createElementNS(NS, 'circle'); head.setAttribute('r', 4); head.setAttribute('fill', b.side === 'YES' ? '#14f195' : '#ff5c8a'); head.setAttribute('filter', 'url(#glow)'); beamsG.appendChild(head);
+  const t0 = performance.now(), dur = 900;
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    path.style.strokeDashoffset = L * .35 - e * L * 1.35 + L * .35 * 0;
+    const pt = path.getPointAtLength(e * L); head.setAttribute('cx', pt.x); head.setAttribute('cy', pt.y);
+    path.style.opacity = k < .8 ? 1 : (1 - k) * 5;
+    if (k < 1) requestAnimationFrame(step); else { path.remove(); head.remove(); arrive(b, region); }
+  })(t0);
+}
+function arrive(b, region) {
+  const ring = { lat: region.lat, lng: region.lng, rgb: b.side === 'YES' ? '20,241,149' : '255,92,138', max: 4 + b.stake / 400, speed: 4, period: 99999 };
+  flashRings.push(ring); pushRings();
+  setTimeout(() => { flashRings = flashRings.filter(x => x !== ring); pushRings(); }, 1400);
+  const el = mk[region.id]; el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 900);
+  const m = M.getMarket(b.marketId);
+  if (m.regions.length > 1) {
+    const other = M.getRegion(m.regions.find(id => id !== region.id));
+    const arc = { startLat: region.lat, startLng: region.lng, endLat: other.lat, endLng: other.lng, colors: ['rgba(25,195,255,.9)', 'rgba(20,241,149,.9)'], stroke: .5, anim: 1200 };
+    betArcs.push(arc); if (betArcs.length > 6) betArcs.shift(); pushArcs();
+    setTimeout(() => { betArcs = betArcs.filter(x => x !== arc); pushArcs(); }, 2600);
+  }
+}
+
+/* ---------- markets panel ---------- */
+const mktsEl = $('#mkts'); const mRow = {}; const lastYes = {};
+const shown = openMarkets.slice().sort((a, b) => b.volume24h - a.volume24h).slice(0, 9);
+$('#mCount').textContent = openMarkets.length + ' open';
+shown.forEach(m => {
+  const icon = m.type === 'hard' ? M.commodities[m.commodity].emoji : '🏛️';
+  const el = document.createElement('div'); el.className = 'mrow';
+  el.innerHTML = `<div class="t"><span>${icon}</span><span>${m.title}</span></div><div class="r"><div class="bar"><i></i></div><span class="chg"></span><span class="odds"></span></div>`;
+  el.onclick = () => openMarket(m.id); mktsEl.appendChild(el); mRow[m.id] = el; lastYes[m.id] = m.yes; paintMarket(m, 0);
+});
+function paintMarket(m, dir) {
+  const el = mRow[m.id]; if (!el) return;
+  el.querySelector('.bar i').style.width = (m.yes * 100) + '%';
+  const o = el.querySelector('.odds'); o.textContent = F.pct(m.yes);
+  const c = m.change24h + (m.yes - lastYes[m.id]) * 100; const ch = el.querySelector('.chg');
+  ch.textContent = (c >= 0 ? '▲' : '▼') + Math.abs(c).toFixed(1); ch.style.color = c >= 0 ? 'var(--yes)' : 'var(--no)';
+  if (dir) { o.classList.remove('up', 'dn'); void o.offsetWidth; o.classList.add(dir > 0 ? 'up' : 'dn'); setTimeout(() => o.classList.remove('up', 'dn'), 900); }
+}
+
+/* ---------- feed ---------- */
+const feedEl = $('#feed');
+function betRow(b, animate) {
+  const el = document.createElement('div'); el.className = 'bet'; if (!animate) el.style.animation = 'none';
+  el.style.setProperty('--c', b.actorColor);
+  el.innerHTML = `<div class="av">${b.actorEmoji}</div><div style="min-width:0"><div class="who">${b.actorName}</div><div class="what"><span class="side-tag ${b.side}">${b.side}</span>${b.marketTitle}</div></div><div class="amt">${F.usd(b.stake)}<small>${F.cents(b.priceAfter)}</small></div>`;
+  el.onclick = () => openBet(b); return el;
+}
+function addFeed(b, animate) { feedEl.prepend(betRow(b, animate)); while (feedEl.children.length > 14) feedEl.lastChild.remove(); }
+M.recentBets(14).reverse().forEach(b => { addFeed(b, false); sessionBets.push(b); });
+
+/* ---------- stats + ticker + fund ---------- */
+let fundBal = M.fund.balance, vol24 = openMarkets.reduce((s, m) => s + m.volume24h, 0), slot = 318442196; const times = [];
+function paintStats() {
+  $('#sVol').textContent = '$' + F.compact(vol24); $('#sSlot').textContent = slot.toLocaleString('en-US');
+  const now = Date.now(); while (times.length && now - times[0] > 60000) times.shift();
+  $('#sBpm').textContent = Math.max(times.length, Math.round(times.length * 60000 / Math.max(1, now - (times[0] || now))));
+  $('#fundBal').textContent = F.usd(fundBal); $('#fundRing').style.setProperty('--p', ((fundBal % 10000) / 100) + '%');
+}
+setInterval(() => { slot += 2 + Math.floor(Math.random() * 2); $('#sSlot').textContent = slot.toLocaleString('en-US'); }, 400);
+function paintTicker() {
+  const items = openMarkets.map(m => `<span>${m.type === 'hard' ? M.commodities[m.commodity].emoji : '🏛️'} ${m.title} <b>${F.pct(m.yes)}</b></span>`).join('');
+  $('#ticker').innerHTML = items + items;
+}
+paintTicker(); paintStats();
+
+/* ---------- stream ---------- */
+const stream = M.makeBetStream({ minMs: 450, maxMs: 1300 });
+stream.on(b => {
+  const m = M.getMarket(b.marketId);
+  const regionId = m.regions[Math.floor(Math.random() * m.regions.length)];
+  beam(b, M.getRegion(regionId));
+  addFeed(b, true); sessionBets.push(b); if (sessionBets.length > 300) sessionBets.shift();
+  const o = orbEl[actorKey(b)]; o.classList.remove('fire'); void o.offsetWidth; o.classList.add('fire');
+  counts[actorKey(b)] = (counts[actorKey(b)] || 0) + 1; const c = o.querySelector('.cnt'); c.style.display = 'grid'; c.textContent = counts[actorKey(b)];
+  paintMarket(m, b.priceImpact); lastYes[m.id] = lastYes[m.id];
+  times.push(Date.now()); vol24 += b.stake; fundBal += b.stake * M.fund.cutBps / 10000;
+  $('#bCount').textContent = (sessionBets.length - 14) + ' this session';
+  paintStats();
+});
+
+/* ---------- drawer ---------- */
+const dbody = $('#dbody');
+function openD(html) { dbody.innerHTML = html; document.body.classList.add('open'); dbody.querySelectorAll('[data-m]').forEach(e => e.onclick = () => openMarket(e.dataset.m)); dbody.querySelectorAll('[data-r]').forEach(e => e.onclick = () => openRegion(e.dataset.r)); dbody.querySelectorAll('[data-a]').forEach(e => e.onclick = () => openAgent(e.dataset.a)); }
+const closeD = () => document.body.classList.remove('open');
+$('#dx').onclick = closeD; $('#scrim').onclick = closeD; addEventListener('keydown', e => e.key === 'Escape' && closeD());
+const mLine = m => `<div class="li" data-m="${m.id}"><span>${m.title}</span><b class="mono">${F.pct(m.yes)}</b></div>`;
+function spark(h) {
+  const w = 376, hh = 80, mn = Math.min(...h), mx = Math.max(...h);
+  const pts = h.map((v, i) => `${(i / (h.length - 1) * w).toFixed(1)},${(hh - (v - mn) / (mx - mn || 1) * (hh - 8) - 4).toFixed(1)}`).join(' ');
+  return `<svg width="100%" viewBox="0 0 ${w} ${hh}" style="margin:6px 0 4px"><polyline points="${pts}" fill="none" stroke="url(#beam)" stroke-width="2.5"/></svg>`;
+}
+function openRegion(id) {
+  const r = M.getRegion(id); const ms = openMarkets.filter(m => m.regions.includes(id));
+  if (r.kind === 'capital_origin') {
+    return openD(`<div class="dk">Capital origin</div><h2>${r.name}, ${r.country}</h2><p>${r.note}</p><div class="sec">Sovereign farmland flows</div>${r.flowsTo.map(f => `<div class="li" data-r="${f.regionId}"><span>→ ${M.getRegion(f.regionId).name}</span><b class="mono">$${F.compact(f.usd)}</b></div>`).join('')}<div class="sec">Related markets</div>${ms.map(mLine).join('')}`);
+  }
+  openD(`<div class="dk">Region · ${r.country}</div><h2>${r.name}</h2><p>${r.note}</p>
+  <div class="kv"><div><small>Climate risk</small><b style="color:${riskColor(r.risk)}">${Math.round(r.risk * 100)}/100</b></div><div><small>Fund allocation</small><b>${F.usd(r.fund)}</b></div><div><small>Crops</small><b style="font-size:13px">${r.crop}</b></div><div><small>Live markets</small><b>${ms.length}</b></div></div>
+  <div class="sec">Markets touching ${r.name}</div>${ms.map(mLine).join('') || '<p>No open markets.</p>'}
+  <div class="sec">Recent bets here</div>${sessionBets.filter(b => M.getMarket(b.marketId).regions.includes(id)).slice(-5).reverse().map(b => `<div class="li"><span>${b.actorEmoji} ${b.actorName} <span class="side-tag ${b.side}">${b.side}</span></span><b class="mono">${F.usd(b.stake)}</b></div>`).join('') || '<p>None yet this session.</p>'}`);
+}
+function openMarket(id) {
+  const m = M.getMarket(id);
+  openD(`<div class="dk">${m.type === 'hard' ? 'Hard market · ' + M.commodities[m.commodity].label : 'Soft market · ' + m.topic}</div><h2>${m.title}</h2>
+  <div style="display:flex;align-items:end;gap:14px;margin-bottom:6px"><div class="big">${F.pct(m.yes)}</div><div style="color:var(--muted);font-size:13px;padding-bottom:6px">YES · agents say ${F.pct(m.agentEstimate)}</div></div>
+  ${spark(m.probHistory.concat([m.yes]))}
+  <div class="kv"><div><small>Volume</small><b>$${F.compact(m.volume)}</b></div><div><small>24h</small><b>$${F.compact(m.volume24h)}</b></div><div><small>Traders</small><b>${m.traders}</b></div><div><small>Ends</small><b style="font-size:14px">${m.endDate}</b></div></div>
+  <p>${m.description}</p><div class="sec">Agent positions</div>
+  ${m.positions.map(p => { const a = M.getAgent(p.agentId); return `<div class="li" data-a="${a.id}"><span>${a.emoji} ${a.name} <span class="side-tag ${p.side}">${p.side}</span></span><b class="mono">${F.pct(p.estimate)} · $${F.compact(p.stake)}</b></div>`; }).join('')}
+  <div class="sec">Regions</div>${m.regions.map(rid => `<div class="li" data-r="${rid}"><span>${M.getRegion(rid).name}</span><span>→</span></div>`).join('')}
+  <div class="sec">Resolution</div><p style="font-size:12.5px">${m.resolutionSource}</p>`);
+}
+function openAgent(id) {
+  const a = M.getAgent(id); const pos = openMarkets.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).sort((x, y) => y.p.stake - x.p.stake).slice(0, 6);
+  openD(`<div class="dk">AI agent · world model</div><h2>${a.emoji} ${a.name}</h2><p style="color:var(--ink);font-size:15px">“${a.worldModel}”</p><p>${a.conviction}</p>
+  <div class="kv"><div><small>PnL</small><b style="color:${a.pnl >= 0 ? 'var(--yes)' : 'var(--no)'}">${F.usd(a.pnl)}</b></div><div><small>Brier (holdout)</small><b>${a.brier.toFixed(3)}</b></div><div><small>Win rate</small><b>${F.pct(a.winRate)}</b></div><div><small>Bets</small><b>${a.bets.toLocaleString()}</b></div></div>
+  ${spark(a.pnlHistory)}<div class="sec">Largest open positions</div>
+  ${pos.map(({ m, p }) => `<div class="li" data-m="${m.id}"><span><span class="side-tag ${p.side}">${p.side}</span>${m.title}</span><b class="mono">$${F.compact(p.stake)}</b></div>`).join('')}`);
+}
+function openActors(key) {
+  const list = sessionBets.filter(b => actorKey(b) === key).slice(-8).reverse();
+  openD(`<div class="dk">${key === '_ext' ? 'External agents via API' : 'Human traders'}</div><h2>${key === '_ext' ? '🤖 External agents' : '👥 Humans'}</h2><p>${key === '_ext' ? 'Third-party bots trade the same order book through the Solana program. The team is the market maker.' : '30 traders online. Anyone with a devnet wallet can take the other side of an agent.'}</p><div class="sec">Latest bets</div>${list.map(b => `<div class="li" data-m="${b.marketId}"><span>${b.actorName} <span class="side-tag ${b.side}">${b.side}</span> ${b.marketTitle}</span><b class="mono">${F.usd(b.stake)}</b></div>`).join('') || '<p>Waiting for the next bet.</p>'}`);
+}
+function openBet(b) {
+  openD(`<div class="dk">Bet · ${b.actorType.replace('_', ' ')}</div><h2>${b.actorEmoji} ${b.actorName} bought <span class="side-tag ${b.side}" style="font-size:18px">${b.side}</span></h2>
+  <div class="kv"><div><small>Stake</small><b>${F.usd(b.stake)}</b></div><div><small>Price</small><b>${F.cents(b.priceBefore)} → ${F.cents(b.priceAfter)}</b></div><div><small>Impact</small><b style="color:${b.priceImpact >= 0 ? 'var(--yes)' : 'var(--no)'}">${b.priceImpact >= 0 ? '+' : ''}${b.priceImpact} pts</b></div><div><small>Fund cut</small><b>${F.usd(b.stake * M.fund.cutBps / 10000)}</b></div></div>
+  <div class="sec">Rationale</div><p style="color:var(--ink)">${b.rationale}</p>
+  <div class="sec">Market</div>${mLine(M.getMarket(b.marketId))}
+  ${b.actorType === 'agent' ? `<div class="sec">Agent</div><div class="li" data-a="${b.actorId}"><span>${b.actorEmoji} ${b.actorName}</span><span>→</span></div>` : ''}
+  <div class="sec">Solana devnet tx</div><div class="tx">${b.tx}</div>`);
+}
+$('#fundBtn').onclick = () => openD(`<div class="dk">Resilience Fund</div><h2>${F.usd(fundBal)}</h2><p>${M.fund.cutBps / 100}% of every bet flows to the regions most at risk, weighted by climate risk.</p><div class="sec">Allocation</div>${M.fund.allocation.slice(0, 10).map(x => `<div class="li" data-r="${x.regionId}"><span>${M.getRegion(x.regionId).name}</span><b class="mono">${F.usd(x.amount)}</b></div>`).join('')}`);
+
+addEventListener('resize', sizeGlobe);
+sizeGlobe(); requestAnimationFrame(frame);
+stream.start(); setTimeout(() => stream.next(), 200);
+// slow idle sway so the globe feels alive without losing Europe
+let sw = 0; setInterval(() => { if (document.body.classList.contains('open')) return; sw = 1 - sw; globe.pointOfView({ lat: 30 + sw * 4, lng: 18 + (sw ? 10 : -6), altitude: stage.clientWidth < 600 ? 2.6 : 2.15 }, 9000); }, 9000);
+</script>
+</body>
+</html>

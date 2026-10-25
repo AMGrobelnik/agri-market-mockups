@@ -104,7 +104,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .lb .pn { font: 600 12px var(--mono); text-align: right; white-space: nowrap; transition: color .3s; }
 .lb .pn small { display: block; font-weight: 400; color: var(--muted); font-size: 10.5px; }
 .lb .pn.flash { animation: flash .9s; }
-@keyframes flash { 0% { background: rgba(254,240,138,.8); } 100% { background: transparent; } }
+@keyframes flash { 0% { background: rgba(220,252,231,.9); } 100% { background: transparent; } }
 .hot { display: grid; grid-template-columns: 1fr auto 44px; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 10px; cursor: pointer; }
 .hot:hover, .hot.sel { background: rgba(244,244,245,.85); }
 .hot .t { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -314,6 +314,7 @@ setLand(null);
     const data = g.getImageData(0, 0, 1440, 720).data;
     setLand((la, ln) => { const x = Math.min(1439, Math.floor((ln + 180) / 360 * 1440)), y = Math.min(719, Math.floor((90 - la) / 180 * 720)); return data[(y * 1440 + x) * 4 + 3] > 100; });
     if (S.mode === 'map') jump(0.6);
+    physics(40);
   } catch (e) { console.warn('land mask unavailable, using full sphere', e); }
 })();
 
@@ -418,9 +419,11 @@ function layoutBook() {
   BOOK.bid = bins.reduce((s, b) => s + b.bid, 0); BOOK.ask = bins.reduce((s, b) => s + b.ask, 0);
   // agent markers above the book, stacked to avoid overlap
   const items = m.positions.map(p => ({ i: aIdx[p.agentId], x: x0 + p.estimate * (x1 - x0), est: p.estimate, side: p.side, stake: p.stake })).sort((a, b) => a.x - b.x);
-  const rowsLast = [], gap = mob ? 22 : 30;
-  items.forEach(it => { let r = 0; while (rowsLast[r] != null && it.x - rowsLast[r] < gap) r++; rowsLast[r] = it.x; it.row = r; });
-  BOOK.av = items; BOOK.avY = BOOK.top - (mob ? 26 : 34);
+  const gap = mob ? 24 : 32;
+  items.forEach(it => it.ax = it.x);
+  for (let it = 0; it < 60; it++) for (let k = 1; k < items.length; k++) { const o = gap - (items[k].ax - items[k - 1].ax); if (o > 0) { items[k].ax += o / 2; items[k - 1].ax -= o / 2; } }
+  const sh = Math.max(0, x0 + 12 - items[0].ax) - Math.max(0, items[items.length - 1].ax - (x1 - 12)); items.forEach(it => { it.ax += sh; it.row = 0; });
+  BOOK.av = items; BOOK.avY = BOOK.top - (mob ? 54 : 70);
   const pxEl = $('#bookPx'); pxEl.innerHTML = `YES <span class="y">${Math.round(m.yes * 100)}¢</span> · NO <span class="n">${100 - Math.round(m.yes * 100)}¢</span>`;
 }
 
@@ -439,7 +442,7 @@ function travel(av, reg) {
 function avTarget(av) {
   if (S.mode === 'map') { const ll = toLL(av.v), p = proj(ll[0], ll[1]); return [p[0] + av.ox, p[1] + av.oy, p[2] > 0 ? 1 : 0.18]; }
   if (S.mode === 'net') { const n = NET.agents[av.i]; return [n.x, n.y, 1]; }
-  const it = BOOK.av.find(q => q.i === av.i); return it ? [it.x, BOOK.avY - it.row * (MOB() ? 24 : 30), 1] : [Z.cx, Z.y, 0];
+  const it = BOOK.av.find(q => q.i === av.i); return it ? [it.ax, BOOK.avY, 1] : [Z.cx, Z.y, 0];
 }
 
 /* ---------- arcs, pulses ---------- */
@@ -487,6 +490,18 @@ let t = 0, last = performance.now();
 const grp = new Map();
 function jump(s) { P.forEach(p => { p.delay = Math.floor(p.r0 * 26 * s); p.vy -= (1 + Math.random() * 5) * s; p.vx += (Math.random() - .5) * 5 * s; }); }
 
+function physics(steps) {
+  const K = S.mode === 'map' ? 0.07 : 0.055, D = 0.78;
+  for (let k = 0; k < steps; k++) {
+    t++;
+    for (const p of P) {
+      const tg = target(p);
+      if (p.snap) { p.x = tg[0]; p.y = tg[1]; p.vx = p.vy = 0; p.snap = 0; }
+      if (p.delay > 0) p.delay--; else { p.vx += (tg[0] - p.x) * K; p.vy += (tg[1] - p.y) * K; }
+      p.vx *= D; p.vy *= D; p.x += p.vx; p.y += p.vy;
+    }
+  }
+}
 function target(p) {
   const mob = MOB();
   if (S.mode === 'map') {
@@ -513,7 +528,7 @@ function target(p) {
 }
 
 function frame(now) {
-  const dt = Math.min(50, now - last); last = now; t++;
+  const dt = Math.min(400, now - last); last = now;
   setRot(now);
   ctx.clearRect(0, 0, W, H);
   const mob = MOB();
@@ -541,12 +556,8 @@ function frame(now) {
   // particles
   grp.forEach(g => g.length = 0);
   const rad = S.mode === 'map' ? (mob ? 1.35 : 1.75) : S.mode === 'net' ? (mob ? 1.15 : 1.5) : (mob ? 1.2 : 1.65);
-  const K = S.mode === 'map' ? 0.07 : 0.055, D = 0.78;
+  physics(Math.max(1, Math.min(24, Math.round(dt / 16.7))));
   for (const p of P) {
-    const tg = target(p);
-    if (p.snap) { p.x = tg[0]; p.y = tg[1]; p.vx = p.vy = 0; p.snap = 0; }
-    if (p.delay > 0) p.delay--; else { p.vx += (tg[0] - p.x) * K; p.vy += (tg[1] - p.y) * K; }
-    p.vx *= D; p.vy *= D; p.x += p.vx; p.y += p.vy;
     if (p.al < 0) continue;
     const key = p.c * 4 + p.al; let arr = grp.get(key); if (!arr) grp.set(key, arr = []); arr.push(p);
   }
@@ -564,8 +575,8 @@ function frame(now) {
   for (const av of AV) {
     if (av.to) { av.tt = Math.min(1, av.tt + dt / av.dur); av.v = slerp(av.from, av.to, ease(av.tt)); if (av.tt >= 1) { av.from = av.to = null; } }
     else if (S.paused === false) { av.wait -= dt; if (av.wait <= 0 && av.regs.length) travel(av, M.getRegion(av.regs[Math.floor(Math.random() * av.regs.length)])); }
-    const tg = avTarget(av), k = S.mode === 'map' ? 0.3 : 0.14;
-    av.x += (tg[0] - av.x) * k; av.y += (tg[1] - av.y) * k; av.al += (tg[2] - av.al) * 0.15;
+    const tg = avTarget(av), f = dt / 16.7, k = 1 - Math.pow(1 - (S.mode === 'map' ? 0.3 : 0.14), f);
+    av.x += (tg[0] - av.x) * k; av.y += (tg[1] - av.y) * k; av.al += (tg[2] - av.al) * (1 - Math.pow(0.85, f));
   }
   drawArcs(dt);
   drawAvatars();
@@ -650,7 +661,7 @@ function drawBookOver() {
   hits.length = 0;
   const mob = MOB(), m = M.getMarket(S.bookId);
   // mid label
-  pillLabel(`last ${Math.round(m.yes * 100)}¢`, BOOK.midX, BOOK.top - 4, '#09090b');
+  pillLabel(`last ${Math.round(m.yes * 100)}¢`, BOOK.midX, BOOK.top - 10, '#09090b');
   label(`YES bids · ${crk(BOOK.bid)}`, BOOK.x0, BOOK.base + 42, { align: 'left', size: mob ? 10.5 : 12, w: 600, color: YES });
   label(`NO bids · ${crk(BOOK.ask)}`, BOOK.x1, BOOK.base + 42, { align: 'right', size: mob ? 10.5 : 12, w: 600, color: NO });
   // consensus marker
@@ -658,7 +669,7 @@ function drawBookOver() {
   ctx.fillStyle = '#09090b'; ctx.beginPath(); ctx.moveTo(cx, BOOK.base + 4); ctx.lineTo(cx + 5, BOOK.base + 10); ctx.lineTo(cx - 5, BOOK.base + 10); ctx.closePath(); ctx.fill();
   if (!mob) label(`agent consensus ${Math.round(m.agentEstimate * 100)}%`, cx, BOOK.base + 60, { size: 10.5, color: '#3f3f46' });
   // estimate ticks from avatars
-  BOOK.av.forEach(it => { const av = AV[it.i]; ctx.strokeStyle = AG[it.i].color; ctx.globalAlpha = .45; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(av.x, av.y + 12); ctx.lineTo(it.x, BOOK.top + 8); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; });
+  BOOK.av.forEach(it => { const av = AV[it.i]; ctx.strokeStyle = AG[it.i].color; ctx.globalAlpha = .45; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(av.x, av.y + 12); ctx.lineTo(it.x, BOOK.top + 14); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillStyle = AG[it.i].color; ctx.beginPath(); ctx.arc(it.x, BOOK.top + 14, 2.5, 0, TAU); ctx.fill(); ctx.setLineDash([]); ctx.globalAlpha = 1; });
   hits.push({ type: 'market', id: m.id, rect: [BOOK.x0, BOOK.top, BOOK.x1 - BOOK.x0, BOOK.base - BOOK.top + 10] });
 }
 function drawArcs(dt) {
@@ -750,7 +761,7 @@ const HINTS = {
 };
 function placeThumb() { const b = $('#seg button.on'), th = $('#seg .thumb'); if (!b) return; th.style.width = b.offsetWidth + 'px'; th.style.transform = `translateX(${b.offsetLeft}px)`; }
 function setMode(m) {
-  if (S.mode === m) return; S.mode = m;
+  if (S.mode === m) return; S.mode = m; drag = null;
   $$('#seg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m)); placeThumb();
   $('#hint').innerHTML = HINTS[m]; $('#bookbar').classList.toggle('on', m === 'book');
   tip.classList.remove('on'); jump(1);
@@ -789,14 +800,14 @@ function spark(vals, w, h, col, fill) {
   const d = vals.map((v, i) => (i ? 'L' : 'M') + (i * sx).toFixed(1) + ' ' + sy(v).toFixed(1)).join('');
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${fill ? `<path d="${d}L${w} ${h}L0 ${h}Z" fill="${col}" opacity=".1"/>` : ''}<path d="${d}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
 }
-let lbPrev = {};
+const lbFlash = new Set();
 function renderLB() {
   const el = $('#lbList');
   if (S.lbTab === 'agents') {
     const rows = AG.map((a, i) => ({ a, i, p: livePnl[i] })).sort((x, y) => y.p - x.p);
-    el.innerHTML = rows.map((r, k) => { const changed = lbPrev[r.a.id] != null && Math.round(lbPrev[r.a.id]) !== Math.round(r.p); const s = S.sel && S.sel.type === 'agent' && S.sel.id === r.a.id;
+    el.innerHTML = rows.map((r, k) => { const changed = lbFlash.has(r.a.id); const s = S.sel && S.sel.type === 'agent' && S.sel.id === r.a.id;
       return `<li class="lb${s ? ' sel' : ''}" data-a="${r.a.id}"><span class="rk">${k + 1}</span><span class="av sm" style="--c:${r.a.color}">${r.a.emoji}</span><span class="nm">${esc(r.a.name)}<small>Brier ${r.a.brier.toFixed(3)} · ${Math.round(r.a.winRate * 100)}% win</small></span>${spark([...r.a.pnlHistory.slice(0, -1), r.p], 54, 22, r.p >= 0 ? YES : NO)}<span class="pn ${r.p >= 0 ? 'y' : 'n'}${changed ? ' flash' : ''}">${crs(r.p)}<small>${r.a.bets.toLocaleString()} bets</small></span></li>`; }).join('');
-    rows.forEach(r => lbPrev[r.a.id] = r.p);
+    lbFlash.clear();
   } else {
     el.innerHTML = M.users.slice(0, 8).map(u => `<li class="lb"><span class="rk">${u.rank}</span><span class="av sm" style="--c:#d4d4d8">👤</span><span class="nm">${esc(u.nick)}<small>${u.country} · ${u.bets} bets · streak ${u.streak}</small></span><span></span><span class="pn ${u.pnl >= 0 ? 'y' : 'n'}">${crs(u.pnl)}<small>${Math.round(u.winRate * 100)}% win</small></span></li>`).join('');
   }
@@ -886,7 +897,7 @@ function onBet(b) {
   // mark agent books to market: every position in this market moves with the price
   const dp = b.priceAfter - b.priceBefore;
   m.positions.forEach(p => { const k = aIdx[p.agentId]; livePnl[k] += (p.side === 'YES' ? 1 : -1) * dp * p.stake / Math.max(0.05, p.side === 'YES' ? (p.avgPrice || .5) : 1 - (p.avgPrice || .5)); });
-  lbDirty = true;
+  lbDirty = true; if (b.actorType === 'agent') lbFlash.add(b.actorId);
   const li = feedRow(b, true); feedEl.prepend(li); while (feedEl.children.length > 40) feedEl.lastChild.remove();
   const reg = mainRegion(m);
   regionHeat[reg.id] = performance.now() + 900; marketHeat[m.id] = performance.now() + 900;
