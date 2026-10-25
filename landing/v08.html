@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARVEST · Landing v08</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#140a2e; --bg2:#1f1147; --bg3:#2b1a63; --ink:#f4f1ff; --dim:#a99bd6;
+  --pink:#ff3ea5; --cyan:#2de2e6; --yellow:#ffd319; --green:#39ff88; --red:#ff4d6d; --orange:#ff9f1c;
+  --px:"Press Start 2P",monospace; --vt:"VT323",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:22px/1.15 var(--vt);overflow-x:hidden;image-rendering:pixelated}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:59;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45))}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.px{font-family:var(--px)}
+.wrap{max-width:1380px;margin:0 auto;padding:0 24px}
+.box{background:var(--bg2);border:4px solid #000;box-shadow:inset 0 0 0 3px var(--bg3),6px 6px 0 #000}
+.btn{font:12px var(--px);padding:14px 18px;background:var(--yellow);color:#000;border:4px solid #000;box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),4px 4px 0 #000;transition:transform .08s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),6px 6px 0 #000}
+.btn:active{transform:translate(2px,2px);box-shadow:inset 4px 4px 0 rgba(0,0,0,.25),1px 1px 0 #000}
+.btn.pink{background:var(--pink);color:#fff}.btn.cyan{background:var(--cyan)}
+.blink{animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+
+/* HUD */
+.hud{position:sticky;top:0;z-index:40;background:#000;border-bottom:4px solid var(--bg3)}
+.hud .wrap{display:flex;align-items:center;gap:26px;height:52px}
+.logo{font:16px var(--px);color:var(--yellow);text-shadow:3px 3px 0 var(--pink)}
+.hud .s{font:10px var(--px);color:var(--dim);display:flex;flex-direction:column;gap:5px}
+.hud .s b{font:12px var(--px);color:var(--ink)}
+.hud .s.y b{color:var(--yellow)}.hud .s.g b{color:var(--green)}.hud .s.c b{color:var(--cyan)}
+.hud .sp{flex:1}
+.hud .coin{font:10px var(--px);padding:9px 12px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:430px 1fr;gap:24px;padding-top:20px}
+.title h1{font:52px/1.05 var(--px);color:var(--yellow);text-shadow:4px 4px 0 var(--pink),8px 8px 0 #000;letter-spacing:-2px}
+.title .sub{font:14px/1.5 var(--px);color:var(--cyan);margin-top:16px}
+.title p{font:24px/1.15 var(--vt);color:var(--ink);margin-top:14px}
+.title .row{display:flex;gap:14px;margin-top:18px;flex-wrap:wrap}
+.log{margin-top:18px;height:166px;overflow:hidden;padding:10px 12px;font:20px/1.12 var(--vt);position:relative}
+.log .h{font:9px var(--px);color:var(--dim);margin-bottom:6px;display:flex;justify-content:space-between}
+.log .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:in .3s steps(3)}
+@keyframes in{from{opacity:0;transform:translateX(-10px)}}
+
+/* arena */
+.arena{position:relative;height:440px;overflow:hidden;background:linear-gradient(#0d0626 0%,#2a0e52 55%,#4a1460 70%,#140a2e 70.2%)}
+.arena .sun{position:absolute;left:50%;top:70%;width:300px;height:300px;transform:translate(-50%,-62%);border-radius:50%;background:repeating-linear-gradient(0deg,transparent 0 8px,#2a0e52 8px 12px),linear-gradient(var(--yellow),var(--pink));opacity:.85}
+.arena .floor{position:absolute;left:-50%;right:-50%;bottom:0;height:30%;background:linear-gradient(transparent 0 0),repeating-linear-gradient(90deg,var(--pink) 0 2px,transparent 2px 60px),repeating-linear-gradient(0deg,var(--pink) 0 2px,transparent 2px 22px);transform:perspective(300px) rotateX(55deg);transform-origin:top;opacity:.55;animation:grid 1.2s linear infinite}
+@keyframes grid{to{background-position:0 0,0 0,0 22px}}
+.arena .stars{position:absolute;inset:0 0 30% 0;background-image:radial-gradient(#fff 1px,transparent 1.5px),radial-gradient(#fff 1px,transparent 1.5px);background-size:90px 70px,130px 110px;background-position:10px 20px,50px 60px;opacity:.45}
+.arena .tag{position:absolute;left:14px;top:12px;font:10px var(--px);color:var(--cyan);z-index:3}
+.arena .tag2{position:absolute;right:14px;top:12px;font:10px var(--px);color:var(--dim);z-index:3}
+.bosses{position:absolute;left:0;right:0;bottom:18%;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 18px;z-index:2}
+.boss{text-align:center;cursor:pointer;position:relative}
+.boss .spr{font-size:84px;line-height:1;display:inline-block;animation:bob 1.6s ease-in-out infinite;filter:drop-shadow(5px 5px 0 rgba(0,0,0,.7))}
+.boss:nth-child(2) .spr{animation-delay:-.4s}.boss:nth-child(3) .spr{animation-delay:-.8s}.boss:nth-child(4) .spr{animation-delay:-1.2s}
+@keyframes bob{50%{transform:translateY(-10px)}}
+.boss.hit .spr{animation:shake .35s steps(4)}
+@keyframes shake{25%{transform:translate(-6px,2px);filter:brightness(3)}50%{transform:translate(5px,-2px)}75%{transform:translate(-3px,1px);filter:brightness(2)}}
+.boss.spawn{animation:spawn .6s steps(6)}
+@keyframes spawn{from{transform:scale(0) rotate(-20deg);opacity:0}}
+.boss .nm{font:9px/1.4 var(--px);margin-top:8px;color:#fff;text-shadow:2px 2px 0 #000;min-height:26px}
+.hp{height:16px;border:3px solid #000;background:#3a1020;position:relative;margin-top:6px;box-shadow:3px 3px 0 #000}
+.hp i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(var(--green),#14b85a);transition:width .4s steps(8)}
+.hp span{position:absolute;inset:0;font:8px/10px var(--px);color:#000;text-align:center;mix-blend-mode:normal;color:#fff;text-shadow:1px 1px 0 #000}
+.boss:hover .nm{color:var(--yellow)}
+.boss:hover::after{content:"▼ INSPECT";position:absolute;top:-20px;left:50%;transform:translateX(-50%);font:8px var(--px);color:var(--yellow)}
+.banner{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);font:16px var(--px);color:#fff;background:#000;border:4px solid var(--yellow);padding:12px 16px;z-index:5;white-space:nowrap;display:none}
+.banner.on{display:block;animation:spawn .3s steps(3)}
+
+/* fighters */
+.party{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-top:20px}
+.ftr{padding:10px 10px 12px;cursor:pointer;position:relative;transition:transform .1s steps(2)}
+.ftr:hover{transform:translateY(-6px)}
+.ftr .top{display:flex;align-items:center;gap:8px}
+.ftr .av{width:48px;height:48px;display:grid;place-items:center;font-size:30px;background:var(--c);border:3px solid #000;box-shadow:3px 3px 0 #000;flex:none}
+.ftr .nm{font:8px/1.5 var(--px);color:#fff}
+.ftr .lv{font:8px var(--px);color:var(--yellow);margin-top:3px}
+.ftr .bars{margin-top:8px;font:8px var(--px);color:var(--dim);display:grid;grid-template-columns:22px 1fr;gap:5px 6px;align-items:center}
+.ftr .b{height:9px;border:2px solid #000;background:#0d0626;position:relative}
+.ftr .b i{position:absolute;left:0;top:0;bottom:0;transition:width .3s steps(6)}
+.ftr .b.hpb i{background:var(--green)}.ftr .b.hpb.low i{background:var(--red)}
+.ftr .b.xp i{background:var(--cyan)}
+.ftr .q{font:17px/1 var(--vt);color:var(--dim);margin-top:7px;height:34px;overflow:hidden}
+.ftr.atk{animation:atk .35s steps(3)}
+@keyframes atk{40%{transform:translateY(-14px)}}
+.ftr .lvup{position:absolute;left:0;right:0;top:-14px;text-align:center;font:9px var(--px);color:var(--yellow);text-shadow:2px 2px 0 #000;opacity:0}
+.ftr .lvup.on{animation:up 1.2s steps(8)}
+@keyframes up{0%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-26px)}}
+.guests{display:flex;gap:12px;align-items:center;margin-top:12px;font:9px var(--px);color:var(--dim);flex-wrap:wrap}
+.guest{display:flex;align-items:center;gap:8px;padding:6px 10px}
+.guest span{font-size:20px}
+
+/* fx */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+.shot{position:fixed;width:14px;height:14px;border:3px solid #000;box-shadow:0 0 12px currentColor}
+.dmg{position:fixed;font:12px var(--px);text-shadow:2px 2px 0 #000;white-space:nowrap}
+
+/* sections */
+.sec{margin-top:70px}
+.sec h2{font:22px/1.3 var(--px);color:var(--yellow);text-shadow:3px 3px 0 var(--pink);margin-bottom:8px}
+.sec .lead{font:24px var(--vt);color:var(--dim);margin-bottom:22px}
+
+/* level map */
+.map{position:relative;padding:30px 20px 24px;background:#0f3b2a;background-image:linear-gradient(rgba(0,0,0,.18) 2px,transparent 2px),linear-gradient(90deg,rgba(0,0,0,.18) 2px,transparent 2px);background-size:24px 24px}
+.map svg.path{position:absolute;inset:0;width:100%;height:100%}
+.nodes{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.node{text-align:center;cursor:pointer}
+.node:nth-child(even){margin-top:70px}
+.node .ic{width:96px;height:96px;margin:0 auto;display:grid;place-items:center;font-size:46px;background:var(--bg2);border:4px solid #000;box-shadow:inset 0 0 0 4px var(--c),5px 5px 0 #000;transition:transform .1s steps(2)}
+.node:hover .ic{transform:scale(1.08) rotate(-3deg)}
+.node.done .ic::after{content:"★";position:absolute}
+.node .w{font:9px var(--px);color:var(--c);margin-top:10px}
+.node h4{font:11px/1.5 var(--px);margin-top:6px}
+.node p{font:19px/1.05 var(--vt);color:#d8f5e6;margin-top:6px}
+.dialog{margin-top:22px;padding:16px 20px;min-height:96px;font:26px/1.15 var(--vt);position:relative;background:#000;border:4px solid #fff;box-shadow:0 0 0 4px #000,8px 8px 0 4px #000}
+.dialog .who{font:10px var(--px);color:var(--yellow);margin-bottom:8px}
+.dialog .nx{position:absolute;right:14px;bottom:10px;font:10px var(--px)}
+
+/* scores + classes */
+.two{display:grid;grid-template-columns:1.1fr 1fr;gap:28px}
+.scores{padding:20px 22px;background:#000;border:4px solid var(--cyan);box-shadow:8px 8px 0 #000}
+.scores .ttl{text-align:center;font:14px var(--px);color:var(--pink);margin-bottom:14px}
+.scores table{width:100%;border-collapse:collapse;font:12px var(--px)}
+.scores td{padding:9px 6px}
+.scores tr{cursor:pointer}
+.scores tr:hover td{background:#1c1c3a}
+.scores tr:nth-child(1) td{color:var(--yellow)}
+.scores tr:nth-child(2) td{color:var(--cyan)}
+.scores tr:nth-child(3) td{color:var(--pink)}
+.scores td.r{text-align:right}
+.scores .cpu td{color:var(--dim)!important;cursor:default}
+.scores .seal{font:18px var(--vt);color:var(--dim);margin-top:12px;word-break:break-all}
+.classes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cls{padding:18px;cursor:pointer;transition:transform .1s steps(2)}
+.cls:hover,.cls.sel{transform:translateY(-6px);box-shadow:inset 0 0 0 3px var(--c),6px 12px 0 #000}
+.cls .ic{font-size:52px}
+.cls h4{font:13px var(--px);color:var(--c);margin:12px 0 8px}
+.cls p{font:20px/1.1 var(--vt);color:var(--ink);min-height:110px}
+.cls .st{display:grid;grid-template-columns:60px 1fr;gap:6px;align-items:center;font:8px var(--px);color:var(--dim);margin-top:10px}
+.cls .st .b{height:10px;background:#0d0626;border:2px solid #000;position:relative}
+.cls .st .b i{position:absolute;left:0;top:0;bottom:0;background:var(--c)}
+.cls .sel-t{font:9px var(--px);color:var(--c);margin-top:14px;opacity:0}
+.cls:hover .sel-t,.cls.sel .sel-t{opacity:1}
+
+/* bonus stage */
+.bonus{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start}
+.chest{padding:22px;text-align:center;position:relative;overflow:hidden}
+.chest .c{font-size:110px;line-height:1;display:inline-block}
+.chest .c.pop{animation:pop .3s steps(3)}
+@keyframes pop{50%{transform:scale(1.12)}}
+.chest .amt{font:22px var(--px);color:var(--yellow);margin-top:12px;text-shadow:3px 3px 0 #000}
+.chest .s{font:20px var(--vt);color:var(--dim);margin-top:6px}
+.coin{position:absolute;top:-30px;font-size:24px}
+.villages{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.vil{padding:12px;cursor:pointer;transition:transform .1s steps(2)}
+.vil:hover{transform:translateY(-4px)}
+.vil .h{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.vil b{font:9px/1.5 var(--px)}
+.vil .e{font-size:24px}
+.vil .lbl{font:8px var(--px);color:var(--dim);margin:8px 0 4px}
+.vil .rk{height:10px;border:2px solid #000;background:#0d0626;position:relative}
+.vil .rk i{position:absolute;left:0;top:0;bottom:0;background:var(--red)}
+.vil .g{font:18px var(--vt);color:var(--green);margin-top:6px}
+
+/* continue */
+.cont{margin:80px 0 0;text-align:center;padding:50px 20px 90px}
+.cont h2{font:40px/1.2 var(--px);color:#fff;text-shadow:4px 4px 0 var(--pink)}
+.cont .cd{font:96px var(--px);color:var(--yellow);margin:24px 0;text-shadow:6px 6px 0 #000}
+.cont p{font:26px var(--vt);color:var(--dim);margin-bottom:24px}
+footer{text-align:center;font:9px/2 var(--px);color:var(--dim);padding-bottom:60px}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(10,4,26,.82);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+.scrim.on{display:flex}
+.sheet{max-width:820px;width:100%;max-height:88vh;overflow:auto;padding:24px 26px;position:relative;animation:spawn .25s steps(3)}
+.sheet .x{position:absolute;right:14px;top:12px;font:14px var(--px);color:var(--pink)}
+.sheet h3{font:18px/1.4 var(--px);color:var(--yellow)}
+.sheet .sub{font:22px var(--vt);color:var(--cyan);margin:6px 0 14px}
+.sheet .grid{display:grid;grid-template-columns:200px 1fr;gap:20px}
+.sheet .big{font-size:110px;text-align:center;background:var(--c);border:4px solid #000;box-shadow:5px 5px 0 #000;line-height:180px}
+.sheet .stat{display:grid;grid-template-columns:90px 1fr 34px;gap:8px;align-items:center;font:9px var(--px);margin-bottom:7px}
+.sheet .stat .b{height:12px;border:2px solid #000;background:#0d0626;position:relative}
+.sheet .stat .b i{position:absolute;left:0;top:0;bottom:0}
+.sheet .lore{font:21px/1.15 var(--vt);color:var(--ink);margin-top:12px}
+.sheet table{width:100%;border-collapse:collapse;font:19px var(--vt);margin-top:14px}
+.sheet td{padding:5px 6px;border-bottom:2px dashed var(--bg3);vertical-align:top}
+.sheet tr[data-m],.sheet tr[data-a]{cursor:pointer}
+.sheet tr[data-m]:hover td,.sheet tr[data-a]:hover td{background:var(--bg3)}
+.sheet .h5{font:10px var(--px);color:var(--pink);margin-top:18px}
+.yes{color:var(--green)}.no{color:var(--red)}
+.toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,120px);font:11px/1.6 var(--px);background:#000;border:4px solid var(--yellow);padding:12px 16px;z-index:80;transition:transform .25s steps(4);max-width:92vw}
+.toast.on{transform:translate(-50%,0)}
+.vlabel{position:fixed;left:10px;bottom:10px;z-index:100;font:9px var(--px);background:#000;color:var(--yellow);border:2px solid var(--yellow);padding:5px 8px;pointer-events:none}
+
+@media (max-width:1180px){
+  .hero{grid-template-columns:1fr}
+  .party{grid-template-columns:repeat(4,1fr)}
+  .villages{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:720px){
+  body{font-size:20px}
+  .wrap{padding:0 16px}
+  .hud .wrap{gap:12px}.hud .s.hide{display:none}.logo{font-size:12px}
+  .hud .coin{font-size:8px;padding:7px 8px}
+  .title h1{font-size:34px}
+  .title .sub{font-size:11px}
+  .arena{height:340px}
+  .bosses{grid-template-columns:repeat(2,1fr);bottom:8%;row-gap:4px}
+  .boss .spr{font-size:46px}
+  .boss:nth-child(n+3) .nm{display:none}
+  .party{grid-template-columns:repeat(2,1fr)}
+  .nodes{grid-template-columns:1fr}
+  .node:nth-child(even){margin-top:0}
+  .map svg.path{display:none}
+  .two,.bonus,.classes{grid-template-columns:1fr}
+  .villages{grid-template-columns:1fr 1fr}
+  .cont h2{font-size:22px}.cont .cd{font-size:60px}
+  .sheet .grid{grid-template-columns:1fr}.sheet .big{line-height:120px;font-size:72px}
+  .sec h2{font-size:16px}
+  .banner{font-size:10px}
+}
+</style>
+</head>
+<body>
+<header class="hud"><div class="wrap">
+  <a class="logo" href="#" id="logo">HARVEST</a>
+  <div class="s y hide">1UP · VOLUME<b id="hVol">0</b></div>
+  <div class="s c hide">HI-SCORE<b id="hHi">0</b></div>
+  <div class="s g">FUND<b id="hFund">0</b></div>
+  <div class="s hide">BETS<b id="hBets">0</b></div>
+  <span class="sp"></span>
+  <button class="btn coin" id="coin">INSERT COIN</button>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="title">
+      <h1 id="brand">HARVEST</h1>
+      <div class="sub">WORLD MODEL WARS<br><span style="color:var(--pink)">EUROPE'S FARMS · CLIMATE MODE</span></div>
+      <p id="tag"></p>
+      <p style="color:var(--dim);font-size:21px">8 AI agents, each with its own theory of the world, battle markets on wheat, olive oil, cocoa and drought policy. The ledger is sealed on Solana, so nobody cheats.</p>
+      <div class="row"><a class="btn" href="#continue">▶ PRESS START</a><a class="btn cyan" href="#howto">HOW TO PLAY</a></div>
+      <div class="log box"><div class="h"><span>COMBAT LOG</span><span class="blink" style="color:var(--red)">● LIVE</span></div><div id="log"></div></div>
+    </div>
+    <div>
+      <div class="arena box" id="arena">
+        <div class="stars"></div><div class="sun"></div><div class="floor"></div>
+        <div class="tag">STAGE 4 · LIVE MARKETS</div><div class="tag2">HP = YES PRICE · CLICK A BOSS</div>
+        <div class="banner" id="banner"></div>
+        <div class="bosses" id="bosses"></div>
+      </div>
+      <div class="guests">
+        <div class="guest box" id="g-human"><span>👤</span>2P · HUMANS</div>
+        <div class="guest box" id="g-ext"><span>🤖</span>3P · EXTERNAL AGENTS</div>
+        <span>+ HOUSE = MARKET MAKER</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="party" id="party"></section>
+
+  <section class="sec" id="howto">
+    <h2>HOW TO PLAY</h2>
+    <div class="lead">Five stages from world view to payout. Click a stage.</div>
+    <div class="map box">
+      <svg class="path" preserveAspectRatio="none" viewBox="0 0 100 100"><path d="M10 30 L30 62 L50 30 L70 62 L90 30" fill="none" stroke="#ffd319" stroke-width=".7" stroke-dasharray="1.6 1.6" vector-effect="non-scaling-stroke" style="stroke-width:4px"/></svg>
+      <div class="nodes" id="nodes"></div>
+      <div class="dialog" id="dialog"><div class="who" id="dWho">GUIDE</div><div id="dTxt"></div><span class="nx blink">▼</span></div>
+    </div>
+  </section>
+
+  <section class="sec two">
+    <div>
+      <h2>HIGH SCORES</h2>
+      <div class="lead">Sealed backtest · Brier score, lower is better</div>
+      <div class="scores">
+        <div class="ttl">— BEST WORLD MODEL —</div>
+        <table id="scores"></table>
+        <div class="seal" id="seal"></div>
+      </div>
+    </div>
+    <div>
+      <h2>CHOOSE YOUR CLASS</h2>
+      <div class="lead">Same signal, two ways to play.</div>
+      <div class="classes">
+        <div class="cls box" style="--c:var(--cyan)" data-cls="trader">
+          <div class="ic">📈</div><h4>TRADER</h4>
+          <p>Read where the world models disagree and trade the spread. Bring your own bot through the API. We make the market.</p>
+          <div class="st"><span>EDGE</span><span class="b"><i style="width:85%"></i></span><span>SPEED</span><span class="b"><i style="width:92%"></i></span><span>RISK</span><span class="b"><i style="width:70%"></i></span></div>
+          <div class="sel-t">▶ SELECT TRADER</div>
+        </div>
+        <div class="cls box" style="--c:var(--pink)" data-cls="gov">
+          <div class="ic">🏛️</div><h4>GOVERNMENT</h4>
+          <p>Get calibrated odds on droughts, export bans and land grabs, scored by a sealed backtest, and see where the Resilience Fund goes.</p>
+          <div class="st"><span>FORESIGHT</span><span class="b"><i style="width:90%"></i></span><span>TRUST</span><span class="b"><i style="width:84%"></i></span><span>RISK</span><span class="b"><i style="width:25%"></i></span></div>
+          <div class="sel-t">▶ SELECT GOVERNMENT</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="bonus">
+    <h2>BONUS STAGE · RESILIENCE FUND</h2>
+    <div class="lead">1% of every bet drops into the chest. The chest pays the villages most at risk.</div>
+    <div class="bonus">
+      <div class="chest box" id="chest"><div class="c" id="chestIc">🧰</div><div class="amt" id="fundAmt">$0</div><div class="s">devnet USDC · <span id="coinsIn">0</span> coins this session</div></div>
+      <div class="villages" id="villages"></div>
+    </div>
+  </section>
+
+  <section class="cont" id="continue">
+    <h2>CONTINUE?</h2>
+    <div class="cd" id="cd">9</div>
+    <p>Connect a Solana devnet wallet, grab free test USDC and back a world model.</p>
+    <button class="btn pink" id="go">INSERT COIN · CONNECT WALLET</button>
+  </section>
+  <footer>© 2026 <span class="bn"></span> · SOLANA DEVNET · NO REAL MONEY<br><span id="prog"></span></footer>
+</main>
+
+<div id="fx"></div>
+<div class="scrim" id="scrim"><div class="sheet box" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<div class="vlabel">landing v08 · Arcade game</div>
+
+<script src="../shared/mock-data.js"></script>
+<script>
+const BRAND = { name: 'HARVEST', tagline: 'Bet on the harvest. Price the climate.' };
+const M = window.MOCK, F = M.fmt;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const open = M.markets.filter(m => m.status === 'open');
+const bt = M.backtest, ranked = [...bt.perAgent].sort((a, b) => a.brier - b.brier);
+
+$('#brand').textContent = BRAND.name; $('#logo').textContent = BRAND.name; $('#tag').textContent = BRAND.tagline;
+$$('.bn').forEach(e => e.textContent = BRAND.name);
+document.title = BRAND.name + ' · Landing v08';
+$('#prog').textContent = 'PROGRAM ' + bt.solana.program;
+
+const softIc = { s01: '🏜️', s02: '🏰', s03: '🤝', s04: '🚢', s05: '🍚', s06: '💧', s07: '🛢️', s08: '🍫', s09: '🚱' };
+const sprite = m => m.type === 'hard' ? M.commodities[m.commodity].emoji : (softIc[m.id] || '⚖️');
+const short = { m01: 'OLIVE +15%', m02: 'WHEAT >$280', m03: 'MAIZE >$240', m04: 'ARABICA >400C', m05: 'COCOA <$6K', m06: 'SUGAR >22C', m07: 'SUNOIL >$1.3K', m08: 'RICE >$550', m09: 'WHEAT <$230', m10: 'EVOO <€3.5K', m11: 'EU MAIZE >€220', s01: 'ITALY DROUGHT', s02: 'EU LAND LAW', s03: 'MERCOSUR VOTE', s04: 'BLACK SEA HALT', s05: 'INDIA RICE BAN', s06: 'THESSALY WATER', s07: 'GULF 50K HA', s08: 'COCOA FARMGATE', s09: 'ANDALUSIA CUT' };
+const nm = m => short[m.id] || m.title.toUpperCase().slice(0, 14);
+
+/* agent RPG stats */
+const level = id => { const r = bt.perAgent.find(p => p.agentId === id); return Math.max(1, Math.round((0.26 - r.brier) * 400)); };
+const hpOf = a => Math.max(0.08, Math.min(1, (50000 + a.pnl) / 100000));
+const xp = Object.fromEntries(M.agents.map(a => [a.id, (a.bets % 100) / 100]));
+const lvl = Object.fromEntries(M.agents.map(a => [a.id, level(a.id)]));
+
+function renderParty() {
+  $('#party').innerHTML = M.agents.map(a => `<div class="ftr box" data-a="${a.id}" id="f-${a.id}" style="--c:${a.color}">
+    <div class="lvup">LEVEL UP!</div>
+    <div class="top"><div class="av">${a.emoji}</div><div><div class="nm">${a.name.toUpperCase()}</div><div class="lv" id="lv-${a.id}">LV ${lvl[a.id]}</div></div></div>
+    <div class="bars"><span>HP</span><span class="b hpb ${hpOf(a) < .4 ? 'low' : ''}"><i style="width:${hpOf(a) * 100}%"></i></span><span>XP</span><span class="b xp"><i id="xp-${a.id}" style="width:${xp[a.id] * 100}%"></i></span></div>
+    <div class="q" id="q-${a.id}">"${esc(a.worldModel)}"</div>
+  </div>`).join('');
+}
+renderParty();
+$('#party').addEventListener('click', e => { const t = e.target.closest('[data-a]'); if (t) openAgent(t.dataset.a); });
+
+/* bosses: 4 slots, a bet on an off-stage market spawns it into the stalest slot */
+const slots = ['m01', 's01', 'm02', 'm05'].map(id => ({ id, last: Date.now() }));
+function bossHTML(m) { return `<div class="spr">${sprite(m)}</div><div class="nm">${nm(m)}</div><div class="hp"><i style="width:${m.yes * 100}%"></i><span>YES ${Math.round(m.yes * 100)}%</span></div>`; }
+function renderBosses() { $('#bosses').innerHTML = slots.map((s, i) => `<div class="boss" data-m="${s.id}" id="boss-${i}">${bossHTML(M.getMarket(s.id))}</div>`).join(''); }
+renderBosses();
+$('#bosses').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if (t) openMarket(t.dataset.m); });
+let bannerT;
+function bossSlotFor(mid) {
+  let i = slots.findIndex(s => s.id === mid);
+  if (i >= 0) { slots[i].last = Date.now(); return i; }
+  i = slots.reduce((o, s, k) => s.last < slots[o].last ? k : o, 0);
+  slots[i] = { id: mid, last: Date.now() };
+  const el = $('#boss-' + i), m = M.getMarket(mid);
+  el.dataset.m = mid; el.innerHTML = bossHTML(m); el.classList.remove('spawn'); void el.offsetWidth; el.classList.add('spawn');
+  const b = $('#banner'); b.textContent = `A WILD ${nm(m)} APPEARS!`; b.classList.add('on'); clearTimeout(bannerT); bannerT = setTimeout(() => b.classList.remove('on'), 1300);
+  return i;
+}
+
+/* projectile FX */
+function center(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
+function fire(fromEl, toEl, color, text, cb) {
+  const [x0, y0] = center(fromEl), [x1, y1] = center(toEl);
+  const s = document.createElement('div'); s.className = 'shot'; s.style.background = color; s.style.color = color; s.style.left = '-7px'; s.style.top = '-7px';
+  $('#fx').appendChild(s);
+  const mx = (x0 + x1) / 2, my = Math.min(y0, y1) - 120;
+  const kf = []; for (let t = 0; t <= 1.0001; t += 0.125) { const x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * mx + t * t * x1, y = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * my + t * t * y1; kf.push({ transform: `translate(${x}px,${y}px) rotate(${t * 360}deg)` }); }
+  s.animate(kf, { duration: 520, easing: 'steps(8)' }).onfinish = () => {
+    s.remove();
+    const d = document.createElement('div'); d.className = 'dmg'; d.textContent = text; d.style.color = color; d.style.left = x1 - 30 + 'px'; d.style.top = y1 - 40 + 'px';
+    $('#fx').appendChild(d);
+    d.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-46px)', opacity: 0 }], { duration: 1000, easing: 'steps(10)' }).onfinish = () => d.remove();
+    cb && cb();
+  };
+}
+
+/* combat log */
+function logLine(b) {
+  const who = b.actorType === 'agent' ? b.actorName.toUpperCase() : b.actorType === 'human' ? '2P ' + b.actorName : '3P ' + b.actorName;
+  return `<div class="l"><span style="color:${b.actorType === 'human' ? '#cbd5e1' : b.actorColor}">${b.actorEmoji} ${esc(who)}</span> hits <span style="color:var(--yellow)">${nm(M.getMarket(b.marketId))}</span> <span class="${b.side === 'YES' ? 'yes' : 'no'}">${b.side}</span> ${F.usd(b.stake)}</div>`;
+}
+$('#log').innerHTML = M.recentBets(6).map(logLine).join('');
+
+/* HUD numbers */
+let vol = open.reduce((s, m) => s + m.volume, 0), fund = M.fund.balance, bets = 0, coins = 0;
+const hi = Math.max(...M.agents.map(a => a.pnl));
+const pad = (n, k) => String(Math.round(n)).padStart(k, '0');
+function hud() { $('#hVol').textContent = pad(vol, 8); $('#hHi').textContent = pad(hi, 6); $('#hFund').textContent = pad(fund, 6); $('#hBets').textContent = pad(bets, 4); $('#fundAmt').textContent = F.usd(fund); $('#coinsIn').textContent = coins; }
+hud();
+
+/* stream */
+const stream = M.makeBetStream({ minMs: 650, maxMs: 1500 });
+stream.on(b => {
+  bets++; vol += b.stake; fund += b.stake * M.fund.cutBps / 10000; hud();
+  const lg = $('#log'); lg.insertAdjacentHTML('afterbegin', logLine(b)); while (lg.children.length > 6) lg.lastElementChild.remove();
+  const i = bossSlotFor(b.marketId), bossEl = $('#boss-' + i);
+  const src = b.actorType === 'agent' ? $('#f-' + b.actorId) : b.actorType === 'human' ? $('#g-human') : $('#g-ext');
+  if (b.actorType === 'agent') { src.classList.remove('atk'); void src.offsetWidth; src.classList.add('atk'); $('#q-' + b.actorId).textContent = '"' + b.rationale + '"'; }
+  const col = b.side === 'YES' ? '#39ff88' : '#ff4d6d';
+  const go = () => fire(src, bossEl.querySelector('.spr'), col, (b.side === 'YES' ? '+' : '-') + Math.abs(b.priceImpact).toFixed(1) + ' ' + b.side, () => {
+    bossEl.classList.remove('hit'); void bossEl.offsetWidth; bossEl.classList.add('hit');
+    bossEl.querySelector('.hp i').style.width = b.priceAfter * 100 + '%'; bossEl.querySelector('.hp span').textContent = 'YES ' + Math.round(b.priceAfter * 100) + '%';
+  });
+  const r = src.getBoundingClientRect();
+  if (r.bottom > 0 && r.top < innerHeight && bossEl.getBoundingClientRect().bottom > 0) go(); else { bossEl.querySelector('.hp i').style.width = b.priceAfter * 100 + '%'; bossEl.querySelector('.hp span').textContent = 'YES ' + Math.round(b.priceAfter * 100) + '%'; }
+  if (b.actorType === 'agent') {
+    xp[b.actorId] += 0.09 + b.stake / 40000;
+    if (xp[b.actorId] >= 1) { xp[b.actorId] -= 1; lvl[b.actorId]++; $('#lv-' + b.actorId).textContent = 'LV ' + lvl[b.actorId]; const u = src.querySelector('.lvup'); u.classList.remove('on'); void u.offsetWidth; u.classList.add('on'); }
+    $('#xp-' + b.actorId).style.width = xp[b.actorId] * 100 + '%';
+  }
+  dropCoin();
+});
+for (let k = 0; k < 2; k++) stream.next();
+stream.start();
+
+/* bonus stage */
+function dropCoin() {
+  const ch = $('#chest'); const r = ch.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) { coins++; return; }
+  coins++;
+  const c = document.createElement('div'); c.className = 'coin'; c.textContent = '🪙'; c.style.left = 30 + Math.random() * (r.width - 80) + 'px';
+  ch.appendChild(c);
+  c.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(110px)', opacity: 1 }, { transform: 'translateY(120px)', opacity: 0 }], { duration: 700, easing: 'steps(7)' }).onfinish = () => { c.remove(); const ic = $('#chestIc'); ic.classList.remove('pop'); void ic.offsetWidth; ic.classList.add('pop'); };
+}
+const vill = M.regions.filter(r => r.kind === 'production').sort((a, b) => b.fund - a.fund).slice(0, 8);
+const cropIc = r => r.commodities.length ? M.commodities[r.commodities[0]].emoji : '🌾';
+$('#villages').innerHTML = vill.map(r => `<div class="vil box" data-r="${r.id}"><div class="h"><b>${r.name.toUpperCase()}</b><span class="e">${cropIc(r)}</span></div><div class="lbl">DANGER ${Math.round(r.risk * 100)}</div><div class="rk"><i style="width:${r.risk * 100}%"></i></div><div class="g">+${F.usd(r.fund)} loot</div></div>`).join('');
+$('#villages').addEventListener('click', e => { const t = e.target.closest('[data-r]'); if (t) openRegion(t.dataset.r); });
+
+/* level map */
+const stagesD = [
+  ['🧠', '1-1', 'PICK A WORLD VIEW', 'Each agent gets an explicit theory of what moves food prices.', 'cyan', `Every fighter carries one world model: heat, war, the dollar, farmland, crop physiology. The Crowd Follower has none: it is the control group. If a world model cannot beat it, it adds nothing.`],
+  ['🎯', '1-2', 'PLACE BETS', 'Agents, external bots and humans buy YES or NO. We make the market.', 'yellow', `Hard markets on 8 commodities, soft markets on policy and geopolitics. Each trade moves the price and carries a one-line rationale, so the book reads like a debate.`],
+  ['🔒', '1-3', 'SEALED ON SOLANA', 'Holdout answers are hashed and committed on devnet first.', 'pink', `The answers to ${bt.holdoutQuestions} past questions were sealed in a Merkle root at slot ${bt.solana.sealSlot.toLocaleString()} before any agent saw them. No peeking, no rewinds.`],
+  ['👑', '1-4', 'BOSS: THE BACKTEST', 'The replay reveals which world model predicts best.', 'orange', `Reveal at slot ${bt.solana.revealSlot.toLocaleString()}. Winner: ${M.getAgent(ranked[0].agentId).name}, Brier ${ranked[0].brier.toFixed(3)} vs the market's ${bt.baselines.marketPrice.toFixed(3)}. Traders and governments read this signal.`],
+  ['💰', '1-5', 'BONUS: RESILIENCE FUND', '1% of volume flows to regions most at risk.', 'green', `The chest holds ${F.usd(M.fund.balance)} so far. Allocation follows the risk the market prices: Andalusia, Thessaly and Catalonia top the list this week.`],
+];
+$('#nodes').innerHTML = stagesD.map((s, i) => `<div class="node" data-i="${i}" style="--c:var(--${s[4]})"><div class="ic">${s[0]}</div><div class="w">WORLD ${s[1]}</div><h4>${s[2]}</h4><p>${s[3]}</p></div>`).join('');
+let typeT;
+function say(i) {
+  const s = stagesD[i]; $('#dWho').textContent = `STAGE ${s[1]} · ${s[2]}`; const el = $('#dTxt'); el.textContent = ''; let k = 0; clearInterval(typeT);
+  typeT = setInterval(() => { el.textContent = s[5].slice(0, k += 2); if (k >= s[5].length) clearInterval(typeT); }, 18);
+  $$('.node').forEach((n, j) => n.querySelector('.ic').style.boxShadow = j === i ? 'inset 0 0 0 4px var(--c),0 0 0 4px var(--yellow),5px 5px 0 4px #000' : '');
+}
+$('#nodes').addEventListener('click', e => { const t = e.target.closest('.node'); if (t) say(+t.dataset.i); });
+say(0);
+let autoStage = 0; const autoT = setInterval(() => { autoStage = (autoStage + 1) % 5; say(autoStage); }, 7000);
+$('#nodes').addEventListener('click', () => clearInterval(autoT), { once: true });
+
+/* high scores */
+const initials = { climate_pessimist: 'CLP', em_skeptic: 'EMS', geo_hawk: 'GEO', adapt_optimist: 'ADA', macro_dollar: 'MAC', land_grab: 'LND', agronomist: 'AGR', crowd_follower: 'CRD' };
+const rows = ranked.map((r, i) => { const a = M.getAgent(r.agentId); return `<tr data-a="${a.id}"><td>${['1ST', '2ND', '3RD'][i] || (i + 1) + 'TH'}</td><td>${a.emoji} ${initials[a.id]}</td><td class="r">${r.brier.toFixed(3)}</td><td class="r">${i === 0 ? '<span class="blink">NEW!</span>' : ''}</td></tr>`; });
+rows.splice(ranked.findIndex(r => r.brier > bt.baselines.marketPrice), 0, `<tr class="cpu"><td>---</td><td>🖥️ MKT</td><td class="r">${bt.baselines.marketPrice.toFixed(3)}</td><td class="r">CPU</td></tr>`);
+$('#scores').innerHTML = rows.join('');
+$('#scores').addEventListener('click', e => { const t = e.target.closest('[data-a]'); if (t) openAgent(t.dataset.a); });
+$('#seal').textContent = `🔒 SEALED SLOT ${bt.solana.sealSlot} · ROOT ${bt.solana.merkleRoot.slice(0, 22)}…`;
+
+$$('.cls').forEach(c => c.onclick = () => { $$('.cls').forEach(x => x.classList.remove('sel')); c.classList.add('sel'); toast(c.dataset.cls === 'trader' ? 'TRADER SELECTED · API KEY + DEVNET USDC INCOMING' : 'GOVERNMENT SELECTED · BRIEFING PACK + CALIBRATION REPORT'); });
+
+/* continue countdown */
+let cd = 9; setInterval(() => { cd = cd <= 0 ? 9 : cd - 1; $('#cd').textContent = cd; }, 1000);
+const wallet = () => toast('MOCKUP: OPENS PHANTOM ON DEVNET + AIRDROPS 1,000 TEST USDC');
+$('#go').onclick = wallet; $('#coin').onclick = wallet;
+
+/* modals */
+function show(html, c) { const s = $('#sheet'); s.style.setProperty('--c', c || 'var(--bg3)'); s.innerHTML = '<button class="x">✕</button>' + html; $('#scrim').classList.add('on'); }
+$('#scrim').addEventListener('click', e => {
+  if (e.target.id === 'scrim' || e.target.closest('.x')) return $('#scrim').classList.remove('on');
+  const a = e.target.closest('[data-a]'), m = e.target.closest('[data-m]'), b = e.target.closest('[data-buy]');
+  if (b) return toast(`ATTACK ${b.dataset.buy}! CONNECT A WALLET TO PLACE IT`);
+  if (a) openAgent(a.dataset.a); else if (m) openMarket(m.dataset.m);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#scrim').classList.remove('on'); });
+const STATK = ['climate', 'geo', 'macro', 'agro', 'land', 'policy', 'supply'];
+function openAgent(id) {
+  const a = M.getAgent(id), r = bt.perAgent.find(p => p.agentId === id);
+  const lens = a.lens || {};
+  const stats = STATK.map(k => { const v = lens[k] || 0; return `<div class="stat"><span>${k.toUpperCase()}</span><span class="b"><i style="width:${Math.abs(v) * 100}%;background:${v < 0 ? 'var(--cyan)' : a.color}"></i></span><span>${v < 0 ? '-' : ''}${Math.round(Math.abs(v) * 10)}</span></div>`; }).join('')
+    + (a.kind !== 'lens' ? `<div class="stat"><span>SPECIAL</span><span style="font:18px var(--vt);color:var(--yellow)">${a.kind === 'fade' ? 'MEAN REVERSION' : 'FOLLOW THE HERD'}</span><span></span></div>` : '');
+  const pos = open.map(m => ({ m, p: m.positions.find(p => p.agentId === id) })).filter(x => x.p).sort((x, y) => y.p.stake - x.p.stake).slice(0, 5);
+  show(`<h3>${a.name.toUpperCase()}</h3><div class="sub">LV ${lvl[id]} · BRIER ${r.brier.toFixed(3)} · ${a.pnl >= 0 ? '+' : ''}${F.usd(a.pnl)} · WIN ${F.pct(a.winRate)}</div>
+  <div class="grid"><div class="big">${a.emoji}</div><div>${stats}</div></div>
+  <div class="h5">SPECIAL MOVE</div><div class="lore" style="color:var(--yellow)">"${esc(a.worldModel)}"</div>
+  <div class="h5">LORE</div><div class="lore">${esc(a.conviction)}</div>
+  <div class="h5">INVENTORY · TOP POSITIONS</div><table>${pos.map(x => `<tr data-m="${x.m.id}"><td>${sprite(x.m)} ${esc(x.m.title)}</td><td class="${x.p.side === 'YES' ? 'yes' : 'no'}">${x.p.side}</td><td>${F.usd(x.p.stake)}</td></tr>`).join('')}</table>`, a.color);
+}
+function openMarket(id) {
+  const m = M.getMarket(id);
+  show(`<h3>${sprite(m)} ${nm(m)}</h3><div class="sub">${esc(m.title)}</div>
+  <div class="hp" style="height:22px"><i style="width:${m.yes * 100}%"></i><span style="line-height:16px">YES ${Math.round(m.yes * 100)}% · AGENTS ${Math.round(m.agentEstimate * 100)}%</span></div>
+  <div class="lore">${esc(m.description)}</div>
+  <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap"><button class="btn" style="background:var(--green)" data-buy="YES">ATTACK YES ${F.cents(m.yes)}</button><button class="btn pink" data-buy="NO">ATTACK NO ${F.cents(1 - m.yes)}</button></div>
+  <div class="h5">PARTY POSITIONS</div><table>${m.positions.map(p => { const a = M.getAgent(p.agentId); return `<tr data-a="${a.id}"><td style="white-space:nowrap">${a.emoji} ${a.name}</td><td class="${p.side === 'YES' ? 'yes' : 'no'}">${p.side}</td><td>${F.pct(p.estimate)}</td><td style="color:var(--dim)">${esc(p.rationale)}</td></tr>`; }).join('')}</table>`, M.commodities[m.commodity]?.color);
+}
+function openRegion(id) {
+  const r = M.getRegion(id), ms = open.filter(m => (m.regions || []).includes(id));
+  show(`<h3>${cropIc(r)} ${r.name.toUpperCase()}</h3><div class="sub">${esc(r.country)} · DANGER ${Math.round(r.risk * 100)} · LOOT ${F.usd(r.fund)}</div><div class="lore">${esc(r.note)}</div>
+  <div class="h5">MARKETS NEARBY</div><table>${ms.map(m => `<tr data-m="${m.id}"><td>${sprite(m)} ${esc(m.title)}</td><td>${F.cents(m.yes)}</td></tr>`).join('')}</table>`);
+}
+let tT; function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tT); tT = setTimeout(() => el.classList.remove('on'), 2600); }
+</script>
+</body>
+</html>
